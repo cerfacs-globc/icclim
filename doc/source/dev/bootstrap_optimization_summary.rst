@@ -226,9 +226,25 @@ In production today:
 - supported day-of-year percentile counts use the compiled count path;
 - supported ``cftime`` day-of-year percentile counts use the exact
   compiled order-statistics count path;
-- selected value aggregates reuse the same threshold semantics;
-- selected spell reducers use the validated compiled union-mask route;
+- unfiltered ``cftime`` ``sum``, ``average`` and
+  ``fraction_of_total`` reuse the same exact threshold reconstruction;
+- filtered ``cftime`` count, ``sum``, ``average`` and
+  ``fraction_of_total`` reuse target-calendar daily threshold unions;
+- validated non-Gregorian CF calendars use calendar-specific daily
+  threshold indexing;
+- extrema, standard deviation, rolling reducers and date-event counts
+  reuse the optimized daily mask;
+- ``excess`` and ``deficit`` reuse the mean substituted threshold;
+- multiple percentile values are evaluated through the same scalar kernels
+  and restored with reference-compatible dimension order;
+- selected pandas-compatible spell reducers use the validated compiled
+  union-mask route, including filtered spells, while simple ``cftime`` spells
+  use the exact eager tiled union-mask route;
 - selected compound families reuse component-mask composition;
+- pandas-backed compound spells reuse the same component-mask composition before
+  run-length reduction;
+- weekly and similar cross-calendar-year groups use daily masks when their
+  bootstrap substitutions remain calendar-year based;
 - unsupported cases still fall back to exact tiled or reference paths.
 
 This separation keeps the workflow readable in climate-index terms:
@@ -298,20 +314,88 @@ The production conclusion is:
 - field equality is the release criterion, not average similarity;
 - unsupported or not yet trusted cases remain on exact fallback paths.
 
+The October 2026 extension round widened the exact compiled ``cftime``
+boundary to unfiltered ``sum``, ``average`` and
+``fraction_of_total``, plus filtered ``sum``. All four were field-exact
+against the reference path for annual and monthly real-data output.
+Annual compiled wall-clock times were about 985 to 1,101 seconds,
+compared with about 1,109 to 1,253 seconds for the tiled fallback.
+
+The initial round rejected the compiled ``cftime`` spell and filtered
+``fraction_of_total`` prototypes. The follow-up investigation identified
+precision loss in spell preparation, missing boolean normalization in
+the tiled spell shortcut and incorrect filtered overlap preparation.
+
+The final full-field rerun retained filtered count, average and
+``fraction_of_total`` for both annual and monthly output, with zero
+changed cells and zero maximum difference against the reference. Each
+substitute threshold is now aligned to the target calendar before the
+daily union is formed. The annual compiled runs took about 1,069 to
+1,074 seconds and about 1.33 to 1.38 GiB of scheduler ``MaxRSS``. The
+reference runs took about 229 to 238 seconds, so the compiled route is
+retained for bounded memory and graph avoidance rather than as a
+wall-clock improvement over a reference graph that completes.
+
+The compiled ``cftime`` spell rerun was not retained. It produced continuous
+multi-year runs in some real-data cells and took about 989 seconds. A later
+exact eager tiled algorithm retained xclim's percentile and calendar
+operations and formed the boolean daily union before run-length reduction.
+On the full ACCESS-CM2 subset it matched all 13,959,708 reference-mask values,
+reduced mask construction from about 343 to 135 seconds and completed the
+routed annual spell calculation in about 167 seconds. Simple ``cftime`` spells
+now use this route. Same-variable compound spells reuse each loaded tile across
+their component masks. Aligned multi-variable compounds load corresponding
+tiles from each variable and combine the component masks before spell
+reduction; non-aligned inputs retain the reference path.
+The annual ``cftime`` ``average`` also matched all 38,220 reference output
+cells, coordinates and attributes. Its local runtime was about 173 seconds,
+compared with about 76 seconds for the reference graph and roughly 1,000
+seconds for the earlier compiled batch route.
+
+On a two-percentile ACCESS-CM2 compound spell, the shared-tile route matched
+all 38,220 annual reference cells exactly. It completed in about 274 seconds,
+compared with about 424 seconds when the two eager masks were built separately,
+a 35 percent reduction. The local reference graph completed in about 133
+seconds, so the retained route improves bounded eager execution and graph
+avoidance rather than wall-clock time when the reference graph succeeds.
+
+An aligned temperature-and-precipitation compound spell was validated on a
+65-year ACCESS-CM2 sample. The optimized route matched all 1,040 annual output
+values and coordinates, excluding the generated xclim history string, and was
+graph-free. It completed in about 35 seconds versus 57 seconds for the
+reference route, a 1.63-times speedup on that sample.
+
+An additional real-data validation pass against commit ``00baef3b`` was
+completed on Monday, August 24, 2026 to compare the current production
+state against the last fair pre-optimization baseline that still
+contains the relevant bootstrap bug fixes preceding the optimization
+campaign.
+
+That pass showed three important points:
+
+- the supported exact ``cftime`` count redesign stayed field-exact on
+  the validated real workloads while improving wall-clock time from
+  about 2226 seconds to about 979 seconds for monthly ``TX90p`` and
+  from about 2160 seconds to about 1037 seconds for yearly ``TX90p``;
+- many older percentile-bootstrap workloads in ``00baef3b`` could no
+  longer serve as a full execution baseline because they still failed on
+  the old ``PercentileDataArray.value`` preparation bug;
+- the remaining output differences against ``00baef3b`` were limited to
+  known legacy semantic corrections, notably spell aggregation and the
+  wet-day ``fraction_of_total`` boundary, rather than new regressions in
+  the retained optimization work.
+
 What remains out of scope
 =========================
 
-The following areas are not yet retained as optimized production
-families:
+The following boundaries retain fallback behavior:
 
-- broader filtered percentile families beyond the validated reducer
-  split;
-- broader ``cftime`` bootstrap families beyond supported count
-  workloads;
-- more complex spell families that need separate reducer semantics after
-  thresholding;
-- any future route whose exactness is not demonstrated against the
-  reference implementation.
+- non-aligned multi-variable compound ``cftime`` spell inputs;
+- cross-year output groups whose bootstrap substitution epoch uses a non-January
+  anchor, outside the established seasonal routes;
+- ``only_leap_years`` and uncommon comparison operators; and
+- any future route whose exactness is not demonstrated against the reference
+  implementation.
 
 Impact on xclim bootstrap code
 ==============================

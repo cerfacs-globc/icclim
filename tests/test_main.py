@@ -978,7 +978,7 @@ class TestIntegration:
         assert profile["bootstrap_optimized_tile_count"] == 4
         xr.testing.assert_allclose(default.TX90p, legacy.TX90p)
 
-    def test_count_occurrences__dask_wet_day_bootstrap_uses_exact_tiled_path(
+    def test_count_occurrences__dask_wet_day_bootstrap_uses_optimized_path(
         self,
         monkeypatch,
     ) -> None:
@@ -1019,12 +1019,8 @@ class TestIntegration:
         default = icclim.count_occurrences(**common_kwargs)
         profile = generic_functions.get_bootstrap_profile()
 
-        assert not hasattr(default.count_occurrences.data, "__dask_graph__")
-        assert profile["bootstrap_count_execution_kind"] == "exact_tiled_bootstrap"
-        assert (
-            profile["bootstrap_count_reason_code"]
-            == "threshold_min_value_requires_exact_tiled_bootstrap"
-        )
+        assert profile["bootstrap_count_execution_kind"] == "optimized_bootstrap"
+        assert profile["bootstrap_count_reason_code"] == "optimized_bootstrap_supported"
         assert (
             profile["bootstrap_count_family"] == "filtered_day_of_year_percentile_count"
         )
@@ -1128,7 +1124,7 @@ class TestIntegration:
             reference["sum"],
         )
 
-    def test_average__filtered_exact_tiled_bootstrap_matches_reference_on_overlap_years(
+    def test_average__filtered_optimized_bootstrap_matches_reference_on_overlap_years(
         self,
         monkeypatch,
     ) -> None:
@@ -1170,11 +1166,8 @@ class TestIntegration:
         optimized = icclim.index(**common_kwargs).compute()
         profile = generic_functions.get_bootstrap_profile()
 
-        assert profile["bootstrap_execution_kind"] == "exact_tiled_bootstrap"
-        assert (
-            profile["bootstrap_reason_code"]
-            == "filtered_average_requires_exact_tiled_bootstrap"
-        )
+        assert profile["bootstrap_execution_kind"] == "optimized_bootstrap"
+        assert profile["bootstrap_reason_code"] == "optimized_bootstrap_supported"
         xr.testing.assert_allclose(
             optimized.average,
             reference.average,
