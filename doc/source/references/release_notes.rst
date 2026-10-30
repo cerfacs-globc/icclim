@@ -2,6 +2,15 @@
  Release history
 #################
 
+**********
+Unreleased
+**********
+
+-  [test] Record non-bootstrap performance invariants for date-event, rolling
+   and reference-difference reducers before optimization work begins.
+-  [doc] Document legacy date-event behavior and the xarray compatibility
+   constraints that affect later vectorization.
+
 *****
 7.3.0
 *****
