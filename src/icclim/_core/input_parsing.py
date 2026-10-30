@@ -183,8 +183,18 @@ def read_dataset(
 
     Examples
     --------
-    >>> files = ["data1.nc", "data2.nc"]
-    >>> ds = read_dataset(files, standard_var="temperature", var_name="temp")
+    >>> import pandas as pd
+    >>> import xarray as xr
+    >>> data = xr.DataArray(
+    ...     [273.15],
+    ...     coords={"time": pd.date_range("2000-01-01", periods=1)},
+    ...     dims="time",
+    ...     name="tas",
+    ...     attrs={"units": "K"},
+    ... )
+    >>> ds = read_dataset(data, var_name="tas")
+    >>> list(ds.data_vars)
+    ['tas']
     """
     if isinstance(in_files, Dataset):
         ds = in_files

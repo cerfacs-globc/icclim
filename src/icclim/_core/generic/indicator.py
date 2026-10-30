@@ -166,7 +166,7 @@ class GenericIndicator(Indicator):
 
         Examples
         --------
-        >>> from icclim.generic_indices import GenericIndicator
+        >>> from icclim._core.generic.indicator import GenericIndicator
         >>> def process(climate_vars, resample_freq):
         ...     out = climate_vars[0].studied_data + climate_vars[1].studied_data
         ...     out.resample(time=resample_freq).mean()
@@ -177,7 +177,7 @@ class GenericIndicator(Indicator):
         ...             "This indicator requires exactly 2 climate variables."
         ...         )
         >>> indicator = GenericIndicator(
-        ...     name="test",
+        ...     name="count_occurrences",
         ...     process=process,
         ...     definition="This is a test indicator",
         ...     check_vars=check_vars,
