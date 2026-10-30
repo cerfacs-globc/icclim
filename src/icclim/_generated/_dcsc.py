@@ -168,11 +168,13 @@ def tav(
         profile automatically: at least 350 daily values for a year, 175 for a
         half-year, 85 for a three-month season, and 25 for a month. ``strict``
         requires every expected value. ``wmo`` applies the aggregation-specific
-        WMO-No. 1203 rules for means, counts, sums, and simple extrema. Unsupported
-        WMO inputs and unclassified operations safely fall back to strict. ``none``
-        always computes from available values, and a fraction in ``(0, 1]`` sets
-        a configurable minimum valid fraction. Do not combine this parameter with
-        the legacy ``allow_missing_periods`` parameter.
+        WMO-No. 1203 rules: the 11-day/5-consecutive-day monthly rule for means
+        and counts, complete data for sums, and no completeness mask for simple
+        extrema. Unclassified operations, unsupported period types, non-daily
+        WMO inputs, and spatially varying seasons safely fall back to strict.
+        ``none`` always computes from available values, and a fraction in
+        ``(0, 1]`` sets a configurable minimum valid fraction. Do not combine
+        this parameter with the legacy ``allow_missing_periods`` parameter.
     allow_missing_periods : bool | None
         Compatibility parameter for 7.2 workflows. An explicit False selects
         strict completeness, while True computes from available source values.
@@ -314,11 +316,13 @@ def txav(
         profile automatically: at least 350 daily values for a year, 175 for a
         half-year, 85 for a three-month season, and 25 for a month. ``strict``
         requires every expected value. ``wmo`` applies the aggregation-specific
-        WMO-No. 1203 rules for means, counts, sums, and simple extrema. Unsupported
-        WMO inputs and unclassified operations safely fall back to strict. ``none``
-        always computes from available values, and a fraction in ``(0, 1]`` sets
-        a configurable minimum valid fraction. Do not combine this parameter with
-        the legacy ``allow_missing_periods`` parameter.
+        WMO-No. 1203 rules: the 11-day/5-consecutive-day monthly rule for means
+        and counts, complete data for sums, and no completeness mask for simple
+        extrema. Unclassified operations, unsupported period types, non-daily
+        WMO inputs, and spatially varying seasons safely fall back to strict.
+        ``none`` always computes from available values, and a fraction in
+        ``(0, 1]`` sets a configurable minimum valid fraction. Do not combine
+        this parameter with the legacy ``allow_missing_periods`` parameter.
     allow_missing_periods : bool | None
         Compatibility parameter for 7.2 workflows. An explicit False selects
         strict completeness, while True computes from available source values.
@@ -460,11 +464,13 @@ def trav(
         profile automatically: at least 350 daily values for a year, 175 for a
         half-year, 85 for a three-month season, and 25 for a month. ``strict``
         requires every expected value. ``wmo`` applies the aggregation-specific
-        WMO-No. 1203 rules for means, counts, sums, and simple extrema. Unsupported
-        WMO inputs and unclassified operations safely fall back to strict. ``none``
-        always computes from available values, and a fraction in ``(0, 1]`` sets
-        a configurable minimum valid fraction. Do not combine this parameter with
-        the legacy ``allow_missing_periods`` parameter.
+        WMO-No. 1203 rules: the 11-day/5-consecutive-day monthly rule for means
+        and counts, complete data for sums, and no completeness mask for simple
+        extrema. Unclassified operations, unsupported period types, non-daily
+        WMO inputs, and spatially varying seasons safely fall back to strict.
+        ``none`` always computes from available values, and a fraction in
+        ``(0, 1]`` sets a configurable minimum valid fraction. Do not combine
+        this parameter with the legacy ``allow_missing_periods`` parameter.
     allow_missing_periods : bool | None
         Compatibility parameter for 7.2 workflows. An explicit False selects
         strict completeness, while True computes from available source values.
@@ -634,11 +640,13 @@ def tx10(
         profile automatically: at least 350 daily values for a year, 175 for a
         half-year, 85 for a three-month season, and 25 for a month. ``strict``
         requires every expected value. ``wmo`` applies the aggregation-specific
-        WMO-No. 1203 rules for means, counts, sums, and simple extrema. Unsupported
-        WMO inputs and unclassified operations safely fall back to strict. ``none``
-        always computes from available values, and a fraction in ``(0, 1]`` sets
-        a configurable minimum valid fraction. Do not combine this parameter with
-        the legacy ``allow_missing_periods`` parameter.
+        WMO-No. 1203 rules: the 11-day/5-consecutive-day monthly rule for means
+        and counts, complete data for sums, and no completeness mask for simple
+        extrema. Unclassified operations, unsupported period types, non-daily
+        WMO inputs, and spatially varying seasons safely fall back to strict.
+        ``none`` always computes from available values, and a fraction in
+        ``(0, 1]`` sets a configurable minimum valid fraction. Do not combine
+        this parameter with the legacy ``allow_missing_periods`` parameter.
     allow_missing_periods : bool | None
         Compatibility parameter for 7.2 workflows. An explicit False selects
         strict completeness, while True computes from available source values.
@@ -819,11 +827,13 @@ def tx90(
         profile automatically: at least 350 daily values for a year, 175 for a
         half-year, 85 for a three-month season, and 25 for a month. ``strict``
         requires every expected value. ``wmo`` applies the aggregation-specific
-        WMO-No. 1203 rules for means, counts, sums, and simple extrema. Unsupported
-        WMO inputs and unclassified operations safely fall back to strict. ``none``
-        always computes from available values, and a fraction in ``(0, 1]`` sets
-        a configurable minimum valid fraction. Do not combine this parameter with
-        the legacy ``allow_missing_periods`` parameter.
+        WMO-No. 1203 rules: the 11-day/5-consecutive-day monthly rule for means
+        and counts, complete data for sums, and no completeness mask for simple
+        extrema. Unclassified operations, unsupported period types, non-daily
+        WMO inputs, and spatially varying seasons safely fall back to strict.
+        ``none`` always computes from available values, and a fraction in
+        ``(0, 1]`` sets a configurable minimum valid fraction. Do not combine
+        this parameter with the legacy ``allow_missing_periods`` parameter.
     allow_missing_periods : bool | None
         Compatibility parameter for 7.2 workflows. An explicit False selects
         strict completeness, while True computes from available source values.
@@ -1004,11 +1014,13 @@ def tn10(
         profile automatically: at least 350 daily values for a year, 175 for a
         half-year, 85 for a three-month season, and 25 for a month. ``strict``
         requires every expected value. ``wmo`` applies the aggregation-specific
-        WMO-No. 1203 rules for means, counts, sums, and simple extrema. Unsupported
-        WMO inputs and unclassified operations safely fall back to strict. ``none``
-        always computes from available values, and a fraction in ``(0, 1]`` sets
-        a configurable minimum valid fraction. Do not combine this parameter with
-        the legacy ``allow_missing_periods`` parameter.
+        WMO-No. 1203 rules: the 11-day/5-consecutive-day monthly rule for means
+        and counts, complete data for sums, and no completeness mask for simple
+        extrema. Unclassified operations, unsupported period types, non-daily
+        WMO inputs, and spatially varying seasons safely fall back to strict.
+        ``none`` always computes from available values, and a fraction in
+        ``(0, 1]`` sets a configurable minimum valid fraction. Do not combine
+        this parameter with the legacy ``allow_missing_periods`` parameter.
     allow_missing_periods : bool | None
         Compatibility parameter for 7.2 workflows. An explicit False selects
         strict completeness, while True computes from available source values.
@@ -1189,11 +1201,13 @@ def tn90(
         profile automatically: at least 350 daily values for a year, 175 for a
         half-year, 85 for a three-month season, and 25 for a month. ``strict``
         requires every expected value. ``wmo`` applies the aggregation-specific
-        WMO-No. 1203 rules for means, counts, sums, and simple extrema. Unsupported
-        WMO inputs and unclassified operations safely fall back to strict. ``none``
-        always computes from available values, and a fraction in ``(0, 1]`` sets
-        a configurable minimum valid fraction. Do not combine this parameter with
-        the legacy ``allow_missing_periods`` parameter.
+        WMO-No. 1203 rules: the 11-day/5-consecutive-day monthly rule for means
+        and counts, complete data for sums, and no completeness mask for simple
+        extrema. Unclassified operations, unsupported period types, non-daily
+        WMO inputs, and spatially varying seasons safely fall back to strict.
+        ``none`` always computes from available values, and a fraction in
+        ``(0, 1]`` sets a configurable minimum valid fraction. Do not combine
+        this parameter with the legacy ``allow_missing_periods`` parameter.
     allow_missing_periods : bool | None
         Compatibility parameter for 7.2 workflows. An explicit False selects
         strict completeness, while True computes from available source values.
@@ -1346,11 +1360,13 @@ def tnfd(
         profile automatically: at least 350 daily values for a year, 175 for a
         half-year, 85 for a three-month season, and 25 for a month. ``strict``
         requires every expected value. ``wmo`` applies the aggregation-specific
-        WMO-No. 1203 rules for means, counts, sums, and simple extrema. Unsupported
-        WMO inputs and unclassified operations safely fall back to strict. ``none``
-        always computes from available values, and a fraction in ``(0, 1]`` sets
-        a configurable minimum valid fraction. Do not combine this parameter with
-        the legacy ``allow_missing_periods`` parameter.
+        WMO-No. 1203 rules: the 11-day/5-consecutive-day monthly rule for means
+        and counts, complete data for sums, and no completeness mask for simple
+        extrema. Unclassified operations, unsupported period types, non-daily
+        WMO inputs, and spatially varying seasons safely fall back to strict.
+        ``none`` always computes from available values, and a fraction in
+        ``(0, 1]`` sets a configurable minimum valid fraction. Do not combine
+        this parameter with the legacy ``allow_missing_periods`` parameter.
     allow_missing_periods : bool | None
         Compatibility parameter for 7.2 workflows. An explicit False selects
         strict completeness, while True computes from available source values.
@@ -1495,11 +1511,13 @@ def txfd(
         profile automatically: at least 350 daily values for a year, 175 for a
         half-year, 85 for a three-month season, and 25 for a month. ``strict``
         requires every expected value. ``wmo`` applies the aggregation-specific
-        WMO-No. 1203 rules for means, counts, sums, and simple extrema. Unsupported
-        WMO inputs and unclassified operations safely fall back to strict. ``none``
-        always computes from available values, and a fraction in ``(0, 1]`` sets
-        a configurable minimum valid fraction. Do not combine this parameter with
-        the legacy ``allow_missing_periods`` parameter.
+        WMO-No. 1203 rules: the 11-day/5-consecutive-day monthly rule for means
+        and counts, complete data for sums, and no completeness mask for simple
+        extrema. Unclassified operations, unsupported period types, non-daily
+        WMO inputs, and spatially varying seasons safely fall back to strict.
+        ``none`` always computes from available values, and a fraction in
+        ``(0, 1]`` sets a configurable minimum valid fraction. Do not combine
+        this parameter with the legacy ``allow_missing_periods`` parameter.
     allow_missing_periods : bool | None
         Compatibility parameter for 7.2 workflows. An explicit False selects
         strict completeness, while True computes from available source values.
@@ -1644,11 +1662,13 @@ def sd(
         profile automatically: at least 350 daily values for a year, 175 for a
         half-year, 85 for a three-month season, and 25 for a month. ``strict``
         requires every expected value. ``wmo`` applies the aggregation-specific
-        WMO-No. 1203 rules for means, counts, sums, and simple extrema. Unsupported
-        WMO inputs and unclassified operations safely fall back to strict. ``none``
-        always computes from available values, and a fraction in ``(0, 1]`` sets
-        a configurable minimum valid fraction. Do not combine this parameter with
-        the legacy ``allow_missing_periods`` parameter.
+        WMO-No. 1203 rules: the 11-day/5-consecutive-day monthly rule for means
+        and counts, complete data for sums, and no completeness mask for simple
+        extrema. Unclassified operations, unsupported period types, non-daily
+        WMO inputs, and spatially varying seasons safely fall back to strict.
+        ``none`` always computes from available values, and a fraction in
+        ``(0, 1]`` sets a configurable minimum valid fraction. Do not combine
+        this parameter with the legacy ``allow_missing_periods`` parameter.
     allow_missing_periods : bool | None
         Compatibility parameter for 7.2 workflows. An explicit False selects
         strict completeness, while True computes from available source values.
@@ -1793,11 +1813,13 @@ def tx35(
         profile automatically: at least 350 daily values for a year, 175 for a
         half-year, 85 for a three-month season, and 25 for a month. ``strict``
         requires every expected value. ``wmo`` applies the aggregation-specific
-        WMO-No. 1203 rules for means, counts, sums, and simple extrema. Unsupported
-        WMO inputs and unclassified operations safely fall back to strict. ``none``
-        always computes from available values, and a fraction in ``(0, 1]`` sets
-        a configurable minimum valid fraction. Do not combine this parameter with
-        the legacy ``allow_missing_periods`` parameter.
+        WMO-No. 1203 rules: the 11-day/5-consecutive-day monthly rule for means
+        and counts, complete data for sums, and no completeness mask for simple
+        extrema. Unclassified operations, unsupported period types, non-daily
+        WMO inputs, and spatially varying seasons safely fall back to strict.
+        ``none`` always computes from available values, and a fraction in
+        ``(0, 1]`` sets a configurable minimum valid fraction. Do not combine
+        this parameter with the legacy ``allow_missing_periods`` parameter.
     allow_missing_periods : bool | None
         Compatibility parameter for 7.2 workflows. An explicit False selects
         strict completeness, while True computes from available source values.
@@ -1942,11 +1964,13 @@ def tr(
         profile automatically: at least 350 daily values for a year, 175 for a
         half-year, 85 for a three-month season, and 25 for a month. ``strict``
         requires every expected value. ``wmo`` applies the aggregation-specific
-        WMO-No. 1203 rules for means, counts, sums, and simple extrema. Unsupported
-        WMO inputs and unclassified operations safely fall back to strict. ``none``
-        always computes from available values, and a fraction in ``(0, 1]`` sets
-        a configurable minimum valid fraction. Do not combine this parameter with
-        the legacy ``allow_missing_periods`` parameter.
+        WMO-No. 1203 rules: the 11-day/5-consecutive-day monthly rule for means
+        and counts, complete data for sums, and no completeness mask for simple
+        extrema. Unclassified operations, unsupported period types, non-daily
+        WMO inputs, and spatially varying seasons safely fall back to strict.
+        ``none`` always computes from available values, and a fraction in
+        ``(0, 1]`` sets a configurable minimum valid fraction. Do not combine
+        this parameter with the legacy ``allow_missing_periods`` parameter.
     allow_missing_periods : bool | None
         Compatibility parameter for 7.2 workflows. An explicit False selects
         strict completeness, while True computes from available source values.
@@ -2093,11 +2117,13 @@ def txnd(
         profile automatically: at least 350 daily values for a year, 175 for a
         half-year, 85 for a three-month season, and 25 for a month. ``strict``
         requires every expected value. ``wmo`` applies the aggregation-specific
-        WMO-No. 1203 rules for means, counts, sums, and simple extrema. Unsupported
-        WMO inputs and unclassified operations safely fall back to strict. ``none``
-        always computes from available values, and a fraction in ``(0, 1]`` sets
-        a configurable minimum valid fraction. Do not combine this parameter with
-        the legacy ``allow_missing_periods`` parameter.
+        WMO-No. 1203 rules: the 11-day/5-consecutive-day monthly rule for means
+        and counts, complete data for sums, and no completeness mask for simple
+        extrema. Unclassified operations, unsupported period types, non-daily
+        WMO inputs, and spatially varying seasons safely fall back to strict.
+        ``none`` always computes from available values, and a fraction in
+        ``(0, 1]`` sets a configurable minimum valid fraction. Do not combine
+        this parameter with the legacy ``allow_missing_periods`` parameter.
     allow_missing_periods : bool | None
         Compatibility parameter for 7.2 workflows. An explicit False selects
         strict completeness, while True computes from available source values.
@@ -2254,11 +2280,13 @@ def tnht(
         profile automatically: at least 350 daily values for a year, 175 for a
         half-year, 85 for a three-month season, and 25 for a month. ``strict``
         requires every expected value. ``wmo`` applies the aggregation-specific
-        WMO-No. 1203 rules for means, counts, sums, and simple extrema. Unsupported
-        WMO inputs and unclassified operations safely fall back to strict. ``none``
-        always computes from available values, and a fraction in ``(0, 1]`` sets
-        a configurable minimum valid fraction. Do not combine this parameter with
-        the legacy ``allow_missing_periods`` parameter.
+        WMO-No. 1203 rules: the 11-day/5-consecutive-day monthly rule for means
+        and counts, complete data for sums, and no completeness mask for simple
+        extrema. Unclassified operations, unsupported period types, non-daily
+        WMO inputs, and spatially varying seasons safely fall back to strict.
+        ``none`` always computes from available values, and a fraction in
+        ``(0, 1]`` sets a configurable minimum valid fraction. Do not combine
+        this parameter with the legacy ``allow_missing_periods`` parameter.
     allow_missing_periods : bool | None
         Compatibility parameter for 7.2 workflows. An explicit False selects
         strict completeness, while True computes from available source values.
@@ -2415,11 +2443,13 @@ def tnnd(
         profile automatically: at least 350 daily values for a year, 175 for a
         half-year, 85 for a three-month season, and 25 for a month. ``strict``
         requires every expected value. ``wmo`` applies the aggregation-specific
-        WMO-No. 1203 rules for means, counts, sums, and simple extrema. Unsupported
-        WMO inputs and unclassified operations safely fall back to strict. ``none``
-        always computes from available values, and a fraction in ``(0, 1]`` sets
-        a configurable minimum valid fraction. Do not combine this parameter with
-        the legacy ``allow_missing_periods`` parameter.
+        WMO-No. 1203 rules: the 11-day/5-consecutive-day monthly rule for means
+        and counts, complete data for sums, and no completeness mask for simple
+        extrema. Unclassified operations, unsupported period types, non-daily
+        WMO inputs, and spatially varying seasons safely fall back to strict.
+        ``none`` always computes from available values, and a fraction in
+        ``(0, 1]`` sets a configurable minimum valid fraction. Do not combine
+        this parameter with the legacy ``allow_missing_periods`` parameter.
     allow_missing_periods : bool | None
         Compatibility parameter for 7.2 workflows. An explicit False selects
         strict completeness, while True computes from available source values.
@@ -2576,11 +2606,13 @@ def tncwd(
         profile automatically: at least 350 daily values for a year, 175 for a
         half-year, 85 for a three-month season, and 25 for a month. ``strict``
         requires every expected value. ``wmo`` applies the aggregation-specific
-        WMO-No. 1203 rules for means, counts, sums, and simple extrema. Unsupported
-        WMO inputs and unclassified operations safely fall back to strict. ``none``
-        always computes from available values, and a fraction in ``(0, 1]`` sets
-        a configurable minimum valid fraction. Do not combine this parameter with
-        the legacy ``allow_missing_periods`` parameter.
+        WMO-No. 1203 rules: the 11-day/5-consecutive-day monthly rule for means
+        and counts, complete data for sums, and no completeness mask for simple
+        extrema. Unclassified operations, unsupported period types, non-daily
+        WMO inputs, and spatially varying seasons safely fall back to strict.
+        ``none`` always computes from available values, and a fraction in
+        ``(0, 1]`` sets a configurable minimum valid fraction. Do not combine
+        this parameter with the legacy ``allow_missing_periods`` parameter.
     allow_missing_periods : bool | None
         Compatibility parameter for 7.2 workflows. An explicit False selects
         strict completeness, while True computes from available source values.
@@ -2737,11 +2769,13 @@ def txhwd(
         profile automatically: at least 350 daily values for a year, 175 for a
         half-year, 85 for a three-month season, and 25 for a month. ``strict``
         requires every expected value. ``wmo`` applies the aggregation-specific
-        WMO-No. 1203 rules for means, counts, sums, and simple extrema. Unsupported
-        WMO inputs and unclassified operations safely fall back to strict. ``none``
-        always computes from available values, and a fraction in ``(0, 1]`` sets
-        a configurable minimum valid fraction. Do not combine this parameter with
-        the legacy ``allow_missing_periods`` parameter.
+        WMO-No. 1203 rules: the 11-day/5-consecutive-day monthly rule for means
+        and counts, complete data for sums, and no completeness mask for simple
+        extrema. Unclassified operations, unsupported period types, non-daily
+        WMO inputs, and spatially varying seasons safely fall back to strict.
+        ``none`` always computes from available values, and a fraction in
+        ``(0, 1]`` sets a configurable minimum valid fraction. Do not combine
+        this parameter with the legacy ``allow_missing_periods`` parameter.
     allow_missing_periods : bool | None
         Compatibility parameter for 7.2 workflows. An explicit False selects
         strict completeness, while True computes from available source values.
@@ -2896,11 +2930,13 @@ def hdd(
         profile automatically: at least 350 daily values for a year, 175 for a
         half-year, 85 for a three-month season, and 25 for a month. ``strict``
         requires every expected value. ``wmo`` applies the aggregation-specific
-        WMO-No. 1203 rules for means, counts, sums, and simple extrema. Unsupported
-        WMO inputs and unclassified operations safely fall back to strict. ``none``
-        always computes from available values, and a fraction in ``(0, 1]`` sets
-        a configurable minimum valid fraction. Do not combine this parameter with
-        the legacy ``allow_missing_periods`` parameter.
+        WMO-No. 1203 rules: the 11-day/5-consecutive-day monthly rule for means
+        and counts, complete data for sums, and no completeness mask for simple
+        extrema. Unclassified operations, unsupported period types, non-daily
+        WMO inputs, and spatially varying seasons safely fall back to strict.
+        ``none`` always computes from available values, and a fraction in
+        ``(0, 1]`` sets a configurable minimum valid fraction. Do not combine
+        this parameter with the legacy ``allow_missing_periods`` parameter.
     allow_missing_periods : bool | None
         Compatibility parameter for 7.2 workflows. An explicit False selects
         strict completeness, while True computes from available source values.
@@ -3045,11 +3081,13 @@ def cdd(
         profile automatically: at least 350 daily values for a year, 175 for a
         half-year, 85 for a three-month season, and 25 for a month. ``strict``
         requires every expected value. ``wmo`` applies the aggregation-specific
-        WMO-No. 1203 rules for means, counts, sums, and simple extrema. Unsupported
-        WMO inputs and unclassified operations safely fall back to strict. ``none``
-        always computes from available values, and a fraction in ``(0, 1]`` sets
-        a configurable minimum valid fraction. Do not combine this parameter with
-        the legacy ``allow_missing_periods`` parameter.
+        WMO-No. 1203 rules: the 11-day/5-consecutive-day monthly rule for means
+        and counts, complete data for sums, and no completeness mask for simple
+        extrema. Unclassified operations, unsupported period types, non-daily
+        WMO inputs, and spatially varying seasons safely fall back to strict.
+        ``none`` always computes from available values, and a fraction in
+        ``(0, 1]`` sets a configurable minimum valid fraction. Do not combine
+        this parameter with the legacy ``allow_missing_periods`` parameter.
     allow_missing_periods : bool | None
         Compatibility parameter for 7.2 workflows. An explicit False selects
         strict completeness, while True computes from available source values.
@@ -3194,11 +3232,13 @@ def pav(
         profile automatically: at least 350 daily values for a year, 175 for a
         half-year, 85 for a three-month season, and 25 for a month. ``strict``
         requires every expected value. ``wmo`` applies the aggregation-specific
-        WMO-No. 1203 rules for means, counts, sums, and simple extrema. Unsupported
-        WMO inputs and unclassified operations safely fall back to strict. ``none``
-        always computes from available values, and a fraction in ``(0, 1]`` sets
-        a configurable minimum valid fraction. Do not combine this parameter with
-        the legacy ``allow_missing_periods`` parameter.
+        WMO-No. 1203 rules: the 11-day/5-consecutive-day monthly rule for means
+        and counts, complete data for sums, and no completeness mask for simple
+        extrema. Unclassified operations, unsupported period types, non-daily
+        WMO inputs, and spatially varying seasons safely fall back to strict.
+        ``none`` always computes from available values, and a fraction in
+        ``(0, 1]`` sets a configurable minimum valid fraction. Do not combine
+        this parameter with the legacy ``allow_missing_periods`` parameter.
     allow_missing_periods : bool | None
         Compatibility parameter for 7.2 workflows. An explicit False selects
         strict completeness, while True computes from available source values.
@@ -3340,11 +3380,13 @@ def pint(
         profile automatically: at least 350 daily values for a year, 175 for a
         half-year, 85 for a three-month season, and 25 for a month. ``strict``
         requires every expected value. ``wmo`` applies the aggregation-specific
-        WMO-No. 1203 rules for means, counts, sums, and simple extrema. Unsupported
-        WMO inputs and unclassified operations safely fall back to strict. ``none``
-        always computes from available values, and a fraction in ``(0, 1]`` sets
-        a configurable minimum valid fraction. Do not combine this parameter with
-        the legacy ``allow_missing_periods`` parameter.
+        WMO-No. 1203 rules: the 11-day/5-consecutive-day monthly rule for means
+        and counts, complete data for sums, and no completeness mask for simple
+        extrema. Unclassified operations, unsupported period types, non-daily
+        WMO inputs, and spatially varying seasons safely fall back to strict.
+        ``none`` always computes from available values, and a fraction in
+        ``(0, 1]`` sets a configurable minimum valid fraction. Do not combine
+        this parameter with the legacy ``allow_missing_periods`` parameter.
     allow_missing_periods : bool | None
         Compatibility parameter for 7.2 workflows. An explicit False selects
         strict completeness, while True computes from available source values.
@@ -3489,11 +3531,13 @@ def rr(
         profile automatically: at least 350 daily values for a year, 175 for a
         half-year, 85 for a three-month season, and 25 for a month. ``strict``
         requires every expected value. ``wmo`` applies the aggregation-specific
-        WMO-No. 1203 rules for means, counts, sums, and simple extrema. Unsupported
-        WMO inputs and unclassified operations safely fall back to strict. ``none``
-        always computes from available values, and a fraction in ``(0, 1]`` sets
-        a configurable minimum valid fraction. Do not combine this parameter with
-        the legacy ``allow_missing_periods`` parameter.
+        WMO-No. 1203 rules: the 11-day/5-consecutive-day monthly rule for means
+        and counts, complete data for sums, and no completeness mask for simple
+        extrema. Unclassified operations, unsupported period types, non-daily
+        WMO inputs, and spatially varying seasons safely fall back to strict.
+        ``none`` always computes from available values, and a fraction in
+        ``(0, 1]`` sets a configurable minimum valid fraction. Do not combine
+        this parameter with the legacy ``allow_missing_periods`` parameter.
     allow_missing_periods : bool | None
         Compatibility parameter for 7.2 workflows. An explicit False selects
         strict completeness, while True computes from available source values.
@@ -3635,11 +3679,13 @@ def rr1mm(
         profile automatically: at least 350 daily values for a year, 175 for a
         half-year, 85 for a three-month season, and 25 for a month. ``strict``
         requires every expected value. ``wmo`` applies the aggregation-specific
-        WMO-No. 1203 rules for means, counts, sums, and simple extrema. Unsupported
-        WMO inputs and unclassified operations safely fall back to strict. ``none``
-        always computes from available values, and a fraction in ``(0, 1]`` sets
-        a configurable minimum valid fraction. Do not combine this parameter with
-        the legacy ``allow_missing_periods`` parameter.
+        WMO-No. 1203 rules: the 11-day/5-consecutive-day monthly rule for means
+        and counts, complete data for sums, and no completeness mask for simple
+        extrema. Unclassified operations, unsupported period types, non-daily
+        WMO inputs, and spatially varying seasons safely fall back to strict.
+        ``none`` always computes from available values, and a fraction in
+        ``(0, 1]`` sets a configurable minimum valid fraction. Do not combine
+        this parameter with the legacy ``allow_missing_periods`` parameter.
     allow_missing_periods : bool | None
         Compatibility parameter for 7.2 workflows. An explicit False selects
         strict completeness, while True computes from available source values.
@@ -3784,11 +3830,13 @@ def pn20mm(
         profile automatically: at least 350 daily values for a year, 175 for a
         half-year, 85 for a three-month season, and 25 for a month. ``strict``
         requires every expected value. ``wmo`` applies the aggregation-specific
-        WMO-No. 1203 rules for means, counts, sums, and simple extrema. Unsupported
-        WMO inputs and unclassified operations safely fall back to strict. ``none``
-        always computes from available values, and a fraction in ``(0, 1]`` sets
-        a configurable minimum valid fraction. Do not combine this parameter with
-        the legacy ``allow_missing_periods`` parameter.
+        WMO-No. 1203 rules: the 11-day/5-consecutive-day monthly rule for means
+        and counts, complete data for sums, and no completeness mask for simple
+        extrema. Unclassified operations, unsupported period types, non-daily
+        WMO inputs, and spatially varying seasons safely fall back to strict.
+        ``none`` always computes from available values, and a fraction in
+        ``(0, 1]`` sets a configurable minimum valid fraction. Do not combine
+        this parameter with the legacy ``allow_missing_periods`` parameter.
     allow_missing_periods : bool | None
         Compatibility parameter for 7.2 workflows. An explicit False selects
         strict completeness, while True computes from available source values.
@@ -3933,11 +3981,13 @@ def pxcdd(
         profile automatically: at least 350 daily values for a year, 175 for a
         half-year, 85 for a three-month season, and 25 for a month. ``strict``
         requires every expected value. ``wmo`` applies the aggregation-specific
-        WMO-No. 1203 rules for means, counts, sums, and simple extrema. Unsupported
-        WMO inputs and unclassified operations safely fall back to strict. ``none``
-        always computes from available values, and a fraction in ``(0, 1]`` sets
-        a configurable minimum valid fraction. Do not combine this parameter with
-        the legacy ``allow_missing_periods`` parameter.
+        WMO-No. 1203 rules: the 11-day/5-consecutive-day monthly rule for means
+        and counts, complete data for sums, and no completeness mask for simple
+        extrema. Unclassified operations, unsupported period types, non-daily
+        WMO inputs, and spatially varying seasons safely fall back to strict.
+        ``none`` always computes from available values, and a fraction in
+        ``(0, 1]`` sets a configurable minimum valid fraction. Do not combine
+        this parameter with the legacy ``allow_missing_periods`` parameter.
     allow_missing_periods : bool | None
         Compatibility parameter for 7.2 workflows. An explicit False selects
         strict completeness, while True computes from available source values.
@@ -4082,11 +4132,13 @@ def pxcwd(
         profile automatically: at least 350 daily values for a year, 175 for a
         half-year, 85 for a three-month season, and 25 for a month. ``strict``
         requires every expected value. ``wmo`` applies the aggregation-specific
-        WMO-No. 1203 rules for means, counts, sums, and simple extrema. Unsupported
-        WMO inputs and unclassified operations safely fall back to strict. ``none``
-        always computes from available values, and a fraction in ``(0, 1]`` sets
-        a configurable minimum valid fraction. Do not combine this parameter with
-        the legacy ``allow_missing_periods`` parameter.
+        WMO-No. 1203 rules: the 11-day/5-consecutive-day monthly rule for means
+        and counts, complete data for sums, and no completeness mask for simple
+        extrema. Unclassified operations, unsupported period types, non-daily
+        WMO inputs, and spatially varying seasons safely fall back to strict.
+        ``none`` always computes from available values, and a fraction in
+        ``(0, 1]`` sets a configurable minimum valid fraction. Do not combine
+        this parameter with the legacy ``allow_missing_periods`` parameter.
     allow_missing_periods : bool | None
         Compatibility parameter for 7.2 workflows. An explicit False selects
         strict completeness, while True computes from available source values.
@@ -4259,11 +4311,13 @@ def r99(
         profile automatically: at least 350 daily values for a year, 175 for a
         half-year, 85 for a three-month season, and 25 for a month. ``strict``
         requires every expected value. ``wmo`` applies the aggregation-specific
-        WMO-No. 1203 rules for means, counts, sums, and simple extrema. Unsupported
-        WMO inputs and unclassified operations safely fall back to strict. ``none``
-        always computes from available values, and a fraction in ``(0, 1]`` sets
-        a configurable minimum valid fraction. Do not combine this parameter with
-        the legacy ``allow_missing_periods`` parameter.
+        WMO-No. 1203 rules: the 11-day/5-consecutive-day monthly rule for means
+        and counts, complete data for sums, and no completeness mask for simple
+        extrema. Unclassified operations, unsupported period types, non-daily
+        WMO inputs, and spatially varying seasons safely fall back to strict.
+        ``none`` always computes from available values, and a fraction in
+        ``(0, 1]`` sets a configurable minimum valid fraction. Do not combine
+        this parameter with the legacy ``allow_missing_periods`` parameter.
     allow_missing_periods : bool | None
         Compatibility parameter for 7.2 workflows. An explicit False selects
         strict completeness, while True computes from available source values.
@@ -4445,11 +4499,13 @@ def pfl90(
         profile automatically: at least 350 daily values for a year, 175 for a
         half-year, 85 for a three-month season, and 25 for a month. ``strict``
         requires every expected value. ``wmo`` applies the aggregation-specific
-        WMO-No. 1203 rules for means, counts, sums, and simple extrema. Unsupported
-        WMO inputs and unclassified operations safely fall back to strict. ``none``
-        always computes from available values, and a fraction in ``(0, 1]`` sets
-        a configurable minimum valid fraction. Do not combine this parameter with
-        the legacy ``allow_missing_periods`` parameter.
+        WMO-No. 1203 rules: the 11-day/5-consecutive-day monthly rule for means
+        and counts, complete data for sums, and no completeness mask for simple
+        extrema. Unclassified operations, unsupported period types, non-daily
+        WMO inputs, and spatially varying seasons safely fall back to strict.
+        ``none`` always computes from available values, and a fraction in
+        ``(0, 1]`` sets a configurable minimum valid fraction. Do not combine
+        this parameter with the legacy ``allow_missing_periods`` parameter.
     allow_missing_periods : bool | None
         Compatibility parameter for 7.2 workflows. An explicit False selects
         strict completeness, while True computes from available source values.
@@ -4631,11 +4687,13 @@ def pq90(
         profile automatically: at least 350 daily values for a year, 175 for a
         half-year, 85 for a three-month season, and 25 for a month. ``strict``
         requires every expected value. ``wmo`` applies the aggregation-specific
-        WMO-No. 1203 rules for means, counts, sums, and simple extrema. Unsupported
-        WMO inputs and unclassified operations safely fall back to strict. ``none``
-        always computes from available values, and a fraction in ``(0, 1]`` sets
-        a configurable minimum valid fraction. Do not combine this parameter with
-        the legacy ``allow_missing_periods`` parameter.
+        WMO-No. 1203 rules: the 11-day/5-consecutive-day monthly rule for means
+        and counts, complete data for sums, and no completeness mask for simple
+        extrema. Unclassified operations, unsupported period types, non-daily
+        WMO inputs, and spatially varying seasons safely fall back to strict.
+        ``none`` always computes from available values, and a fraction in
+        ``(0, 1]`` sets a configurable minimum valid fraction. Do not combine
+        this parameter with the legacy ``allow_missing_periods`` parameter.
     allow_missing_periods : bool | None
         Compatibility parameter for 7.2 workflows. An explicit False selects
         strict completeness, while True computes from available source values.
@@ -4817,11 +4875,13 @@ def pq99(
         profile automatically: at least 350 daily values for a year, 175 for a
         half-year, 85 for a three-month season, and 25 for a month. ``strict``
         requires every expected value. ``wmo`` applies the aggregation-specific
-        WMO-No. 1203 rules for means, counts, sums, and simple extrema. Unsupported
-        WMO inputs and unclassified operations safely fall back to strict. ``none``
-        always computes from available values, and a fraction in ``(0, 1]`` sets
-        a configurable minimum valid fraction. Do not combine this parameter with
-        the legacy ``allow_missing_periods`` parameter.
+        WMO-No. 1203 rules: the 11-day/5-consecutive-day monthly rule for means
+        and counts, complete data for sums, and no completeness mask for simple
+        extrema. Unclassified operations, unsupported period types, non-daily
+        WMO inputs, and spatially varying seasons safely fall back to strict.
+        ``none`` always computes from available values, and a fraction in
+        ``(0, 1]`` sets a configurable minimum valid fraction. Do not combine
+        this parameter with the legacy ``allow_missing_periods`` parameter.
     allow_missing_periods : bool | None
         Compatibility parameter for 7.2 workflows. An explicit False selects
         strict completeness, while True computes from available source values.
@@ -4990,11 +5050,13 @@ def ffav(
         profile automatically: at least 350 daily values for a year, 175 for a
         half-year, 85 for a three-month season, and 25 for a month. ``strict``
         requires every expected value. ``wmo`` applies the aggregation-specific
-        WMO-No. 1203 rules for means, counts, sums, and simple extrema. Unsupported
-        WMO inputs and unclassified operations safely fall back to strict. ``none``
-        always computes from available values, and a fraction in ``(0, 1]`` sets
-        a configurable minimum valid fraction. Do not combine this parameter with
-        the legacy ``allow_missing_periods`` parameter.
+        WMO-No. 1203 rules: the 11-day/5-consecutive-day monthly rule for means
+        and counts, complete data for sums, and no completeness mask for simple
+        extrema. Unclassified operations, unsupported period types, non-daily
+        WMO inputs, and spatially varying seasons safely fall back to strict.
+        ``none`` always computes from available values, and a fraction in
+        ``(0, 1]`` sets a configurable minimum valid fraction. Do not combine
+        this parameter with the legacy ``allow_missing_periods`` parameter.
     allow_missing_periods : bool | None
         Compatibility parameter for 7.2 workflows. An explicit False selects
         strict completeness, while True computes from available source values.
@@ -5165,11 +5227,13 @@ def ff98(
         profile automatically: at least 350 daily values for a year, 175 for a
         half-year, 85 for a three-month season, and 25 for a month. ``strict``
         requires every expected value. ``wmo`` applies the aggregation-specific
-        WMO-No. 1203 rules for means, counts, sums, and simple extrema. Unsupported
-        WMO inputs and unclassified operations safely fall back to strict. ``none``
-        always computes from available values, and a fraction in ``(0, 1]`` sets
-        a configurable minimum valid fraction. Do not combine this parameter with
-        the legacy ``allow_missing_periods`` parameter.
+        WMO-No. 1203 rules: the 11-day/5-consecutive-day monthly rule for means
+        and counts, complete data for sums, and no completeness mask for simple
+        extrema. Unclassified operations, unsupported period types, non-daily
+        WMO inputs, and spatially varying seasons safely fall back to strict.
+        ``none`` always computes from available values, and a fraction in
+        ``(0, 1]`` sets a configurable minimum valid fraction. Do not combine
+        this parameter with the legacy ``allow_missing_periods`` parameter.
     allow_missing_periods : bool | None
         Compatibility parameter for 7.2 workflows. An explicit False selects
         strict completeness, while True computes from available source values.

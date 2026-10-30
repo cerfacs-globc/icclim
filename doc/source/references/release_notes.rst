@@ -2,9 +2,12 @@
  Release history
 #################
 
-*******************
-7.3.0 (unreleased)
-*******************
+*****
+7.3.0
+*****
+
+date: 2026-10-30
+
 
 -  [change] Use the ECA&D ATBD section 5.1 minimum valid-day rules by default,
    resolving the threshold automatically from annual, half-yearly, seasonal, or
@@ -33,6 +36,16 @@
    temperature ranges and standard deviations as ``temperature: difference``.
    Reject physically incompatible metadata inference for dimensionless variables,
    such as a variable named ``RH`` whose declared unit is ``mm``.
+-  [perf] Extend exact percentile-bootstrap execution to aggregate and compound
+   spell indices, including aligned multivariable ``cftime`` inputs, while keeping
+   safe reference fallbacks for unsupported or unaligned workloads.
+-  [fix] Expose ``allow_missing_periods`` consistently from the generated ECA&D,
+   DCSC and generic convenience functions.
+-  [doc] Add a station-workflow performance guide covering vectorized station
+   dimensions, memory-bounded batches, grouped index output and correct timing
+   of lazy calculations.
+-  [security] Refresh the development and documentation lockfile to patched
+   ``filelock``, ``virtualenv`` and ``nbconvert`` releases.
 
 *****
 7.2.1
@@ -46,14 +59,9 @@ date: 2026-09-30
    the result.
 -  [fix] Distinguish intentionally out-of-season cells from missing observations
    when applying strict completeness checks to spatially varying seasons.
--  [fix] Expose ``allow_missing_periods`` consistently from the generated ECA&D,
-   DCSC and generic convenience functions.
 -  [enh] Record the resolved completeness policy, implementation method and
    options in output variable metadata in preparation for configurable ECA&D
    and WMO policies in icclim 7.3.
--  [doc] Add a station-workflow performance guide covering vectorized station
-   dimensions, memory-bounded batches, grouped index output and correct timing
-   of lazy calculations.
 
 *****
 7.2.0
