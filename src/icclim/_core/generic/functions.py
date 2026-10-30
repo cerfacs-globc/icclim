@@ -988,9 +988,11 @@ def average(
                 resample_freq,
             )
             if eager_mask is not None:
-                return study.where(eager_mask).resample(
-                    time=resample_freq.pandas_freq
-                ).mean(dim="time")
+                return (
+                    study.where(eager_mask)
+                    .resample(time=resample_freq.pandas_freq)
+                    .mean(dim="time")
+                )
         optimized_average = _compute_fast_tiled_bootstrap_exceedance_average(
             climate_vars[0],
             threshold,
@@ -1113,9 +1115,11 @@ def generic_sum(
                 resample_freq,
             )
             if eager_mask is not None:
-                return study.where(eager_mask).resample(
-                    time=resample_freq.pandas_freq
-                ).sum(dim="time")
+                return (
+                    study.where(eager_mask)
+                    .resample(time=resample_freq.pandas_freq)
+                    .sum(dim="time")
+                )
         optimized_sum = _compute_fast_tiled_bootstrap_exceedance_sum(
             climate_vars[0],
             threshold,
@@ -1207,12 +1211,16 @@ def _compute_optimized_fraction_of_total(
                 if isinstance(threshold.operator, Operator)
                 else OperatorRegistry.lookup(threshold.operator)
             )
-            total = study.where(op(study, floor)).resample(
-                time=resample_freq.pandas_freq
-            ).sum(dim="time")
-        selected = study.where(eager_mask, 0).resample(
-            time=resample_freq.pandas_freq
-        ).sum(dim="time")
+            total = (
+                study.where(op(study, floor))
+                .resample(time=resample_freq.pandas_freq)
+                .sum(dim="time")
+            )
+        selected = (
+            study.where(eager_mask, 0)
+            .resample(time=resample_freq.pandas_freq)
+            .sum(dim="time")
+        )
         return selected / total
     return _compute_fast_tiled_bootstrap_fraction_of_total(
         climate_var,
@@ -2421,9 +2429,7 @@ def _compute_eager_tiled_cftime_bootstrap_mask(
                 _slice_threshold_for_tile(prepared_threshold, indexers)
                 for indexers in batch
             ]
-            tile_results.extend(
-                pool.map(compute_tile, loaded_tiles, tile_thresholds)
-            )
+            tile_results.extend(pool.map(compute_tile, loaded_tiles, tile_thresholds))
     if any(result is None for result in tile_results):
         return None
     concrete_results = cast("list[DataArray]", tile_results)
@@ -2823,6 +2829,7 @@ def _compute_fast_tiled_bootstrap_mean_threshold(
     )["__icclim_bootstrap_tile"]
     result.attrs.update(tile_results[-1].attrs)
     return result
+
 
 def _compute_exact_tiled_bootstrap_spell_mask(
     climate_var: ClimateVariable,

@@ -1008,12 +1008,14 @@ def classify_compound_spell_bootstrap(
         reducer_kind=BootstrapReducerKind.SPELL,
         inventory=inventory,
     )
-    cftime_inputs = any(
-        _uses_cftime_index(var.studied_data) for var in climate_vars
-    )
-    if cftime_inputs and len(climate_vars) == 1 and not isinstance(
-        climate_vars[0].threshold,
-        BoundedThreshold,
+    cftime_inputs = any(_uses_cftime_index(var.studied_data) for var in climate_vars)
+    if (
+        cftime_inputs
+        and len(climate_vars) == 1
+        and not isinstance(
+            climate_vars[0].threshold,
+            BoundedThreshold,
+        )
     ):
         return _reference_bootstrap_path(
             family,
