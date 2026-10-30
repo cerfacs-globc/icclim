@@ -19,6 +19,8 @@ Unreleased
 -  [enh] Add opt-in NetCDF compression and stored chunk encoding through
    ``ICCLIM_OUTPUT_COMPRESSION_LEVEL`` and ``ICCLIM_OUTPUT_CHUNKS`` while
    leaving default output encoding unchanged.
+-  [fix] Apply ``only_leap_years`` within the requested percentile base period
+   instead of selecting leap years from the full input time range.
 
 *****
 7.3.0
