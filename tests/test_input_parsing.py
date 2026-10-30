@@ -12,6 +12,7 @@ import xarray as xr
 from icclim._core.constants import UNITS_KEY
 from icclim._core.input_parsing import (
     PercentileDataArray,
+    build_reference_da,
     guess_standard_variable,
     guess_var_names,
     read_dataset,
@@ -20,6 +21,25 @@ from icclim._core.input_parsing import (
 from icclim._core.model.standard_variable import StandardVariableRegistry
 from icclim.ecad.registry import EcadIndexRegistry
 from icclim.exception import InvalidIcclimArgumentError
+
+
+def test_build_reference_da_filters_leap_years_within_base_period() -> None:
+    time = pd.date_range("1999-01-01", "2008-12-31", freq="D")
+    source = xr.DataArray(
+        np.arange(time.size),
+        coords={"time": time},
+        dims="time",
+    )
+
+    result = build_reference_da(
+        source,
+        base_period_time_range=("2003-01-01", "2005-12-31"),
+        only_leap_years=True,
+        percentile_min_value=None,
+    )
+
+    assert result.sizes["time"] == 366
+    assert set(result.time.dt.year.values) == {2004}
 
 
 def test_update_to_standard_coords() -> None:
