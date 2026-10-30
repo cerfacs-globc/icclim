@@ -21,5 +21,6 @@ development.
    percentile_bootstrap
    bootstrap_architecture
    bootstrap_extension_phase_plan
+   non_bootstrap_benchmarking
    contributing
    climpact_comparison_protocol

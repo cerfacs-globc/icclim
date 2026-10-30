@@ -770,6 +770,11 @@ def test_run_real_data_validation_main_writes_summary(
     assert payload["workload"] == "wsdi_yearly"
     assert payload["head_commit"] == "deadbeef"
     assert payload["chunk_profile"] == "default"
+    assert payload["task_count"] == 0
+    assert payload["scheduler_calls"] == 0
+    assert payload["build_seconds"] >= 0
+    assert payload["compute_seconds"] >= 0
+    assert payload["peak_rss_bytes"] > 0
 
 
 def test_profile_main_writes_profile_json(
