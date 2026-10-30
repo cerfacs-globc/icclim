@@ -111,18 +111,26 @@ Examples:
 - generic spell or consecutive-event indicators using percentile
   thresholds.
 
-As of Friday, July 31, 2026, simple one-threshold day-of-year
-percentile spell reducers now have a compiled optimized union-mask
-bootstrap implementation validated against the trusted reference path on
-representative real datasets.
-Filtered and more complex spell cases still need a separate fallback or
-future extension, so this family remains only partially specialized.
+Simple day-of-year percentile spell reducers on pandas-compatible calendars
+have a compiled union-mask implementation validated against the trusted
+reference path. The same daily-mask route supports filtered and compound
+pandas-backed spells and multiple percentile values. Simple ``cftime`` spells
+use a bounded eager tiled union mask that retains xclim's percentile and
+calendar operations. Same-variable compound ``cftime`` spells reuse each
+loaded tile across their component masks, combine those masks immediately and
+run spell detection once. Aligned multi-variable ``cftime`` spells use the same
+shared-tile design, loading corresponding tiles from each variable before
+combining their masks. Non-aligned inputs retain the reference path.
 
 Percentile compound family
 --------------------------
 
 This family combines several threshold conditions, possibly across
 variables and threshold types.
+
+Period-percentile and scalar components remain static in a compound
+bootstrap expression. Only day-of-year percentile components are rebuilt for
+the overlap substitutions, after which the component masks are combined.
 
 Examples:
 
@@ -229,6 +237,8 @@ generic indicator families:
 - value aggregates such as ``fraction_of_total``;
 - spell reducers such as ``sum_of_spell_lengths``;
 - multi-variable compound counts that can combine bootstrap component masks;
+- aligned multi-variable compound ``cftime`` spells that combine component
+  masks within bounded shared spatial tiles;
 - bounded single-variable percentile compositions with one day-of-year
   percentile component and one scalar guard joined by ``AND`` or ``OR``.
 
@@ -324,11 +334,11 @@ useful intermediate step because it makes the scientific boundary
 visible in code before more bootstrap families reuse the same threshold
 generation semantics.
 
-As of Friday, July 31, 2026, three unfiltered non-count consumers of this shared
-threshold generation layer are validated on representative real data:
+Three unfiltered non-count consumers of this shared threshold generation
+layer are validated on representative real data:
 
 - ``fraction_of_total`` for unfiltered day-of-year percentile bootstrap;
-- generic ``sum`` for unfiltered day-of-year percentile bootstrap.
+- generic ``sum`` for unfiltered day-of-year percentile bootstrap;
 - ``average`` for unfiltered day-of-year percentile bootstrap.
 
 Those reducers are exact against the trusted baselines on real data.
@@ -337,26 +347,34 @@ They currently define the validated optimized value-aggregate boundary.
 The same validation round also established the current filtered
 ``threshold_min_value`` boundary on representative real data:
 
-- filtered day-of-year percentile ``count_occurrences`` is exact through
-  the exact tiled bootstrap path;
-- filtered day-of-year percentile ``average`` is exact through the exact
-  tiled bootstrap path;
+- filtered day-of-year percentile ``count_occurrences`` uses the
+  optimized boolean union-count path;
+- filtered day-of-year percentile ``average`` uses the optimized union
+  selection followed by one mean reduction;
 - filtered day-of-year percentile ``sum`` is exact through the optimized
   path;
 - filtered ``fraction_of_total`` is exact through the optimized path.
 
-So filtered precipitation-style bootstrap support is no longer all-or-nothing.
-The validated boundary is now reducer-specific.
+Filtered precipitation-style bootstrap keeps nominal filtering,
+overlap substitution and reducer semantics as separate stages.
 
-The same validation round also showed that ``average`` cannot be
-derived naively from ``optimized_sum / optimized_count``. A first
-dedicated mean kernel also remained non-identical in real-data
-validation. The
-validated optimized implementation instead uses:
+For a reference-overlap year, each substitute threshold is prepared in
+the target calendar before the union is formed. Missing-day interpolation,
+365-to-366-day alignment and ``threshold_min_value`` application follow
+the same order as the public percentile-threshold workflow. Combining
+365-day thresholds first is not equivalent because calendar interpolation
+does not commute with the minimum or maximum used to represent a boolean
+union.
 
-- optimized union exceedance sums;
-- optimized union exceedance-day counts;
-- final output casting aligned with the trusted baseline dtype.
+The same validation round also showed that ``average`` must preserve the
+reference reduction order. The validated implementation constructs the
+daily union selection and computes one mean directly over the selected
+values, with output casting aligned with the trusted baseline dtype.
+It does not average independently reduced substitute results.
+
+The compiled ``cftime`` route is limited to standard and proleptic
+Gregorian calendars. Other CF calendars use the exact fallback until
+their calendar-specific threshold alignment has its own exact validation.
 
 The same compound component-mask architecture also supports percentile-tail
 unions such as ``> 95 doy_per OR <= 10 doy_per``. Those OR shapes stay

@@ -281,14 +281,26 @@ def build_climate_var(
 
     Examples
     --------
+    >>> import pandas as pd
+    >>> import xarray as xr
+    >>> from icclim._core.model.standard_variable import StandardVariableRegistry
     >>> climate_var_name = "tas"
-    >>> climate_var_data = {"study": "/path/to/data.nc", "thresholds": ">= 27 degC"}
+    >>> study = xr.DataArray(
+    ...     [300.15, 301.15, 302.15],
+    ...     coords={"time": pd.date_range("2000-01-01", periods=3)},
+    ...     dims="time",
+    ...     name="tas",
+    ...     attrs={"units": "K"},
+    ... )
+    >>> climate_var_data = {"study": study, "thresholds": ">= 27 degC"}
     >>> ignore_feb29th = False
-    >>> time_range = ["2000-01-01", "2010-12-31"]
+    >>> time_range = ["2000-01-01", "2000-01-03"]
     >>> standard_var = StandardVariableRegistry.TAS
     >>> climate_var = build_climate_var(
     ...     climate_var_name, climate_var_data, ignore_feb29th, time_range, standard_var
     ... )
+    >>> climate_var.name
+    'tas'
     """
     study_ds, climate_var_thresh = _read_study_dataset_and_threshold(
         climate_var_data,

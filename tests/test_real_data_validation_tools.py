@@ -140,6 +140,84 @@ def test_summarize_parse_compare_file_supports_current_vs_master(
     assert summary.max_abs_diff == 0.0
 
 
+def test_summarize_parse_compare_file_supports_current_vs_preopt(
+    tmp_path: Path,
+) -> None:
+    compare_path = (
+        tmp_path / "current-vs-preopt-generic_tas_spell_bootstrap_yearly.compare.json"
+    )
+    compare_path.write_text(
+        json.dumps(
+            {
+                "data_var_comparison": {
+                    "sum_of_spell_lengths": {
+                        "equal": False,
+                        "changed_cells": 2,
+                        "max_abs_diff": 3.0,
+                    }
+                }
+            }
+        )
+    )
+
+    summary = summarize_real_data_validation._parse_compare_file(compare_path)
+
+    assert summary.current_label == "current"
+    assert summary.baseline_label == "preopt"
+    assert summary.workload == "generic_tas_spell_bootstrap_yearly"
+    assert summary.all_data_vars_equal is False
+    assert summary.total_changed_cells == 2
+    assert summary.max_abs_diff == 3.0
+
+
+@pytest.mark.parametrize(
+    ("filename", "current_label", "baseline_label"),
+    [
+        (
+            "current-vs-reference-generic_tas_sum_bootstrap_cftime_yearly.compare.json",
+            "current",
+            "reference",
+        ),
+        (
+            "current-vs-exact-tiled-generic_tas_sum_bootstrap_cftime_yearly.compare.json",
+            "current",
+            "exact-tiled",
+        ),
+        (
+            "fallback-vs-reference-generic_tas_spell_bootstrap_cftime_yearly.compare.json",
+            "fallback",
+            "reference",
+        ),
+    ],
+)
+def test_summarize_parse_compare_file_supports_extension_baselines(
+    tmp_path: Path,
+    filename: str,
+    current_label: str,
+    baseline_label: str,
+) -> None:
+    compare_path = tmp_path / filename
+    compare_path.write_text(
+        json.dumps(
+            {
+                "data_var_comparison": {
+                    "sum": {
+                        "equal": True,
+                        "changed_cells": 0,
+                        "max_abs_diff": 0.0,
+                    }
+                }
+            }
+        )
+    )
+
+    summary = summarize_real_data_validation._parse_compare_file(compare_path)
+
+    assert summary.current_label == current_label
+    assert summary.baseline_label == baseline_label
+    assert summary.all_data_vars_equal is True
+
+
 def test_summarize_parse_compare_file_supports_master_vs_v717(tmp_path: Path) -> None:
     compare_path = (
         tmp_path / "master-vs-v717-generic_tas_spell_bootstrap_yearly.compare.json"
@@ -272,6 +350,62 @@ class _FakeIcclim:
         ("generic_tas_fraction_bootstrap_yearly", "fraction_of_total", "threshold"),
         ("generic_tas_sum_bootstrap_yearly", "sum", "threshold"),
         ("generic_tas_average_bootstrap_yearly", "average", "threshold"),
+        ("generic_tas_sum_bootstrap_cftime_yearly", "sum", "threshold"),
+        ("generic_tas_sum_bootstrap_cftime_monthly", "sum", "threshold"),
+        ("generic_tas_average_bootstrap_cftime_yearly", "average", "threshold"),
+        ("generic_tas_average_bootstrap_cftime_monthly", "average", "threshold"),
+        (
+            "generic_tas_fraction_bootstrap_cftime_yearly",
+            "fraction_of_total",
+            "threshold",
+        ),
+        (
+            "generic_tas_fraction_bootstrap_cftime_monthly",
+            "fraction_of_total",
+            "threshold",
+        ),
+        (
+            "generic_tas_spell_bootstrap_cftime_yearly",
+            "sum_of_spell_lengths",
+            "min_spell_length",
+        ),
+        (
+            "generic_tas_spell_bootstrap_cftime_monthly",
+            "sum_of_spell_lengths",
+            "min_spell_length",
+        ),
+        ("generic_pr_sum_bootstrap_cftime_yearly", "sum", "threshold"),
+        ("generic_pr_sum_bootstrap_cftime_monthly", "sum", "threshold"),
+        (
+            "generic_pr_fraction_bootstrap_cftime_yearly",
+            "fraction_of_total",
+            "threshold",
+        ),
+        (
+            "generic_pr_fraction_bootstrap_cftime_monthly",
+            "fraction_of_total",
+            "threshold",
+        ),
+        (
+            "generic_pr_count_bootstrap_cftime_yearly",
+            "count_occurrences",
+            "threshold",
+        ),
+        (
+            "generic_pr_count_bootstrap_cftime_monthly",
+            "count_occurrences",
+            "threshold",
+        ),
+        (
+            "generic_pr_average_bootstrap_cftime_yearly",
+            "average",
+            "threshold",
+        ),
+        (
+            "generic_pr_average_bootstrap_cftime_monthly",
+            "average",
+            "threshold",
+        ),
         (
             "generic_tas_spell_bootstrap_yearly",
             "sum_of_spell_lengths",
@@ -446,6 +580,17 @@ def test_summarize_loaders_tables_and_main_cover_summary_paths(
         )
     )
     (
+        tmp_path / "baseline-preopt-generic_tas_spell_bootstrap_yearly.summary.json"
+    ).write_text(
+        json.dumps(
+            {
+                "workload": "generic_tas_spell_bootstrap_yearly",
+                "label": "baseline-preopt",
+                "duration_seconds": 120.0,
+            }
+        )
+    )
+    (
         tmp_path / "baseline-master-generic_tas_spell_bootstrap_yearly.summary.json"
     ).write_text(
         json.dumps(
@@ -464,6 +609,21 @@ def test_summarize_loaders_tables_and_main_cover_summary_paths(
                 "workload": "generic_tas_spell_bootstrap_yearly",
                 "label": "baseline717",
                 "duration_seconds": 110.0,
+            }
+        )
+    )
+    (
+        tmp_path / "current-vs-preopt-generic_tas_spell_bootstrap_yearly.compare.json"
+    ).write_text(
+        json.dumps(
+            {
+                "data_var_comparison": {
+                    "sum_of_spell_lengths": {
+                        "equal": True,
+                        "changed_cells": 0,
+                        "max_abs_diff": 0.0,
+                    }
+                }
             }
         )
     )
@@ -499,6 +659,8 @@ def test_summarize_loaders_tables_and_main_cover_summary_paths(
     )
 
     assert ("current", "generic_tas_spell_bootstrap_yearly") in runs
+    assert ("baseline-preopt", "generic_tas_spell_bootstrap_yearly") in runs
+    assert ("current", "preopt", "generic_tas_spell_bootstrap_yearly") in comparisons
     assert ("current", "master", "generic_tas_spell_bootstrap_yearly") in comparisons
     assert "generic_tas_spell_bootstrap_yearly" in validation_table
     assert "generic_tas_spell_bootstrap_yearly" in performance_table

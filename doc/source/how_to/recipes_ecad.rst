@@ -205,7 +205,10 @@
 
 This feature allows you to compute multiple indices at the same time.
 This is just a shorthand to avoid writing your own for loop, there is no
-specific optimization done to group together similar operation.
+specific optimization done to group together similar operations.  It does,
+however, collect the results in one dataset and can write them to one output
+file.  For large station archives, combine this feature with a vectorized
+``station`` dimension as described in :ref:`station_workflows`.
 
 .. note::
 

@@ -978,7 +978,7 @@ class TestIntegration:
         assert profile["bootstrap_optimized_tile_count"] == 4
         xr.testing.assert_allclose(default.TX90p, legacy.TX90p)
 
-    def test_count_occurrences__dask_wet_day_bootstrap_uses_exact_tiled_path(
+    def test_count_occurrences__dask_wet_day_bootstrap_uses_optimized_path(
         self,
         monkeypatch,
     ) -> None:
@@ -1019,12 +1019,8 @@ class TestIntegration:
         default = icclim.count_occurrences(**common_kwargs)
         profile = generic_functions.get_bootstrap_profile()
 
-        assert not hasattr(default.count_occurrences.data, "__dask_graph__")
-        assert profile["bootstrap_count_execution_kind"] == "exact_tiled_bootstrap"
-        assert (
-            profile["bootstrap_count_reason_code"]
-            == "threshold_min_value_requires_exact_tiled_bootstrap"
-        )
+        assert profile["bootstrap_count_execution_kind"] == "optimized_bootstrap"
+        assert profile["bootstrap_count_reason_code"] == "optimized_bootstrap_supported"
         assert (
             profile["bootstrap_count_family"] == "filtered_day_of_year_percentile_count"
         )
@@ -1128,7 +1124,7 @@ class TestIntegration:
             reference["sum"],
         )
 
-    def test_average__filtered_exact_tiled_bootstrap_matches_reference_on_overlap_years(
+    def test_average__filtered_optimized_bootstrap_matches_reference_on_overlap_years(
         self,
         monkeypatch,
     ) -> None:
@@ -1170,11 +1166,8 @@ class TestIntegration:
         optimized = icclim.index(**common_kwargs).compute()
         profile = generic_functions.get_bootstrap_profile()
 
-        assert profile["bootstrap_execution_kind"] == "exact_tiled_bootstrap"
-        assert (
-            profile["bootstrap_reason_code"]
-            == "filtered_average_requires_exact_tiled_bootstrap"
-        )
+        assert profile["bootstrap_execution_kind"] == "optimized_bootstrap"
+        assert profile["bootstrap_reason_code"] == "optimized_bootstrap_supported"
         xr.testing.assert_allclose(
             optimized.average,
             reference.average,
@@ -2434,6 +2427,28 @@ class TestIntegration:
             index_name="standard_deviation",
         ).compute()
         np.testing.assert_almost_equal(res.standard_deviation.isel(time=0), 0)
+        assert (
+            res.standard_deviation.attrs["units_metadata"] == "temperature: difference"
+        )
+
+    def test_temperature_units_metadata_distinguishes_scale_and_difference(
+        self,
+    ) -> None:
+        tas = stub_tas(tas_value=10 + K2C).rename("tas")
+        tasmax = stub_tas(tas_value=30 + K2C).rename("tasmax")
+        tasmin = stub_tas(tas_value=10 + K2C).rename("tasmin")
+
+        tg = icclim.index(tas, index_name="TG").TG
+        txx = icclim.index(tasmax, index_name="TXx").TXx
+        dtr = icclim.index(
+            [tasmax, tasmin],
+            var_name=["tasmax", "tasmin"],
+            index_name="DTR",
+        ).DTR
+
+        assert tg.attrs["units_metadata"] == "temperature: on_scale"
+        assert txx.attrs["units_metadata"] == "temperature: on_scale"
+        assert dtr.attrs["units_metadata"] == "temperature: difference"
 
     def test_slice_mode__between_date(self) -> None:
         time_range = xr.DataArray(
@@ -2627,6 +2642,33 @@ class TestIntegration:
         rh = icclim.rh(in_files=humidity, slice_mode="month").RH.compute()
         # THEN
         np.testing.assert_almost_equal(rh.isel(time=0), 10)
+        assert rh.attrs["units"] == "%"
+        assert "units_metadata" not in rh.attrs
+        assert rh.attrs["cell_methods"] == "time: mean over days"
+
+    def test_generic_rh_alias_does_not_emit_false_metadata_for_mm_units(self) -> None:
+        humidity = xr.DataArray(
+            np.ones(31),
+            coords={"time": pd.date_range("2001-01-01", periods=31, freq="D")},
+            dims="time",
+            name="RH",
+            attrs={"units": "mm"},
+        )
+
+        with pytest.warns(
+            UserWarning,
+            match="units 'mm' are not dimensionless",
+        ) as caught:
+            result = icclim.index(
+                humidity,
+                index_name="sum",
+                slice_mode="month",
+                logs_verbosity="SILENT",
+            )["sum"]
+
+        assert result.attrs["units"] == "mm"
+        assert result.attrs["standard_name"] == "unknown_variable"
+        assert len(caught) == 1
 
     @pytest.mark.parametrize("subdaily_freq", ["1h", "3h", "6h"])
     def test_tg__subdaily_synthetic_matches_daily_input(

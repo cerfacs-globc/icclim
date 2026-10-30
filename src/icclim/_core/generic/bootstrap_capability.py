@@ -141,23 +141,18 @@ def classify_doy_percentile_count_bootstrap(
         climate_var.bootstrap,
     ):
         return _not_required("bootstrap_not_needed_for_overlap")
-    if threshold_spec.threshold_min_value is not None:
-        return _exact_tiled_bootstrap(
-            family=_classify_count_family(threshold_spec),
-            reason_code="threshold_min_value_requires_exact_tiled_bootstrap",
-        )
     return _classify_required_optimized_percentile_bootstrap(
         family=_classify_count_family(threshold_spec),
         study=climate_var.studied_data,
         threshold_spec=threshold_spec,
         output_frequency=resample_frequency.pandas_freq,
-        allow_experimental_cftime=True,
+        allow_cftime=True,
     )
 
 
-def classify_doy_percentile_value_aggregate_bootstrap(  # noqa: PLR0911
+def classify_doy_percentile_value_aggregate_bootstrap(
     *,
-    indicator_name: str,
+    indicator_name: str,  # noqa: ARG001
     climate_var: ClimateVariable,
     resample_frequency: Frequency,
 ) -> BootstrapCapability:
@@ -177,21 +172,12 @@ def classify_doy_percentile_value_aggregate_bootstrap(  # noqa: PLR0911
         climate_var.bootstrap,
     ):
         return _not_required("bootstrap_not_needed_for_overlap")
-    if threshold_spec.threshold_min_value is not None and indicator_name == "average":
-        if os.environ.get("ICCLIM_BOOTSTRAP_MODE") == "default":
-            return _reference_bootstrap_path(
-                _classify_value_aggregate_family(threshold_spec),
-                "reference_bootstrap_mode_forced",
-            )
-        return _exact_tiled_bootstrap(
-            family=_classify_value_aggregate_family(threshold_spec),
-            reason_code="filtered_average_requires_exact_tiled_bootstrap",
-        )
     return _classify_required_optimized_percentile_bootstrap(
         family=_classify_value_aggregate_family(threshold_spec),
         study=climate_var.studied_data,
         threshold_spec=threshold_spec,
         output_frequency=resample_frequency.pandas_freq,
+        allow_cftime=True,
     )
 
 
@@ -215,16 +201,93 @@ def classify_doy_percentile_spell_bootstrap(
         climate_var.bootstrap,
     ):
         return _not_required("bootstrap_not_needed_for_overlap")
-    if threshold_spec.threshold_min_value is not None:
-        return _classify_required_exact_tiled_percentile_bootstrap(
-            family=_classify_spell_family(threshold_spec),
-            study=climate_var.studied_data,
-        )
-    return _classify_required_optimized_percentile_bootstrap(
+    return _classify_required_spell_bootstrap(
         family=_classify_spell_family(threshold_spec),
         study=climate_var.studied_data,
         threshold_spec=threshold_spec,
         output_frequency=resample_frequency.pandas_freq,
+    )
+
+
+def classify_doy_percentile_mask_bootstrap(
+    climate_var: ClimateVariable,
+    resample_frequency: Frequency,
+) -> BootstrapCapability:
+    """Classify bootstrap routing for consumers of an independent daily mask."""
+    threshold_spec = climate_var.threshold
+    threshold_kind = classify_threshold_kind(threshold_spec)
+    not_required_reason = _count_bootstrap_not_required_reason(threshold_kind)
+    if not_required_reason is not None:
+        return _not_required(not_required_reason)
+    if not isinstance(threshold_spec, PercentileThreshold):
+        return _not_required("threshold_is_not_day_of_year_percentile")
+    if climate_var.bootstrap is False:
+        return _not_required("bootstrap_disabled_by_user")
+    if not must_run_bootstrap(
+        climate_var.studied_data,
+        threshold_spec,
+        climate_var.bootstrap,
+    ):
+        return _not_required("bootstrap_not_needed_for_overlap")
+    return _classify_required_optimized_percentile_bootstrap(
+        family=_classify_value_aggregate_family(threshold_spec),
+        study=climate_var.studied_data,
+        threshold_spec=threshold_spec,
+        output_frequency=resample_frequency.pandas_freq,
+        allow_cftime=True,
+    )
+
+
+def classify_doy_percentile_numeric_threshold_bootstrap(
+    climate_var: ClimateVariable,
+    resample_frequency: Frequency,
+) -> BootstrapCapability:
+    """Classify consumers that require the mean substituted threshold value."""
+    threshold_spec = climate_var.threshold
+    threshold_kind = classify_threshold_kind(threshold_spec)
+    not_required_reason = _count_bootstrap_not_required_reason(threshold_kind)
+    if not_required_reason is not None:
+        return _not_required(not_required_reason)
+    if not isinstance(threshold_spec, PercentileThreshold):
+        return _not_required("threshold_is_not_day_of_year_percentile")
+    if climate_var.bootstrap is False:
+        return _not_required("bootstrap_disabled_by_user")
+    if not must_run_bootstrap(
+        climate_var.studied_data,
+        threshold_spec,
+        climate_var.bootstrap,
+    ):
+        return _not_required("bootstrap_not_needed_for_overlap")
+    family = _classify_value_aggregate_family(threshold_spec)
+    capability = _classify_required_optimized_percentile_bootstrap(
+        family=family,
+        study=climate_var.studied_data,
+        threshold_spec=threshold_spec,
+        output_frequency=resample_frequency.pandas_freq,
+        allow_cftime=True,
+        require_comparison_operator=False,
+    )
+    if capability.uses_optimized_bootstrap:
+        return replace(
+            capability,
+            reason_code="optimized_numeric_threshold_bootstrap_supported",
+        )
+    return capability
+
+
+def _classify_required_spell_bootstrap(
+    *,
+    family: BootstrapComputationFamily,
+    study: DataArray,
+    threshold_spec: PercentileThreshold,
+    output_frequency: str,
+) -> BootstrapCapability:
+    return _classify_required_optimized_percentile_bootstrap(
+        family=family,
+        study=study,
+        threshold_spec=threshold_spec,
+        output_frequency=output_frequency,
+        allow_cftime=True,
     )
 
 
@@ -234,7 +297,8 @@ def _classify_required_optimized_percentile_bootstrap(
     study: DataArray,
     threshold_spec: PercentileThreshold,
     output_frequency: str,
-    allow_experimental_cftime: bool = False,
+    allow_cftime: bool = False,
+    require_comparison_operator: bool = True,
 ) -> BootstrapCapability:
     from xclim.core.utils import uses_dask  # noqa: PLC0415
 
@@ -250,11 +314,13 @@ def _classify_required_optimized_percentile_bootstrap(
         )
     if os.environ.get("ICCLIM_BOOTSTRAP_MODE") == "safe":
         return _exact_tiled_bootstrap(family, "exact_tiled_bootstrap_mode_forced")
-    optimized_path_blocker = _optimized_count_path_blocker(
-        study,
-        threshold_spec,
-        output_frequency,
-        allow_experimental_cftime=allow_experimental_cftime,
+    blocker = (
+        _optimized_count_path_blocker
+        if require_comparison_operator
+        else _optimized_threshold_path_blocker
+    )
+    optimized_path_blocker = blocker(
+        study, threshold_spec, output_frequency, allow_cftime=allow_cftime
     )
     if optimized_path_blocker is not None:
         return _exact_tiled_bootstrap(family, optimized_path_blocker)
@@ -263,29 +329,6 @@ def _classify_required_optimized_percentile_bootstrap(
         execution_kind=BootstrapExecutionKind.OPTIMIZED_BOOTSTRAP,
         bootstrap_required=True,
         reason_code="optimized_bootstrap_supported",
-    )
-
-
-def _classify_required_exact_tiled_percentile_bootstrap(
-    *,
-    family: BootstrapComputationFamily,
-    study: DataArray,
-) -> BootstrapCapability:
-    from xclim.core.utils import uses_dask  # noqa: PLC0415
-
-    if not uses_dask(study):
-        return _reference_bootstrap_path(
-            family,
-            "eager_input_uses_reference_bootstrap_path",
-        )
-    if os.environ.get("ICCLIM_BOOTSTRAP_MODE") == "default":
-        return _reference_bootstrap_path(
-            family,
-            "reference_bootstrap_mode_forced",
-        )
-    return _exact_tiled_bootstrap(
-        family=family,
-        reason_code="spell_requires_exact_tiled_bootstrap",
     )
 
 
@@ -366,6 +409,17 @@ def _classify_specialized_generic_bootstrap(
             climate_var=climate_vars[0],
             resample_frequency=resample_frequency,
         )
+    elif _uses_specialized_numeric_threshold_routing(
+        indicator_name=indicator_name,
+        reducer_kind=reducer_kind,
+        climate_vars=climate_vars,
+        date_event=date_event,
+        inventory=inventory,
+    ):
+        specialized_capability = classify_doy_percentile_numeric_threshold_bootstrap(
+            climate_var=climate_vars[0],
+            resample_frequency=resample_frequency,
+        )
     elif _uses_specialized_spell_routing(
         reducer_kind=reducer_kind,
         climate_vars=climate_vars,
@@ -373,6 +427,16 @@ def _classify_specialized_generic_bootstrap(
         inventory=inventory,
     ):
         specialized_capability = classify_doy_percentile_spell_bootstrap(
+            climate_var=climate_vars[0],
+            resample_frequency=resample_frequency,
+        )
+    elif _uses_specialized_mask_consumer_routing(
+        indicator_name=indicator_name,
+        reducer_kind=reducer_kind,
+        climate_vars=climate_vars,
+        inventory=inventory,
+    ):
+        specialized_capability = classify_doy_percentile_mask_bootstrap(
             climate_var=climate_vars[0],
             resample_frequency=resample_frequency,
         )
@@ -387,7 +451,6 @@ def _classify_specialized_generic_bootstrap(
             climate_var=climate_vars[0],
             resample_frequency=resample_frequency,
             family=family,
-            indicator_name=indicator_name,
         )
     elif _uses_specialized_compound_count_routing(
         reducer_kind=reducer_kind,
@@ -412,6 +475,17 @@ def _classify_specialized_generic_bootstrap(
             resample_frequency=resample_frequency,
             inventory=inventory,
         )
+    elif _uses_specialized_compound_spell_routing(
+        reducer_kind=reducer_kind,
+        climate_vars=climate_vars,
+        date_event=date_event,
+        inventory=inventory,
+    ):
+        specialized_capability = classify_compound_spell_bootstrap(
+            climate_vars=climate_vars,
+            resample_frequency=resample_frequency,
+            inventory=inventory,
+        )
     return specialized_capability
 
 
@@ -426,7 +500,24 @@ def is_optimized_doy_percentile_count_supported(
             study,
             threshold_spec,
             output_frequency,
-            allow_experimental_cftime=True,
+            allow_cftime=True,
+        )
+        is None
+    )
+
+
+def is_optimized_doy_percentile_threshold_supported(
+    study: DataArray,
+    threshold_spec: PercentileThreshold,
+    output_frequency: str,
+) -> bool:
+    """Return whether exact compiled threshold reconstruction is supported."""
+    return (
+        _optimized_threshold_path_blocker(
+            study,
+            threshold_spec,
+            output_frequency,
+            allow_cftime=True,
         )
         is None
     )
@@ -631,6 +722,26 @@ def _uses_specialized_value_aggregate_routing(
     )
 
 
+def _uses_specialized_numeric_threshold_routing(
+    *,
+    indicator_name: str,
+    reducer_kind: BootstrapReducerKind,
+    climate_vars: list[ClimateVariable],
+    date_event: bool,
+    inventory: BootstrapThresholdInventory,
+) -> bool:
+    if indicator_name not in {"excess", "deficit"}:
+        return False
+    if reducer_kind != BootstrapReducerKind.VALUE_AGGREGATE:
+        return False
+    if date_event or len(climate_vars) != 1 or inventory.has_bounded_threshold:
+        return False
+    threshold_spec = climate_vars[0].threshold
+    return isinstance(threshold_spec, PercentileThreshold) and bool(
+        inventory.required_percentile_thresholds
+    )
+
+
 def _uses_specialized_spell_routing(
     *,
     reducer_kind: BootstrapReducerKind,
@@ -641,6 +752,33 @@ def _uses_specialized_spell_routing(
     if reducer_kind != BootstrapReducerKind.SPELL:
         return False
     if date_event or len(climate_vars) != 1 or inventory.has_bounded_threshold:
+        return False
+    threshold_spec = climate_vars[0].threshold
+    return isinstance(threshold_spec, PercentileThreshold) and bool(
+        inventory.required_percentile_thresholds
+    )
+
+
+def _uses_specialized_mask_consumer_routing(
+    *,
+    indicator_name: str,
+    reducer_kind: BootstrapReducerKind,
+    climate_vars: list[ClimateVariable],
+    inventory: BootstrapThresholdInventory,
+) -> bool:
+    if reducer_kind != BootstrapReducerKind.VALUE_AGGREGATE:
+        return False
+    if indicator_name not in {
+        "maximum",
+        "minimum",
+        "standard_deviation",
+        "max_of_rolling_sum",
+        "min_of_rolling_sum",
+        "max_of_rolling_average",
+        "min_of_rolling_average",
+    }:
+        return False
+    if len(climate_vars) != 1 or inventory.has_bounded_threshold:
         return False
     threshold_spec = climate_vars[0].threshold
     return isinstance(threshold_spec, PercentileThreshold) and bool(
@@ -678,12 +816,12 @@ def _uses_specialized_compound_count_routing(
     date_event: bool,
     inventory: BootstrapThresholdInventory,
 ) -> bool:
-    if reducer_kind != BootstrapReducerKind.COUNT or date_event:
+    if reducer_kind != BootstrapReducerKind.COUNT:
         return False
     if len(climate_vars) == 0:
         return False
     return inventory.bootstrap_required and (
-        inventory.has_bounded_threshold or inventory.threshold_count > 1
+        date_event or inventory.has_bounded_threshold or inventory.threshold_count > 1
     )
 
 
@@ -703,6 +841,22 @@ def _uses_specialized_compound_value_aggregate_routing(
         return False
     return inventory.bootstrap_required and (
         inventory.has_bounded_threshold or inventory.threshold_count > 1
+    )
+
+
+def _uses_specialized_compound_spell_routing(
+    *,
+    reducer_kind: BootstrapReducerKind,
+    climate_vars: list[ClimateVariable],
+    date_event: bool,
+    inventory: BootstrapThresholdInventory,
+) -> bool:
+    if reducer_kind != BootstrapReducerKind.SPELL or date_event:
+        return False
+    return inventory.bootstrap_required and (
+        len(climate_vars) > 1
+        or inventory.has_bounded_threshold
+        or inventory.threshold_count > 1
     )
 
 
@@ -843,12 +997,84 @@ def classify_compound_value_aggregate_bootstrap(
     )
 
 
+def classify_compound_spell_bootstrap(
+    *,
+    climate_vars: list[ClimateVariable],
+    resample_frequency: Frequency,
+    inventory: BootstrapThresholdInventory,
+) -> BootstrapCapability:
+    """Classify a spell assembled from independently computed component masks."""
+    family = _classify_generic_bootstrap_family(
+        reducer_kind=BootstrapReducerKind.SPELL,
+        inventory=inventory,
+    )
+    cftime_inputs = any(_uses_cftime_index(var.studied_data) for var in climate_vars)
+    if (
+        cftime_inputs
+        and len(climate_vars) == 1
+        and not isinstance(
+            climate_vars[0].threshold,
+            BoundedThreshold,
+        )
+    ):
+        return _reference_bootstrap_path(
+            family,
+            "cftime_compound_spell_uses_reference_bootstrap",
+        )
+    if cftime_inputs and len(climate_vars) > 1:
+        reference = climate_vars[0].studied_data
+        if any(
+            candidate.dims != reference.dims
+            or any(
+                candidate.sizes[dim] != reference.sizes[dim]
+                or not candidate.get_index(dim).equals(reference.get_index(dim))
+                for dim in reference.dims
+            )
+            for candidate in (
+                climate_var.studied_data for climate_var in climate_vars[1:]
+            )
+        ):
+            return _reference_bootstrap_path(
+                family,
+                "cftime_multivariable_compound_spell_inputs_not_aligned",
+            )
+    component_capabilities = [
+        component_capability
+        for climate_var in climate_vars
+        for component_capability in _iter_compound_component_bootstrap_capabilities(
+            climate_var=climate_var,
+            threshold_spec=climate_var.threshold,
+            resample_frequency=resample_frequency,
+        )
+    ]
+    if not component_capabilities or any(
+        capability.uses_reference_bootstrap_path
+        for capability in component_capabilities
+    ):
+        return _reference_bootstrap_path(
+            family,
+            "compound_spell_component_requires_reference_bootstrap_path",
+        )
+    if any(
+        capability.uses_exact_tiled_bootstrap for capability in component_capabilities
+    ):
+        return _exact_tiled_bootstrap(
+            family,
+            "compound_spell_component_requires_exact_tiled_bootstrap",
+        )
+    return BootstrapCapability(
+        family=family,
+        execution_kind=BootstrapExecutionKind.OPTIMIZED_BOOTSTRAP,
+        bootstrap_required=True,
+        reason_code="optimized_compound_spell_bootstrap_supported",
+    )
+
+
 def classify_scalar_bounded_bootstrap(
     *,
     climate_var: ClimateVariable,
     resample_frequency: Frequency,
     family: BootstrapComputationFamily,
-    indicator_name: str,
 ) -> BootstrapCapability:
     percentile_threshold = get_optimized_scalar_bounded_percentile_component(
         climate_var.threshold
@@ -866,19 +1092,12 @@ def classify_scalar_bounded_bootstrap(
         climate_var.bootstrap,
     ):
         return _not_required("bootstrap_not_needed_for_overlap")
-    if (
-        percentile_threshold.threshold_min_value is not None
-        and indicator_name == "average"
-    ):
-        return _exact_tiled_bootstrap(
-            family,
-            "filtered_average_requires_exact_tiled_bootstrap",
-        )
     capability = _classify_required_optimized_percentile_bootstrap(
         family=family,
         study=climate_var.studied_data,
         threshold_spec=percentile_threshold,
         output_frequency=resample_frequency.pandas_freq,
+        allow_cftime=True,
     )
     if capability.uses_optimized_bootstrap:
         return BootstrapCapability(
@@ -919,15 +1138,8 @@ def _iter_compound_component_bootstrap_capabilities(
         climate_var.bootstrap,
     ):
         return ()
-    if not threshold_spec.is_doy_per_threshold:
-        return (
-            _reference_bootstrap_path(
-                _classify_count_family(threshold_spec),
-                "compound_period_percentile_uses_reference_bootstrap_path",
-            ),
-        )
     return (
-        classify_doy_percentile_spell_bootstrap(
+        classify_doy_percentile_mask_bootstrap(
             climate_var=replace(climate_var, threshold=threshold_spec),
             resample_frequency=resample_frequency,
         ),
@@ -949,8 +1161,6 @@ def get_optimized_scalar_bounded_percentile_component(
     percentile_threshold, _, _ = scalar_bounded_spec
     if not percentile_threshold.is_doy_per_threshold:
         return None
-    if percentile_threshold.threshold_min_value is not None:
-        return None
     return percentile_threshold
 
 
@@ -962,8 +1172,6 @@ def get_optimized_scalar_bounded_bootstrap_spec(
         return None
     percentile_threshold, _, _ = scalar_bounded_spec
     if not percentile_threshold.is_doy_per_threshold:
-        return None
-    if percentile_threshold.threshold_min_value is not None:
         return None
     return scalar_bounded_spec
 
@@ -1044,8 +1252,27 @@ def _exact_tiled_bootstrap(
     )
 
 
-def _is_optimized_bootstrap_frequency(freq: str) -> bool:
-    return freq in {"MS", "YS"} or freq.startswith("YS-")
+def _is_optimized_bootstrap_frequency(study: DataArray, freq: str) -> bool:
+    if freq in {"MS", "YS"} or freq.startswith("YS-"):
+        return True
+    try:
+        from icclim._core.generic.bootstrap_primitives import (  # noqa: PLC0415
+            bootstrap_resample_frequency,
+            indices_by_epoch_resample_group,
+            indices_by_resample_group,
+        )
+
+        bootstrap_freq = bootstrap_resample_frequency(freq)
+        if bootstrap_freq not in {"YS", "YE"}:
+            return False
+        epoch_indices = indices_by_resample_group(
+            study,
+            bootstrap_freq,
+        )
+        _, groups, _ = indices_by_epoch_resample_group(study, epoch_indices, freq)
+    except (TypeError, ValueError):
+        return False
+    return bool(groups) and all(indices.size for indices in groups)
 
 
 def _optimized_count_path_blocker(
@@ -1053,14 +1280,34 @@ def _optimized_count_path_blocker(
     threshold_spec: PercentileThreshold,
     output_frequency: str,
     *,
-    allow_experimental_cftime: bool = False,
+    allow_cftime: bool = False,
 ) -> str | None:
     """Return the optimized-path blocker reason, or ``None`` when it is supported."""
+    threshold_blocker = _optimized_threshold_path_blocker(
+        study,
+        threshold_spec,
+        output_frequency,
+        allow_cftime=allow_cftime,
+    )
+    if threshold_blocker is not None:
+        return threshold_blocker
+    if _operator_code(threshold_spec.operator) < 0:
+        return "operator_not_supported_by_optimized_bootstrap"
+    return None
+
+
+def _optimized_threshold_path_blocker(
+    study: DataArray,
+    threshold_spec: PercentileThreshold,
+    output_frequency: str,
+    *,
+    allow_cftime: bool = False,
+) -> str | None:
     blockers = [
         (
             not _optimized_bootstrap_calendar_supported(
                 study,
-                allow_experimental_cftime=allow_experimental_cftime,
+                allow_cftime=allow_cftime,
             ),
             "calendar_requires_exact_tiled_bootstrap",
         ),
@@ -1069,16 +1316,8 @@ def _optimized_count_path_blocker(
             "only_leap_years_requires_exact_tiled_bootstrap",
         ),
         (
-            threshold_spec.percentile_coord().size != 1,
-            "multiple_percentiles_require_exact_tiled_bootstrap",
-        ),
-        (
-            not _is_optimized_bootstrap_frequency(output_frequency),
+            not _is_optimized_bootstrap_frequency(study, output_frequency),
             "output_frequency_not_supported_by_optimized_bootstrap",
-        ),
-        (
-            _operator_code(threshold_spec.operator) < 0,
-            "operator_not_supported_by_optimized_bootstrap",
         ),
         (
             not _optimized_bootstrap_is_available(),
@@ -1094,12 +1333,32 @@ def _optimized_count_path_blocker(
 def _optimized_bootstrap_calendar_supported(
     study: DataArray,
     *,
-    allow_experimental_cftime: bool,
+    allow_cftime: bool,
 ) -> bool:
     if isinstance(study.indexes.get("time"), pd.DatetimeIndex):
         return True
-    if not allow_experimental_cftime:
+    if not allow_cftime:
         return False
+    return _uses_supported_cftime_calendar(study)
+
+
+def _uses_supported_cftime_calendar(study: DataArray) -> bool:
+    if not _uses_cftime_index(study):
+        return False
+    time_index = study.indexes["time"]
+    return time_index.calendar in {
+        "360_day",
+        "365_day",
+        "366_day",
+        "all_leap",
+        "gregorian",
+        "noleap",
+        "proleptic_gregorian",
+        "standard",
+    }
+
+
+def _uses_cftime_index(study: DataArray) -> bool:
     from xarray.coding.cftimeindex import CFTimeIndex  # noqa: PLC0415
 
     return isinstance(study.indexes.get("time"), CFTimeIndex)

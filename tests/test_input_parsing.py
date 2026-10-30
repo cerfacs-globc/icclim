@@ -12,10 +12,12 @@ import xarray as xr
 from icclim._core.constants import UNITS_KEY
 from icclim._core.input_parsing import (
     PercentileDataArray,
+    guess_standard_variable,
     guess_var_names,
     read_dataset,
     update_to_standard_coords,
 )
+from icclim._core.model.standard_variable import StandardVariableRegistry
 from icclim.ecad.registry import EcadIndexRegistry
 from icclim.exception import InvalidIcclimArgumentError
 
@@ -41,6 +43,23 @@ def test_update_to_standard_coords() -> None:
     res = update_to_standard_coords(ds)
     # THEN
     assert "time" in res.coords
+
+
+def test_guess_standard_variable_rejects_humidity_with_length_units() -> None:
+    humidity = xr.DataArray([1.0], name="RH", attrs={"units": "mm"})
+
+    with pytest.warns(UserWarning, match="units 'mm' are not dimensionless"):
+        result = guess_standard_variable(humidity)
+
+    assert result is None
+
+
+def test_guess_standard_variable_accepts_humidity_percentage() -> None:
+    humidity = xr.DataArray([50.0], name="RH", attrs={"units": "%"})
+
+    result = guess_standard_variable(humidity)
+
+    assert result == StandardVariableRegistry.HURS
 
 
 class TestReadDataset:
