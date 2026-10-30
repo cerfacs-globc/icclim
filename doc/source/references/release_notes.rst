@@ -2,6 +2,16 @@
  Release history
 #################
 
+**********
+Unreleased
+**********
+
+-  [test] Add an isolated non-bootstrap performance matrix reporting graph
+   construction, task count, scheduler calls, wall time and peak RSS across
+   workloads, input layouts and chunking policies.
+-  [test] Add matching Kraken real-data workloads and a slow synthetic-cube
+   memory regression test.
+
 *****
 7.3.0
 *****
