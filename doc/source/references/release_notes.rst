@@ -19,6 +19,9 @@ date: 2026-09-30
 -  [enh] Record the resolved completeness policy, implementation method and
    options in output variable metadata in preparation for configurable ECA&D
    and WMO policies in icclim 7.3.
+-  [doc] Add a station-workflow performance guide covering vectorized station
+   dimensions, memory-bounded batches, grouped index output and correct timing
+   of lazy calculations.
 
 *****
 7.2.0
