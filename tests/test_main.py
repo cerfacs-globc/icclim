@@ -1697,7 +1697,7 @@ class TestIntegration:
         )
 
         assert not threshold.is_ready
-        assert res.count_occurrences.chunks is not None
+        assert not hasattr(res.count_occurrences.data, "__dask_graph__")
 
     @pytest.mark.parametrize("slice_mode", ["JJA", "ONDJFM"])
     def test_index_tx90p__dask_bootstrap_uses_optimized_tiled_seasonal_path(
