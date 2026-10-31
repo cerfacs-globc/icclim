@@ -2,6 +2,15 @@
  Release history
 #################
 
+**********
+Unreleased
+**********
+
+-  [fix] Return the requested maximum or minimum when ``date_event=True``
+   instead of the period sum, including for Dask-backed inputs. Rolling extrema
+   now support event dates and report the first and last dates of the selected
+   trailing window. All-NaN cells return ``NaN`` with a missing event date.
+
 *****
 7.3.0
 *****
