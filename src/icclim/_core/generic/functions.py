@@ -1358,6 +1358,7 @@ def max_of_rolling_sum(
         rolling_window_width=rolling_window_width,
         rolling_op=lambda x: x.sum(),
         resampled_op=lambda x: x.max(),
+        extreme="max",
         date_event=date_event,
         source_freq_delta=source_freq_delta,
     )
@@ -1406,6 +1407,7 @@ def min_of_rolling_sum(
         rolling_window_width=rolling_window_width,
         rolling_op=lambda x: x.sum(),
         resampled_op=lambda x: x.min(),
+        extreme="min",
         date_event=date_event,
         source_freq_delta=source_freq_delta,
     )
@@ -1455,6 +1457,7 @@ def min_of_rolling_average(
         rolling_window_width=rolling_window_width,
         rolling_op=lambda x: x.mean(),
         resampled_op=lambda x: x.min(),
+        extreme="min",
         date_event=date_event,
         source_freq_delta=source_freq_delta,
     )
@@ -1504,6 +1507,7 @@ def max_of_rolling_average(
         rolling_window_width=rolling_window_width,
         rolling_op=lambda x: x.mean(),
         resampled_op=lambda x: x.max(),
+        extreme="max",
         date_event=date_event,
         source_freq_delta=source_freq_delta,
     )
@@ -3183,6 +3187,7 @@ def _run_rolling_reducer(
     resampled_op: Callable[[DataArrayResample], DataArray],  # max | min
     date_event: bool,
     source_freq_delta: timedelta,
+    extreme: str | None = None,
 ) -> DataArray:
     study, threshold = get_single_var(climate_vars)
     if threshold:
@@ -3199,6 +3204,7 @@ def _run_rolling_reducer(
         return _reduce_with_date_event(
             resampled=resampled,
             reducer=resampled_op,
+            extreme=extreme,
             window=rolling_window_width,
             source_delta=source_freq_delta,
         )
@@ -3474,37 +3480,53 @@ def _get_thresholded_var(
 
 def _reduce_with_date_event(
     resampled: DataArrayResample,
-    reducer: Callable[[DataArrayResample], DataArray],
+    reducer: Callable[..., DataArray],
     source_delta: timedelta | None = None,
     window: int | None = None,
+    extreme: str | None = None,
 ) -> DataArray:
-    acc: list[DataArray] = []
-    if reducer == DataArrayResample.max:
-        group_reducer = DataArray.argmax
-    elif reducer == DataArrayResample.min:
-        group_reducer = DataArray.argmin
-    else:
-        msg = f"Can't compute `date_event` due to unknown reducer: '{reducer}'"
+    """Reduce periods to their extrema and attach the corresponding dates."""
+    if extreme is None:
+        if reducer == DataArrayResample.max:
+            extreme = "max"
+        elif reducer == DataArrayResample.min:
+            extreme = "min"
+        else:
+            msg = f"Can't compute `date_event` due to unknown reducer: '{reducer}'"
+            raise NotImplementedError(msg)
+    if extreme not in ("max", "min"):
+        msg = f"Can't compute `date_event` due to unknown reducer: '{extreme}'"
         raise NotImplementedError(msg)
+    acc: list[DataArray] = []
     for label, sample in resampled:
-        reduced_result = sample.isel(time=group_reducer(sample, dim="time"))
+        valid = sample.notnull().any(dim="time")
+        fill_value = -np.inf if extreme == "max" else np.inf
+        # The spatial index is small and must be concrete because xarray cannot
+        # use a lazy vectorized indexer. Filling NaNs also gives all-NaN cells a
+        # harmless index before their event date is masked to NaT below.
+        index_of_extreme = getattr(sample.fillna(fill_value), f"arg{extreme}")(
+            dim="time"
+        ).compute()
+        event_time = sample.time.isel(time=index_of_extreme).where(valid)
+        value = getattr(sample, extreme)(dim="time")
         if window is not None:
+            start_time = (
+                event_time - (window - 1) * source_delta
+                if source_delta is not None
+                else event_time
+            )
             result = _add_date_coords(
                 original_sample=sample,
-                result=sample.sum(dim="time"),
-                start_time=reduced_result.time,
-                end_time=(
-                    reduced_result.time + window * source_delta
-                    if window is not None and source_delta is not None
-                    else reduced_result.time
-                ),
+                result=value,
+                start_time=start_time,
+                end_time=event_time,
                 label=label,
             )
         else:
             result = _add_date_coords(
                 original_sample=sample,
-                result=sample.sum(dim="time"),
-                event_date=reduced_result.time,
+                result=value,
+                event_date=event_time,
                 label=label,
             )
         acc.append(result)
