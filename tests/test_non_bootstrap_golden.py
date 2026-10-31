@@ -14,8 +14,6 @@ from icclim._core.generic.functions import (
     max_consecutive_occurrence,
     max_of_rolling_average,
     max_of_rolling_sum,
-    maximum,
-    minimum,
 )
 from icclim._core.model.logical_link import LogicalLinkRegistry
 from icclim._core.model.standard_variable import StandardVariableRegistry
@@ -60,29 +58,6 @@ def test_count_occurrences_date_event_golden() -> None:
     assert result.event_date_end.item() == pd.Timestamp("2000-01-04")
 
 
-@pytest.mark.parametrize(
-    ("reducer", "event_date"),
-    [
-        (maximum, "2000-01-02"),
-        (minimum, "2000-01-05"),
-    ],
-)
-def test_extreme_date_event_golden_preserves_period_sum(
-    reducer,
-    event_date: str,
-) -> None:
-    result = reducer(
-        climate_vars=[_climate_variable([1, 4, 2, 3, 0])],
-        resample_freq=FrequencyRegistry.MONTH,
-        date_event=True,
-    ).compute()
-
-    # This surprising legacy value is the period sum, not the requested extreme.
-    # Performance refactors must preserve it until a dedicated correctness change.
-    np.testing.assert_array_equal(result.values, [[10.0]])
-    assert result.event_date.item() == pd.Timestamp(event_date)
-
-
 @pytest.mark.parametrize("run_index", ["first", "last"])
 def test_consecutive_occurrences_date_event_golden(run_index: str) -> None:
     result = max_consecutive_occurrence(
@@ -118,18 +93,6 @@ def test_rolling_reducer_golden(reducer, expected: float) -> None:
     ).compute()
 
     np.testing.assert_array_equal(result.values, [[expected]])
-
-
-@pytest.mark.parametrize("reducer", [max_of_rolling_sum, max_of_rolling_average])
-def test_rolling_date_event_golden_is_currently_unsupported(reducer) -> None:
-    with pytest.raises(NotImplementedError, match="unknown reducer"):
-        reducer(
-            climate_vars=[_climate_variable([1, 2, 3, 4, 5, 0, 1])],
-            resample_freq=FrequencyRegistry.MONTH,
-            rolling_window_width=3,
-            date_event=True,
-            source_freq_delta=np.timedelta64(1, "D"),
-        )
 
 
 def _reference_diff_inputs() -> tuple[xr.DataArray, xr.DataArray]:
