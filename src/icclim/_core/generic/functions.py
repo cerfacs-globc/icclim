@@ -1811,34 +1811,22 @@ def _reduce_and_diff_of_resampled_x_by_groupedby_y(
     reducer: Callable[[DataArrayResample | DataArray | DataArrayGroupBy], DataArray],
 ) -> DataArray:
     mean_ref = reducer(ref.groupby(resample_freq.group_by_key))
-    acc = []
     if resample_freq == FrequencyRegistry.MONTH:
         key = "month"
-
-        def dt_selector(x: Any) -> Any:  # noqa: ANN401
-            return x.time.dt.month
     elif resample_freq == FrequencyRegistry.DAY:
         key = "dayofyear"
-
-        def dt_selector(x: Any) -> Any:  # noqa: ANN401
-            return x.time.dt.dayofyear
     else:
         msg = (
             f"Can't use {GROUP_BY_REF_AND_RESAMPLE_STUDY_METHOD}"
             f" with the frequency {resample_freq.long_name}."
         )
         raise NotImplementedError(msg)
-    for label, sample in study.resample(time=resample_freq.pandas_freq):
-        sample_mean = reducer(sample)
-        ref_group_mean = mean_ref.sel({key: dt_selector(sample).to_numpy()[0]})
-        sample_diff_of_means = sample_mean - ref_group_mean
-        if to_percent:
-            sample_diff_of_means = sample_diff_of_means / ref_group_mean * 100
-        del sample_diff_of_means[key]
-        sample_diff_of_means = sample_diff_of_means.expand_dims(time=[label])
-        acc.append(sample_diff_of_means)
-    diff_of_means = xr.concat(acc, dim="time")
+    reduced_study = reducer(study.resample(time=resample_freq.pandas_freq))
+    selector = getattr(reduced_study.time.dt, key)
+    selected_ref = mean_ref.sel({key: selector}).drop_vars(key)
+    diff_of_means = reduced_study - selected_ref
     if to_percent:
+        diff_of_means = diff_of_means / selected_ref * 100
         diff_of_means.attrs["units"] = "%"
     else:
         diff_of_means.attrs["units"] = study.attrs["units"]
@@ -3545,61 +3533,82 @@ def _reduce_with_date_event(
     if extreme not in ("max", "min"):
         msg = f"Can't compute `date_event` due to unknown reducer: '{extreme}'"
         raise NotImplementedError(msg)
-    acc: list[DataArray] = []
-    for label, sample in resampled:
-        valid = sample.notnull().any(dim="time")
-        fill_value = -np.inf if extreme == "max" else np.inf
-        # The spatial index is small and must be concrete because xarray cannot
-        # use a lazy vectorized indexer. Filling NaNs also gives all-NaN cells a
-        # harmless index before their event date is masked to NaT below.
-        index_of_extreme = getattr(sample.fillna(fill_value), f"arg{extreme}")(
-            dim="time"
-        ).compute()
-        event_time = sample.time.isel(time=index_of_extreme).where(valid)
-        value = getattr(sample, extreme)(dim="time")
-        if window is not None:
-            start_time = (
-                event_time - (window - 1) * source_delta
-                if source_delta is not None
-                else event_time
-            )
-            result = _add_date_coords(
-                original_sample=sample,
-                result=value,
-                start_time=start_time,
-                end_time=event_time,
-                label=label,
-            )
-        else:
-            result = _add_date_coords(
-                original_sample=sample,
-                result=value,
-                event_date=event_time,
-                label=label,
-            )
-        acc.append(result)
-    return xr.concat(acc, "time")
+    value = getattr(resampled, extreme)(dim="time")
+    event_time = resampled.map(
+        _extreme_event_date,
+        args=(extreme,),
+        shortcut=False,
+    )
+    if window is None:
+        return value.assign_coords(event_date=event_time)
+    start_time = (
+        event_time - (window - 1) * source_delta
+        if source_delta is not None
+        else event_time
+    )
+    return value.assign_coords(
+        event_date_start=start_time,
+        event_date_end=event_time,
+    )
+
+
+def _extreme_event_date(sample: DataArray, extreme: str) -> DataArray:
+    fill_value = (
+        np.datetime64("NaT")
+        if np.issubdtype(sample.time.dtype, np.datetime64)
+        else None
+    )
+    return getattr(sample, f"idx{extreme}")(
+        dim="time",
+        fill_value=fill_value,
+    )
 
 
 def _count_occurrences_with_date(resampled: DataArrayResample) -> DataArray:
-    acc: list[DataArray] = []
-    for label, _sample in resampled:
-        # TODO @bzah: probably not safe to compute on huge dataset,
-        #              it should be fixed with
-        #  https://github.com/pydata/xarray/issues/2511
-        sample = _sample.compute()
-        first = sample.isel(time=sample.argmax("time")).time
-        reversed_time = sample.reindex(time=list(reversed(sample.time.to_numpy())))
-        last = reversed_time.isel(time=reversed_time.argmax("time")).time
-        dated_occurrences = _add_date_coords(
-            original_sample=sample,
-            result=sample.sum(dim="time"),
-            start_time=first,
-            end_time=last,
-            label=label,
-        )
-        acc.append(dated_occurrences)
-    return xr.concat(acc, "time")
+    occurrences = resampled.sum(dim="time")
+    event_dates = resampled.map(_occurrence_event_dates, shortcut=False)
+    return occurrences.assign_coords(
+        event_date_start=event_dates.sel(event_date_bound="start", drop=True),
+        event_date_end=event_dates.sel(event_date_bound="end", drop=True),
+    )
+
+
+def _occurrence_event_dates(sample: DataArray) -> DataArray:
+    events = sample.fillna(False).astype(bool)
+    event_dates = xr.apply_ufunc(
+        _first_and_last_true_time,
+        events,
+        input_core_dims=[["time"]],
+        output_core_dims=[["event_date_bound"]],
+        kwargs={"time_values": events.time.to_numpy()},
+        dask="parallelized",
+        output_dtypes=[events.time.dtype],
+        dask_gufunc_kwargs={
+            "allow_rechunk": True,
+            "output_sizes": {"event_date_bound": 2},
+        },
+    )
+    return event_dates.assign_coords(
+        event_date_bound=["start", "end"],
+    )
+
+
+def _first_and_last_true_time(
+    values: np.ndarray,
+    *,
+    time_values: np.ndarray,
+) -> np.ndarray:
+    has_event = values.any(axis=-1)
+    first = values.argmax(axis=-1)
+    last = values.shape[-1] - 1 - values[..., ::-1].argmax(axis=-1)
+    result = np.stack((time_values[first], time_values[last]), axis=-1)
+    missing_time = (
+        np.datetime64("NaT")
+        if np.issubdtype(time_values.dtype, np.datetime64)
+        else None
+    )
+    result[~has_event] = missing_time
+    return result
 
 
 def _consecutive_occurrences_with_dates(
@@ -3607,56 +3616,23 @@ def _consecutive_occurrences_with_dates(
     source_freq_delta: timedelta,
     run_index: str,
 ) -> DataArray:
-    acc = []
-    for label, _sample in resampled:
-        sample = _sample.where(~_sample.isnull(), 0)
-        time_index_of_max_rle = sample.argmax(dim="time")
-        # TODO @bzah: `.compute` is needed until xarray merges this pr:
-        # https://github.com/pydata/xarray/pull/5873
-        time_index_of_max_rle = cast("DataArray", time_index_of_max_rle).compute()
-        dated_longest_run = sample[{"time": time_index_of_max_rle}]
-        anchor_time = sample.isel(
-            time=time_index_of_max_rle.where(time_index_of_max_rle > 0, 0),
-        ).time
-        if run_index == "last":
-            end_time = anchor_time + source_freq_delta
-            start_time = end_time - (dated_longest_run * cast("Any", source_freq_delta))
-        else:
-            # default to 'first' behavior
-            start_time = anchor_time
-            end_time = start_time + (dated_longest_run * cast("Any", source_freq_delta))
-        # A run of length 0 has no event: its dates must be missing, not the
-        # first day of the period.
-        has_event = dated_longest_run > 0
-        dated_longest_run = _add_date_coords(
-            original_sample=sample,
-            result=dated_longest_run,
-            start_time=start_time.where(has_event),
-            end_time=end_time.where(has_event),
-            label=label,
-        )
-        acc.append(dated_longest_run)
-    return xr.concat(acc, "time")
-
-
-def _add_date_coords(
-    original_sample: DataArray,
-    result: DataArray,
-    label: str | np.datetime64,
-    start_time: DataArray | None = None,
-    end_time: DataArray | None = None,
-    event_date: DataArray | None = None,
-) -> DataArray:
-    new_coords: dict[Any, Any] = {
-        c: original_sample[c] for c in original_sample.coords if c != "time"
-    }  # type: ignore[misc]
-    if event_date is None:
-        new_coords["event_date_start"] = start_time
-        new_coords["event_date_end"] = end_time
+    longest_run = resampled.max(dim="time")
+    anchor_time = resampled.map(_longest_run_event_date, shortcut=False)
+    if run_index == "last":
+        end_time = anchor_time + source_freq_delta
+        start_time = end_time - (longest_run * cast("Any", source_freq_delta))
     else:
-        new_coords["event_date"] = event_date
-    new_coords["time"] = label
-    return DataArray(data=result, coords=new_coords)
+        start_time = anchor_time
+        end_time = start_time + (longest_run * cast("Any", source_freq_delta))
+    has_event = longest_run > 0
+    return longest_run.assign_coords(
+        event_date_start=start_time.where(has_event),
+        event_date_end=end_time.where(has_event),
+    )
+
+
+def _longest_run_event_date(sample: DataArray) -> DataArray:
+    return sample.fillna(0).idxmax(dim="time")
 
 
 def _to_percent(da: DataArray, sampling_freq: Frequency) -> DataArray:
