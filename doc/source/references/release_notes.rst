@@ -13,6 +13,12 @@ Unreleased
 -  [perf] Keep extrema, occurrence, consecutive-run event dates and
    reference-difference reductions in lazy per-period Dask graphs instead of
    loading and concatenating each output period in Python.
+-  [perf] Preserve existing Dask and native NetCDF/Zarr chunks during input,
+   applying automatic chunks only to eager source arrays. Prepared percentile
+   thresholds retain their required graph-stabilizing rechunk.
+-  [enh] Add opt-in NetCDF compression and stored chunk encoding through
+   ``ICCLIM_OUTPUT_COMPRESSION_LEVEL`` and ``ICCLIM_OUTPUT_CHUNKS`` while
+   leaving default output encoding unchanged.
 
 *****
 7.3.0

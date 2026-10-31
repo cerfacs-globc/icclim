@@ -12,6 +12,7 @@ import xarray as xr
 from icclim._core.constants import UNITS_KEY
 from icclim._core.input_parsing import (
     PercentileDataArray,
+    build_studied_data,
     guess_standard_variable,
     guess_var_names,
     read_dataset,
@@ -135,6 +136,17 @@ class TestReadDataset:
         # THEN
         xr.testing.assert_equal(ds_res.pouet, ds.pouet)
 
+    def test_read_dataset__netcdf_preserves_native_chunks(self) -> None:
+        ds = xr.Dataset({"pouet": self.pr_da})
+        ds.to_netcdf(
+            self.OUTPUT_NC_FILE,
+            encoding={"pouet": {"chunksizes": (5, 1, 1)}},
+        )
+
+        result = read_dataset(str(self.OUTPUT_NC_FILE))
+
+        assert result.pouet.chunks == ((5, 5), (1,), (1,))
+
     def test_read_dataset__multi_netcdf_success(self) -> None:
         # GIVEN
         ds = xr.Dataset({"pouet": self.pr_da})
@@ -228,3 +240,39 @@ class TestReadDataset:
         res = guess_var_names(ds, standard_index=EcadIndexRegistry.SU, var_names=None)
         # THEN
         assert res == ["tasmaxAdjust"]
+
+
+def test_build_studied_data_preserves_existing_chunks() -> None:
+    source = xr.DataArray(
+        np.arange(24).reshape(6, 4),
+        dims=("time", "station"),
+        coords={"time": pd.date_range("2000-01-01", periods=6)},
+        attrs={"units": "1"},
+    ).chunk({"time": 2, "station": 1})
+
+    result = build_studied_data(
+        source,
+        time_range=None,
+        ignore_feb29th=False,
+        default_units=None,
+    )
+
+    assert result.chunks == source.chunks
+
+
+def test_build_studied_data_auto_chunks_eager_input() -> None:
+    source = xr.DataArray(
+        np.arange(6),
+        dims="time",
+        coords={"time": pd.date_range("2000-01-01", periods=6)},
+        attrs={"units": "1"},
+    )
+
+    result = build_studied_data(
+        source,
+        time_range=None,
+        ignore_feb29th=False,
+        default_units=None,
+    )
+
+    assert result.chunks is not None

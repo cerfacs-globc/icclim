@@ -208,11 +208,16 @@ def read_dataset(
         #  in different files (was the case with eobs).
         # TODO @bzah: change parallel to True when issue is fixed on netcdf4 (py and C)
         # https://github.com/Unidata/netcdf4-python/issues/1192
-        ds = xr.open_mfdataset(in_files, parallel=False, join="override")
+        ds = xr.open_mfdataset(
+            in_files,
+            parallel=False,
+            join="override",
+            chunks={},
+        )
     elif is_netcdf_path(in_files):
-        ds = xr.open_dataset(in_files)
+        ds = xr.open_dataset(in_files, chunks={})
     elif is_zarr_path(in_files):
-        ds = xr.open_zarr(in_files)
+        ds = xr.open_zarr(in_files, chunks={})
     elif isinstance(in_files, (list, tuple)):
         return xr.merge(
             [
@@ -580,7 +585,14 @@ def build_studied_data(
     standard_var = standard_var or guess_standard_variable(studied_data)
     studied_data = _normalize_temperature_units(studied_data, standard_var)
     studied_data = _normalize_amount_and_rate_units(studied_data, standard_var)
-    return studied_data.chunk("auto")
+    return _chunk_eager_data(studied_data)
+
+
+def _chunk_eager_data(data: DataArray) -> DataArray:
+    """Apply automatic chunks only when the input is not already Dask-backed."""
+    if data.chunks is not None:
+        return data
+    return data.chunk("auto")
 
 
 def _subset_to_requested_time_range(
