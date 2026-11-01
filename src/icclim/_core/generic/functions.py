@@ -3621,7 +3621,7 @@ def _to_percent(da: DataArray, sampling_freq: Frequency) -> DataArray:
         da = da / 183
     elif sampling_freq == FrequencyRegistry.ONDJFM:
         coef = xr.full_like(da, 1)
-        leap_years = _is_leap_year(da)
+        leap_years = _is_leap_year(da, year_offset=1)
         coef[{"time": leap_years}] = 183
         coef[{"time": ~leap_years}] = 182
         da = da / coef
@@ -3648,11 +3648,12 @@ def _to_percent(da: DataArray, sampling_freq: Frequency) -> DataArray:
     return da
 
 
-def _is_leap_year(da: DataArray) -> np.ndarray:
+def _is_leap_year(da: DataArray, year_offset: int = 0) -> np.ndarray:
     time_index = da.indexes.get("time")
+    years = da.time.dt.year + year_offset
     if isinstance(time_index, xr.CFTimeIndex):
-        return CfCalendarRegistry.lookup(time_index.calendar).is_leap(da.time.dt.year)
-    return da.time.dt.is_leap_year
+        return CfCalendarRegistry.lookup(time_index.calendar).is_leap(years)
+    return (years % 4 == 0) & ((years % 100 != 0) | (years % 400 == 0))
 
 
 def _is_rate(query: Quantity | DataArray) -> bool:
