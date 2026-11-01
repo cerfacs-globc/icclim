@@ -80,6 +80,20 @@ addopts = "--doctest-modules"
 doctest_optionflags = ["NORMALIZE_WHITESPACE", "ELLIPSIS"]
 norecursedirs = ["src/icclim/_generated"]
 
+[tool.mutmut]
+source_paths = ["src/icclim"]
+only_mutate = [
+  "src/icclim/_core/generic/functions.py",
+  "src/icclim/_core/input_parsing.py",
+  "src/icclim/frequency.py",
+]
+pytest_add_cli_args_test_selection = [
+  "--ignore=tests/test_bug_hunt_regressions.py",
+  "--ignore=tests/test_real_data_validation_tools.py",
+  "--ignore=tests/test_tool_helpers.py",
+]
+mutate_only_covered_lines = true
+
 [tool.ruff]
 
 [tool.ruff.format]
