@@ -26,7 +26,6 @@ from dataclasses import replace
 from functools import partial
 from time import perf_counter
 from typing import TYPE_CHECKING, Any, cast
-from warnings import warn
 
 import numpy as np
 import xarray as xr
@@ -62,7 +61,12 @@ from icclim._core.input_parsing import PercentileDataArray
 from icclim._core.model.cf_calendar import CfCalendarRegistry
 from icclim._core.model.operator import Operator, OperatorRegistry
 from icclim.exception import InvalidIcclimArgumentError
-from icclim.frequency import RUN_INDEXER, Frequency, FrequencyRegistry
+from icclim.frequency import (
+    RUN_INDEXER,
+    Frequency,
+    FrequencyRegistry,
+    _build_resampled_time_bounds,
+)
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -3610,7 +3614,7 @@ def _add_date_coords(
 
 def _to_percent(da: DataArray, sampling_freq: Frequency) -> DataArray:
     if sampling_freq == FrequencyRegistry.MONTH:
-        da = da / da.time.dt.daysinmonth * 100
+        period_length = da.time.dt.daysinmonth
     elif sampling_freq == FrequencyRegistry.YEAR:
         time_index = da.indexes.get("time")
         calendar = (
@@ -3619,40 +3623,36 @@ def _to_percent(da: DataArray, sampling_freq: Frequency) -> DataArray:
             else None
         )
         if calendar is not None and calendar.days_in_year is not None:
-            coef = xr.full_like(da, calendar.days_in_year)
+            period_length = xr.full_like(da, calendar.days_in_year)
         else:
-            coef = xr.full_like(da, 1)
+            period_length = xr.full_like(da, 1)
             leap_years = _is_leap_year(da)
-            coef[{"time": leap_years}] = 366
-            coef[{"time": ~leap_years}] = 365
-        da = da / coef
+            period_length[{"time": leap_years}] = 366
+            period_length[{"time": ~leap_years}] = 365
     elif sampling_freq == FrequencyRegistry.AMJJAS:
-        da = da / 183
+        period_length = 183
     elif sampling_freq == FrequencyRegistry.ONDJFM:
-        coef = xr.full_like(da, 1)
+        period_length = xr.full_like(da, 1)
         leap_years = _is_leap_year(da, year_offset=1)
-        coef[{"time": leap_years}] = 183
-        coef[{"time": ~leap_years}] = 182
-        da = da / coef
+        period_length[{"time": leap_years}] = 183
+        period_length[{"time": ~leap_years}] = 182
     elif sampling_freq == FrequencyRegistry.DJF:
-        coef = xr.full_like(da, 1)
+        period_length = xr.full_like(da, 1)
         leap_years = _is_leap_year(da)
-        coef[{"time": leap_years}] = 91
-        coef[{"time": ~leap_years}] = 90
-        da = da / coef
+        period_length[{"time": leap_years}] = 91
+        period_length[{"time": ~leap_years}] = 90
     elif sampling_freq in [FrequencyRegistry.MAM, FrequencyRegistry.JJA]:
-        da = da / 92
+        period_length = 92
     elif sampling_freq == FrequencyRegistry.SON:
-        da = da / 91
+        period_length = 91
     else:
-        # TODO @bzah: improve this for custom resampling
-        # https://github.com/cerfacs-globc/icclim/issues/289
-        warn(
-            "For now, '%' unit can only be used when `slice_mode` is one of: "
-            "{MONTH, YEAR, AMJJAS, ONDJFM, DJF, MAM, JJA, SON}.",
-            stacklevel=2,
+        bounds = _build_resampled_time_bounds(da, sampling_freq.pandas_freq)
+        period_length = xr.DataArray(
+            [Timedelta(end - start).days + 1 for start, end in bounds],
+            dims="time",
+            coords={"time": da.time},
         )
-        return da
+    da = da / period_length * 100
     da.attrs[UNITS_KEY] = PART_OF_A_WHOLE_UNIT
     return da
 

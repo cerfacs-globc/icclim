@@ -16,6 +16,9 @@ Unreleased
    instead of the period sum, including for Dask-backed inputs. Rolling extrema
    now support event dates and report the first and last dates of the selected
    trailing window. All-NaN cells return ``NaN`` with a missing event date.
+-  [fix] Return percentages, rather than fractions or raw counts, from
+   ``count_occurrences(out_unit="%")`` for annual, seasonal, daily, and custom
+   output frequencies (#520).
 
 *****
 7.3.0

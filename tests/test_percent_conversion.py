@@ -18,8 +18,8 @@ from icclim.frequency import FrequencyRegistry
         (FrequencyRegistry.MONTH, "2001-01-01", 31),
         (FrequencyRegistry.YEAR, "2001-01-01", 365),
         (FrequencyRegistry.AMJJAS, "2001-04-01", 183),
-        (FrequencyRegistry.ONDJFM, "2000-10-01", 182),
-        (FrequencyRegistry.DJF, "2000-12-01", 90),
+        (FrequencyRegistry.ONDJFM, "2001-10-01", 182),
+        (FrequencyRegistry.DJF, "2001-12-01", 90),
         (FrequencyRegistry.MAM, "2001-03-01", 92),
         (FrequencyRegistry.JJA, "2001-06-01", 92),
         (FrequencyRegistry.SON, "2001-09-01", 91),
@@ -60,7 +60,7 @@ def test_count_occurrences_percent_scales_annual_fraction_by_100() -> None:
     np.testing.assert_allclose(result.count_occurrences.values, [100.0])
 
 
-@pytest.mark.parametrize(("slice_mode", "periods"), [("day", 2), ("10D", 20)])
+@pytest.mark.parametrize(("slice_mode", "periods"), [("day", 3), ("10D", 20)])
 def test_custom_daily_frequency_uses_actual_period_length(
     slice_mode: str,
     periods: int,
