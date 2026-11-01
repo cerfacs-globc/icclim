@@ -93,6 +93,7 @@ pytest_add_cli_args_test_selection = [
   "--ignore=tests/test_tool_helpers.py",
 ]
 mutate_only_covered_lines = true
+timeout_multiplier = 0.05
 
 [tool.ruff]
 

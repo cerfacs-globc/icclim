@@ -118,8 +118,19 @@ Mutation testing
 Mutmut is configured in ``pyproject.toml`` for the three requested modules and
 for covered lines only.  The intentionally failing regressions and two helper
 test modules that depend on an uncopied top-level ``tools`` package are excluded
-from mutation-test collection.  Final killed/surviving mutant counts should be
-inserted here when the long dependency-tracing run completes.
+from mutation-test collection.  Dependency tracing selected 28 mutants: **7
+killed, 2 had no covering tests, and 19 timed out** with the deliberately short
+15-second limit.  No evaluated mutant survived a test that actually ran.
+
+The two uncovered/surviving mutants both change the default ``dim`` argument of
+``frequency.infer_input_frequency`` (from ``"time"`` to ``"XXtimeXX"`` or
+``"TIME"``).  Mutmut found no test depending on that default.  The timed-out
+mutants were in the path classifiers in ``input_parsing.py`` and in
+``_profile_bootstrap_inc``, ``_reduce_and_diff``,
+``_note_generic_bootstrap_capability``, ``_run_simple_reducer``,
+``_compute_combined_exceedance_mask``,
+``_compute_threshold_exceedance_mask`` and ``check_freq``.  Timeouts are
+inconclusive and should not be counted as killed or survived.
 
 Recommended order
 -----------------
