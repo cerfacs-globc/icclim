@@ -3575,11 +3575,14 @@ def _consecutive_occurrences_with_dates(
             # default to 'first' behavior
             start_time = anchor_time
             end_time = start_time + (dated_longest_run * cast("Any", source_freq_delta))
+        # A run of length 0 has no event: its dates must be missing, not the
+        # first day of the period.
+        has_event = dated_longest_run > 0
         dated_longest_run = _add_date_coords(
             original_sample=sample,
             result=dated_longest_run,
-            start_time=start_time,
-            end_time=end_time,
+            start_time=start_time.where(has_event),
+            end_time=end_time.where(has_event),
             label=label,
         )
         acc.append(dated_longest_run)
