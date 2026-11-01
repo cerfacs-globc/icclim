@@ -53,6 +53,7 @@ class CfCalendar:
 
     aliases: list[str]
     is_leap: Callable[[DataArray], np.ndarray]
+    days_in_year: int | None = None
 
     @property
     def name(self) -> str:
@@ -99,15 +100,18 @@ class CfCalendarRegistry(Registry[CfCalendar]):
 
     NO_LEAP = CfCalendar(
         ["noleap", "no_leap", "days_365", "days365", "365_day", "365day"],
-        lambda da: np.full_like(da.shape, False, dtype=bool),
+        lambda da: np.full(da.shape, False, dtype=bool),
+        days_in_year=365,
     )
     DAYS_360 = CfCalendar(
         ["360_day", "days_360", "360day", "days360"],
-        lambda da: np.full_like(da.shape, False, dtype=bool),
+        lambda da: np.full(da.shape, False, dtype=bool),
+        days_in_year=360,
     )
     ALL_LEAP = CfCalendar(
         ["all_leap", "allleap", "days_366", "days366", "366_day", "366day"],
-        lambda da: np.full_like(da.shape, True, dtype=bool),
+        lambda da: np.full(da.shape, True, dtype=bool),
+        days_in_year=366,
     )
     PROLEPTIC_GREGORIAN = CfCalendar(
         ["proleptic_gregorian", "prolepticgregorian"],

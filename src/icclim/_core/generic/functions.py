@@ -3612,10 +3612,19 @@ def _to_percent(da: DataArray, sampling_freq: Frequency) -> DataArray:
     if sampling_freq == FrequencyRegistry.MONTH:
         da = da / da.time.dt.daysinmonth * 100
     elif sampling_freq == FrequencyRegistry.YEAR:
-        coef = xr.full_like(da, 1)
-        leap_years = _is_leap_year(da)
-        coef[{"time": leap_years}] = 366
-        coef[{"time": ~leap_years}] = 365
+        time_index = da.indexes.get("time")
+        calendar = (
+            CfCalendarRegistry.lookup(time_index.calendar)
+            if isinstance(time_index, xr.CFTimeIndex)
+            else None
+        )
+        if calendar is not None and calendar.days_in_year is not None:
+            coef = xr.full_like(da, calendar.days_in_year)
+        else:
+            coef = xr.full_like(da, 1)
+            leap_years = _is_leap_year(da)
+            coef[{"time": leap_years}] = 366
+            coef[{"time": ~leap_years}] = 365
         da = da / coef
     elif sampling_freq == FrequencyRegistry.AMJJAS:
         da = da / 183
