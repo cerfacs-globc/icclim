@@ -753,19 +753,10 @@ def fraction_of_total(
         bootstrap_capability=bootstrap_capability,
     )
     if threshold.threshold_min_value is not None:
-        min_val = threshold.threshold_min_value
-        from xclim.core.units import convert_units_to  # noqa: PLC0415
-
-        min_val = convert_units_to(min_val, study, context="hydro")
-        op = (
-            threshold.operator
-            if isinstance(threshold.operator, Operator)
-            else OperatorRegistry.lookup(threshold.operator)
-        )
-        total = (
-            study.where(op(study, min_val))
-            .resample(time=resample_freq.pandas_freq)
-            .sum(dim="time")
+        total = _sum_values_at_or_above_threshold_floor(
+            study,
+            threshold,
+            resample_freq,
         )
     else:
         total = study.resample(time=resample_freq.pandas_freq).sum(dim="time")
@@ -1203,22 +1194,10 @@ def _compute_optimized_fraction_of_total(
         if threshold.threshold_min_value is None:
             total = study.resample(time=resample_freq.pandas_freq).sum(dim="time")
         else:
-            from xclim.core.units import convert_units_to  # noqa: PLC0415
-
-            floor = convert_units_to(
-                threshold.threshold_min_value,
+            total = _sum_values_at_or_above_threshold_floor(
                 study,
-                context="hydro",
-            )
-            op = (
-                threshold.operator
-                if isinstance(threshold.operator, Operator)
-                else OperatorRegistry.lookup(threshold.operator)
-            )
-            total = (
-                study.where(op(study, floor))
-                .resample(time=resample_freq.pandas_freq)
-                .sum(dim="time")
+                threshold,
+                resample_freq,
             )
         selected = (
             study.where(eager_mask, 0)
@@ -1231,6 +1210,21 @@ def _compute_optimized_fraction_of_total(
         threshold,
         resample_freq,
         _get_fast_bootstrap_max_cells(study),
+    )
+
+
+def _sum_values_at_or_above_threshold_floor(
+    study: DataArray,
+    threshold: Threshold,
+    resample_freq: Frequency,
+) -> DataArray:
+    from xclim.core.units import convert_units_to  # noqa: PLC0415
+
+    floor = convert_units_to(threshold.threshold_min_value, study, context="hydro")
+    return (
+        study.where(study >= floor)
+        .resample(time=resample_freq.pandas_freq)
+        .sum(dim="time")
     )
 
 

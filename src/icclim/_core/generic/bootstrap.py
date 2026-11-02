@@ -3058,7 +3058,7 @@ if njit is not None:
         for offset in range(length):
             doy = study_doys[start + offset]
             value = flat_study[start + offset, cell]
-            if np.isnan(min_threshold) or _compare(value, min_threshold, op_code):
+            if np.isnan(min_threshold) or value >= min_threshold:
                 total = np.float32(total + np.float32(value))
             if _compare(value, thresholds[doy - 1], op_code):
                 exceedance_total = np.float32(exceedance_total + np.float32(value))
