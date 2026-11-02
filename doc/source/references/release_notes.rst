@@ -6,7 +6,7 @@
 7.3.2
 *****
 
-date: unreleased
+date: 2026-11-03
 
 
 -  [fix] Average the ECA&D leave-one-year-out bootstrap index estimates for
