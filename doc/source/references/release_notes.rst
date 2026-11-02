@@ -6,7 +6,7 @@
 7.3.1
 *****
 
-date: 2026-11-01
+date: 2026-11-02
 
 
 -  [fix] Restrict ``only_leap_years`` percentile bootstrap calculations to the
