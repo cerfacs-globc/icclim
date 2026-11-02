@@ -21,14 +21,7 @@ SIMPLE_INDICES = (
     ("FD", "tn", "count", 0, "<"),
     ("ID", "tx", "count", 0, "<"),
     ("CSU", "tx", "max_run", 25, ">"),
-    pytest.param(
-        "CFD",
-        "tn",
-        "max_run",
-        0,
-        "<",
-        marks=pytest.mark.xfail(strict=True, reason="#543"),
-    ),
+    ("CFD", "tn", "max_run", 0, "<"),
     ("GD4", "tg", "above_sum", 4, ">"),
     ("HD17", "tg", "below_sum", 17, "<"),
     ("RR1", "pr", "count", 1, ">="),
@@ -154,7 +147,6 @@ def test_consecutive_outputs_keep_time_first(name: str, variable: str) -> None:
     assert actual.dims == ("time", "lat", "lon")
 
 
-@pytest.mark.xfail(strict=True, reason="#543")
 @pytest.mark.parametrize(
     ("name", "variable", "normal", "event"),
     [("CFD", "tn", 1.0, -1.0), ("CSU", "tx", 0.0, 30.0)],

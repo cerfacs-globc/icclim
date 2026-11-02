@@ -409,15 +409,22 @@ def max_consecutive_occurrence(
     )
     from xclim.indices import run_length  # noqa: PLC0415
 
-    rle = run_length.rle(
-        combined_exceedance_mask,
-        dim="time",
-        index=kwargs.get("run_index", "first"),
-    )
+    run_index = kwargs.get("run_index", "first")
+    if kwargs.get("indicator_name") in {"CFD", "CSU"}:
+        rle = combined_exceedance_mask.resample(
+            time=resample_freq.pandas_freq
+        ).map(run_length.rle, dim="time", index=run_index)
+        rle = rle.assign_coords(time=combined_exceedance_mask.time)
+    else:
+        rle = run_length.rle(
+            combined_exceedance_mask,
+            dim="time",
+            index=run_index,
+        )
     resampled = rle.resample(time=resample_freq.pandas_freq)
     if date_event:
         result = _consecutive_occurrences_with_dates(
-            resampled, source_freq_delta, kwargs.get("run_index", "first")
+            resampled, source_freq_delta, run_index
         )
     else:
         result = resampled.max(dim="time")
