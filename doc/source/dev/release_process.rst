@@ -42,6 +42,81 @@ The full process is:
    To do this, comment ``@conda-forge-admin, rerender`` on the feedstock PR
    **from a fork** (not from a branch within the feedstock itself).
 
+*************************
+ Verification Checklist
+*************************
+
+The 7.3.1 release fixed value errors that had been released for years (for example
+percentages 100 times too small for non-monthly periods, wrong leap-day
+denominators and a wet-day floor applied with the wrong comparison). The existing
+tests only checked that indices ran, not that their numbers were right. This
+checklist exists so that a change cannot reach a release in the same way.
+
+For every pull request
+======================
+
+#. **A bug fix has a regression test that fails before the fix and passes after it.**
+   Show the failure on the base branch in the PR description. Keep the test and the
+   fix in the same commit so that every commit on ``master`` passes the test suite
+   (bisectable history).
+#. **Compare values with an independent calculation.** A new or changed index, reducer
+   or unit conversion needs a test whose expected values come from plain numpy or
+   pandas written from the index definition (ECA&D ATBD), not from icclim or xclim
+   code. Cover at least: all affected output frequencies (month, year, seasons,
+   seasons crossing the year end), NaN periods, and the calendars involved
+   (standard, noleap, 360_day, all_leap).
+#. **Eager and chunked results must be equal.** Run the same call on in-memory data and
+   on Dask data with several time chunkings (including chunks shorter than any
+   rolling window) and assert the results are identical.
+#. **Golden or snapshot tests never pin behaviour that is known to be wrong.** If one
+   must record a defect, mark it ``xfail(strict=True)`` with the issue number so it
+   fails loudly once the defect is fixed.
+#. **Performance changes include before/after numbers** from
+   ``tools/benchmark_non_bootstrap.py`` (wall time and peak RSS), and the audit and
+   oracle tests must pass unchanged on the new code: a refactor must not change values.
+#. **State behaviour changes explicitly in the release notes**, with the affected
+   versions. Verify the range by reading (or running) the older releases, and say
+   which was done. Do not claim a range that was not checked.
+
+Before every release
+====================
+
+#. Run the full test suite on the **oldest supported** versions of the key
+   dependencies (xarray, dask, xclim, numpy, pandas) and on the **latest** ones. A bug
+   can appear on only one of them (an earlier rolling-window bug reproduced only
+   with xarray 2026.2). The continuous integration currently runs a single
+   Python/dependency set; adding a minimum-versions job is recommended.
+#. Run the independent value tests (generic indicators and ECAD indices), the
+   eager-versus-chunked option matrix, and the golden tests. All must pass, with no
+   unexplained new warnings.
+#. For releases that touch performance, chunking, percentiles or bootstrap, run the
+   real-data validation (``tools/run_real_data_validation.py``, Kraken scripts in
+   ``tools/``) and compare against the previous release.
+#. Check the release notes mention every behaviour change and bug fix with its issue
+   number, and state plainly when earlier results were wrong.
+#. Bump ``__version__`` and set the release date in the notes.
+#. After publishing, verify the install in a **fresh virtual environment with a
+   supported Python (>= 3.10)**: ``pip install icclim==X.Y.Z`` and print
+   ``icclim.__version__``.
+
+Periodically
+============
+
+#. Rerun mutation testing on ``generic/functions.py``, ``input_parsing.py`` and
+   ``frequency.py`` with a generous timeout (at least 120 s per mutant) and look at
+   surviving mutants: they mark code whose values no test checks.
+#. Keep independent value coverage of the ECAD indices at 64/64 and extend it when an
+   index is added.
+
+Merging
+=======
+
+Squash-merge each pull request so that every commit on ``master`` is one change with
+its test, after the required checks (including the Read the Docs build) are green.
+Rebase dependent pull requests onto the new ``master`` before merging them. Link the
+issue with its own closing keyword (``Fixes #1, fixes #2``), because one keyword closes
+only the first issue.
+
 ***********************
  Conda-forge Checklist
 ***********************
