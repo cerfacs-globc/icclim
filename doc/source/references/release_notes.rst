@@ -14,7 +14,8 @@ date: 2026-11-01
 -  [fix] Correct the 7.3.0 ``date_event`` extrema regression that returned the
    period sum instead of the requested maximum or minimum. Chunked inputs no
    longer fail, and rolling extrema now return event dates (PR #517).
--  [fix] icclim 7.3.0 percent results for non-monthly periods were wrong:
+-  [fix] Non-monthly percent results have been wrong since at least 6.2.0
+   (verified in 6.2.0, 7.0.0, and 7.2.0):
    ``count_occurrences(out_unit="%")`` returned fractions or raw counts instead
    of percentages, making common results 100 times too small (issue #520,
    PR #527).
