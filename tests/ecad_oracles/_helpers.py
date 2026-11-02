@@ -354,3 +354,110 @@ def precipitation_percentile_oracle(
         else:
             result.append(np.sum(exceedance, axis=0))
     return np.stack(result)
+
+
+def make_threshold_cubes(
+    temperature_units: str = "degC",
+    precipitation_units: str = "mm/day",
+    snow_units: str = "cm",
+) -> xr.Dataset:
+    """Create complete hand-checkable threshold/count inputs for 2001--2003."""
+    time = pd.date_range("2001-01-01", "2003-12-31", freq="D")
+    doy = time.dayofyear.to_numpy()
+    tg = 11 + 15 * np.sin(2 * np.pi * (doy - 80) / 365)
+    tg = tg[:, None, None] + np.array([[-3.0, 0.0], [2.0, 5.0]])[None, :, :]
+    tx = tg + 6
+    tn = tg - 6
+    pattern = np.array([0.0, 0.5, 1.0, 5.0, 10.0, 20.0, 25.0])
+    pr = pattern[np.arange(len(time)) % len(pattern), None, None]
+    pr = np.broadcast_to(pr, (len(time), 2, 2)).copy()
+    pr *= np.array([[0.8, 1.0], [1.2, 1.5]])[None, :, :]
+    snow_pattern = np.array([0.0, 0.5, 1.0, 5.0, 50.0, 60.0])
+    snd = snow_pattern[np.arange(len(time)) % len(snow_pattern), None, None]
+    snd = np.broadcast_to(snd, (len(time), 2, 2)).copy()
+    if temperature_units == "K":
+        tg, tn, tx = tg + 273.15, tn + 273.15, tx + 273.15
+    if precipitation_units == "kg m-2 s-1":
+        pr /= 86400
+    if snow_units == "m":
+        snd /= 100
+    coordinates = {"time": time, "lat": [45.0, 46.0], "lon": [1.0, 2.0]}
+    return xr.Dataset(
+        {
+            "tg": xr.DataArray(tg, dims=("time", "lat", "lon"), attrs={"units": temperature_units}),
+            "tn": xr.DataArray(tn, dims=("time", "lat", "lon"), attrs={"units": temperature_units}),
+            "tx": xr.DataArray(tx, dims=("time", "lat", "lon"), attrs={"units": temperature_units}),
+            "pr": xr.DataArray(pr, dims=("time", "lat", "lon"), attrs={"units": precipitation_units}),
+            "snd": xr.DataArray(snd, dims=("time", "lat", "lon"), attrs={"units": snow_units}),
+        },
+        coords=coordinates,
+    )
+
+
+def annual_reduce(time: xr.DataArray, values: np.ndarray, reducer: str) -> np.ndarray:
+    """Apply a simple numpy annual reduction."""
+    years = np.unique(time.dt.year.values)
+    reduced = []
+    for year in years:
+        yearly = values[time.dt.year.values == year]
+        if reducer == "sum":
+            reduced.append(np.nansum(yearly, axis=0))
+        elif reducer == "mean":
+            reduced.append(np.nanmean(yearly, axis=0))
+        elif reducer == "max_run":
+            cells = np.zeros(values.shape[1:], dtype=int)
+            for cell in np.ndindex(values.shape[1:]):
+                longest = run = 0
+                for event in yearly[(slice(None), *cell)]:
+                    run = run + 1 if event else 0
+                    longest = max(longest, run)
+                cells[cell] = longest
+            reduced.append(cells)
+        else:
+            raise ValueError(reducer)
+    return np.stack(reduced)
+
+
+def make_compound_cube() -> xr.Dataset:
+    """Create aligned noleap temperature/precipitation data for CD/CW/WD/WW."""
+    temperature = make_percentile_temperature_cube()["tg"]
+    rng = np.random.default_rng(2525)
+    precipitation = rng.gamma(2.0, 3.0, size=temperature.shape)
+    precipitation[rng.random(temperature.shape) < 0.2] = 0
+    precipitation[::19] = 1
+    study = temperature.time.dt.year.values >= 2004
+    study_pattern = np.array([0.0, 1.0, 2.0, 20.0])
+    repeated = np.resize(study_pattern, int(np.sum(study)))
+    precipitation[study] = repeated[:, None, None]
+    return xr.Dataset(
+        {
+            "tg": temperature,
+            "pr": xr.DataArray(
+                precipitation,
+                dims=temperature.dims,
+                coords=temperature.coords,
+                attrs={"units": "mm/day"},
+            ),
+        }
+    )
+
+
+def compound_oracle(source: xr.Dataset, name: str) -> np.ndarray:
+    """Implement ATBD compound temperature/precipitation percentile counts."""
+    cold = name in {"CD", "CW"}
+    dry = name in {"CD", "WD"}
+    temp_percentile = 25 if cold else 75
+    temp_threshold = doy_percentile(source.time, source.tg.values, temp_percentile)
+    temp_event = source.tg.values < temp_threshold if cold else source.tg.values > temp_threshold
+    years = source.time.dt.year.values
+    base = np.isin(years, [2001, 2002, 2003])
+    wet = np.where(source.pr.values[base] >= 1, source.pr.values[base], np.nan)
+    rain_threshold = np.nanquantile(
+        wet,
+        (25 if dry else 75) / 100,
+        axis=0,
+        method="median_unbiased",
+    )
+    rain_event = source.pr.values < rain_threshold if dry else source.pr.values > rain_threshold
+    rain_event &= source.pr.values >= 1
+    return annual_event_count(source.time, temp_event & rain_event)
