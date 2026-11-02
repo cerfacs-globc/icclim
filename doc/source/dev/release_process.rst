@@ -7,7 +7,7 @@
 *******************
 
 As of icclim 6.6.0, a GitHub Action
-(`.github/workflows/publish-to-pypi.yml`) publishes icclim to PyPI
+(`.github/workflows/publish-to-pipy.yml`) publishes icclim to PyPI
 whenever a `GitHub release <https://github.com/cerfacs-globc/icclim/releases>`_
 is published. This action requires a manual approval via a dedicated ``release``
 GitHub environment.
@@ -20,6 +20,8 @@ pass CI and only require a review + merge.
 The full process is:
 
 #. Merge everything to the icclim ``master`` branch.
+#. Bump ``__version__`` in ``src/icclim/__init__.py`` (flit reads the version
+   from it) before creating the release.
 #. Create a `GitHub release <https://github.com/cerfacs-globc/icclim/releases>`_
    with a version tag (e.g. ``v7.0.5``).
 #. Wait for the GitHub Action to build the package and approve it to publish to PyPI.
