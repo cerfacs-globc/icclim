@@ -473,11 +473,12 @@ class PercentileThreshold(Threshold):
             freq: str,  # noqa: ARG001
             bootstrap: bool,  # noqa: ARG001
         ) -> DataArray:
+            comparison_floor = None
             if self.threshold_min_value is not None:
-                # there is only a threshold_min_value when we are computing > or >=
                 thresh = self.threshold_min_value
                 from xclim.core.units import convert_units_to  # noqa: PLC0415
 
+                comparison_floor = convert_units_to(thresh, da, context="hydro")
                 thresh = convert_units_to(thresh, per, context="hydro")
                 per = per.where(per > thresh, thresh)
             if is_doy_per_threshold:
@@ -487,6 +488,8 @@ class PercentileThreshold(Threshold):
             else:
                 threshold_value = per
             result = op(da, threshold_value)
+            if comparison_floor is not None:
+                result = result.where(da >= comparison_floor, False)
             if "units" not in result.attrs and "units" in da.attrs:
                 result.attrs["units"] = da.attrs["units"]
             return result

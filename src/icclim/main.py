@@ -1599,6 +1599,18 @@ def _build_request_threshold(
     interpolation: QuantileInterpolation,
 ) -> Threshold:
     if isinstance(threshold, Threshold):
+        from copy import deepcopy  # noqa: PLC0415
+
+        from icclim._core.generic.threshold.percentile import (  # noqa: PLC0415
+            PercentileThreshold,
+        )
+
+        threshold = deepcopy(threshold)
+        if isinstance(threshold, PercentileThreshold):
+            threshold.doy_window_width = doy_window_width
+            threshold.reference_period = reference_period
+            threshold.only_leap_years = only_leap_years
+            threshold.interpolation = interpolation
         return threshold
     if isinstance(threshold, dict):
         kwargs = {
