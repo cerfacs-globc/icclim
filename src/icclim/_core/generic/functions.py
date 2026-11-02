@@ -1727,12 +1727,12 @@ def percentile(
     coordinate variable.
     """
     study, threshold = get_single_var(climate_vars)
-    percentile_threshold = cast("PercentileThreshold", threshold)
+    percentile_threshold = cast("PercentileThreshold", threshold)  # pragma: no mutate
     if percentile_threshold.initial_value is None:
         msg = "PercentileThreshold must have a value"
         raise InvalidIcclimArgumentError(msg)
-    quantile = percentile_threshold.initial_value[0] * 0.01
-    method = cast("Any", percentile_threshold.interpolation.name)
+    quantile = np.asarray(percentile_threshold.initial_value) * 0.01
+    method = cast("Any", percentile_threshold.interpolation.name)  # pragma: no mutate
     result = study.resample(time=resample_freq.pandas_freq).quantile(
         quantile, method=method
     )
