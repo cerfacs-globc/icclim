@@ -3194,6 +3194,15 @@ def _run_rolling_reducer(
     extreme: str | None = None,
 ) -> DataArray:
     study, threshold = get_single_var(climate_vars)
+    if _is_rate(study):
+        from xclim.core.units import rate2amount  # noqa: PLC0415
+
+        src_freq = check_freq(study, dim="time", strict=False)
+        study = (
+            _rate_to_amount_for_daily_subseries(study)
+            if src_freq == "D"
+            else rate2amount(study)
+        )
     if threshold:
         exceedance_mask = _compute_threshold_exceedance_mask(
             climate_var=climate_vars[0],
