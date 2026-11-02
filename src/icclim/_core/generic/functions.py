@@ -421,6 +421,7 @@ def max_consecutive_occurrence(
         )
     else:
         result = resampled.max(dim="time")
+    result = _transpose_like_study(result, climate_vars[0].studied_data)
     freq = check_freq(climate_vars[0].studied_data, dim="time")
     return _safe_to_agg_units(
         result, climate_vars[0].studied_data, "count", deffreq=freq
