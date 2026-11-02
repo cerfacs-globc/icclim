@@ -20,15 +20,21 @@ date: 2026-11-01
    of percentages, making common results 100 times too small (issue #520,
    PR #527).
 -  [fix] Use the year containing February for the ``ONDJFM`` percentage
-   denominator (issue #521, PR #530).
+   denominator. Since at least 7.0.0, leap status was taken from the output
+   timestamp year (verified in the 7.0.0 and 7.2.0 source; issue #521,
+   PR #530).
 -  [fix] Prevent annual percentage output from crashing across multiple years
    on fixed CF calendars (issue #522, PR #531), and use a 360-day denominator
-   for ``360_day`` years (issue #523, PR #531).
+   for ``360_day`` years. Since at least 7.0.0, annual denominators were
+   hard-coded to 365 or 366 days (verified in the 7.0.0 and 7.2.0 source;
+   issue #523, PR #531).
 -  [fix] Report missing event dates when a consecutive-run period contains no
    event (issue #524, PR #529).
 -  [fix] Include values equal to the 1 mm wet-day floor in
-   ``R75pTOT``, ``R95pTOT``, and ``R99pTOT`` calculations (issue #525,
-   PR #528).
+   ``R75pTOT``, ``R95pTOT``, ``R99pTOT``, and ``fraction_of_total``
+   calculations. Since at least 7.0.0, the floor used the percentile
+   threshold's strict ``>`` operator (verified in the 7.0.0 and 7.2.0 source;
+   issue #525, PR #528).
 -  [test] Record non-bootstrap performance invariants (PR #515).
 
 *****
