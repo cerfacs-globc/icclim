@@ -12,10 +12,10 @@ Generated from `EcadIndexRegistry` on the 7.3.1 release line. Definitions are EC
 | vDTR | D | temperature | tx, tn | — | Mean day-to-day variation in Diurnal Temperature Range. | N | pending |
 | SU | C | heat | tx | > 25 degree_Celsius | Number of Summer Days (Tmax > 25C). | N | pending |
 | TR | C | heat | tn | > 20 degree_Celsius | Number of Tropical Nights (Tmin > 20C). | N | pending |
-| WSDI | B | heat | tx | > 90 doy_per | Warm-spell duration index (days). | N | pending |
-| TG90p | B | heat | tg | > 90 doy_per | Days when Tmean > 90th percentile. | N | pending |
-| TN90p | B | heat | tn | > 90 doy_per | Days when Tmin > 90th percentile. | N | pending |
-| TX90p | B | heat | tx | > 90 doy_per | Days when Tmax > 90th daily percentile. | N | pending |
+| WSDI | B | heat | tx | > 90 doy_per | Warm-spell duration index (days). | Y | pass; bootstrap xfail #540 |
+| TG90p | B | heat | tg | > 90 doy_per | Days when Tmean > 90th percentile. | Y | pass; bootstrap xfail #540 |
+| TN90p | B | heat | tn | > 90 doy_per | Days when Tmin > 90th percentile. | Y | pass; bootstrap xfail #540 |
+| TX90p | B | heat | tx | > 90 doy_per | Days when Tmax > 90th daily percentile. | Y | pass; bootstrap xfail #540 |
 | TXx | D | heat | tx | — | Maximum daily maximum temperature. | N | pending |
 | TNx | D | heat | tn | — | Maximum daily minimum temperature. | N | pending |
 | CSU | C | heat | tx | > 25 degree_Celsius | Maximum number of consecutive summer days (Tmax >25 C). | N | pending |
@@ -24,12 +24,12 @@ Generated from `EcadIndexRegistry` on the 7.3.1 release line. Definitions are EC
 | CFD | C | cold | tn | < 0 degree_Celsius | Maximum number of consecutive frost days (Tmin < 0 C). | N | pending |
 | HD17 | C | cold | tg | 17 degree_Celsius | Heating degree days (sum of Tmean < 17 C). | N | pending |
 | ID | C | cold | tx | < 0 degree_Celsius | Number of sharp Ice Days (Tmax < 0C). | N | pending |
-| TG10p | B | cold | tg | < 10 doy_per | Days when Tmean < 10th percentile. | N | pending |
-| TN10p | B | cold | tn | < 10 doy_per | Days when Tmin < 10th percentile. | N | pending |
-| TX10p | B | cold | tx | < 10 doy_per | Days when Tmax < 10th percentile. | N | pending |
+| TG10p | B | cold | tg | < 10 doy_per | Days when Tmean < 10th percentile. | Y | pass; bootstrap xfail #540 |
+| TN10p | B | cold | tn | < 10 doy_per | Days when Tmin < 10th percentile. | Y | pass; bootstrap xfail #540 |
+| TX10p | B | cold | tx | < 10 doy_per | Days when Tmax < 10th percentile. | Y | pass; bootstrap xfail #540 |
 | TXn | D | cold | tx | — | Minimum daily maximum temperature. | N | pending |
 | TNn | D | cold | tn | — | Minimum daily minimum temperature. | N | pending |
-| CSDI | B | cold | tn | < 10 doy_per | Cold-spell duration index (days). | N | pending |
+| CSDI | B | cold | tn | < 10 doy_per | Cold-spell duration index (days). | Y | pass; bootstrap xfail #540 |
 | CDD | C | drought | pr | < 1 mm/day | Maximum consecutive dry days (Precip < 1mm). | N | pending |
 | PRCPTOT | D | rain | pr | >= 1 mm/day | Total precipitation during Wet Days. | N | pending |
 | RR1 | C | rain | pr | >= 1 mm/day | Number of Wet Days (precip >= 1 mm). | N | pending |
@@ -40,12 +40,12 @@ Generated from `EcadIndexRegistry` on the 7.3.1 release line. Definitions are EC
 | R20mm | C | rain | pr | >= 20 mm/day | Number of very heavy precipitation days (Precip >= 20mm). | N | pending |
 | RX1day | D | rain | pr | — | Maximum 1-day total precipitation. | N | pending |
 | RX5day | D | rain | pr | — | Maximum 5-day total precipitation. | N | pending |
-| R75p | B | rain | pr | {'query': '> 75 period_per', 'threshold_min_value': '1 mm/day'} | Days with RR > 75th percentile of daily amounts (moderate wet days) (d). | N | pending |
-| R75pTOT | B | rain | pr | {'query': '> 75 period_per', 'threshold_min_value': '1 mm/day'} | Precipitation fraction due to moderate wet days (> 75th percentile). | N | pending |
-| R95p | B | rain | pr | {'query': '> 95 period_per', 'threshold_min_value': '1 mm/day'} | Days with RR > 95th percentile of daily amounts (very wet days) (days). | N | pending |
-| R95pTOT | B | rain | pr | {'query': '> 95 period_per', 'threshold_min_value': '1 mm/day'} | Precipitation fraction due to very wet days (> 95th percentile). | N | pending |
-| R99p | B | rain | pr | {'query': '> 99 period_per', 'threshold_min_value': '1 mm/day'} | Days with RR > 99th percentile of daily amounts (extremely wet days). | N | pending |
-| R99pTOT | B | rain | pr | {'query': '> 99 period_per', 'threshold_min_value': '1 mm/day'} | Precipitation fraction due to extremely wet days (> 99th percentile). | N | pending |
+| R75p | B | rain | pr | {'query': '> 75 period_per', 'threshold_min_value': '1 mm/day'} | Days with RR > 75th percentile of daily amounts (moderate wet days) (d). | Y | pass |
+| R75pTOT | B | rain | pr | {'query': '> 75 period_per', 'threshold_min_value': '1 mm/day'} | Precipitation fraction due to moderate wet days (> 75th percentile). | Y | pass |
+| R95p | B | rain | pr | {'query': '> 95 period_per', 'threshold_min_value': '1 mm/day'} | Days with RR > 95th percentile of daily amounts (very wet days) (days). | Y | pass |
+| R95pTOT | B | rain | pr | {'query': '> 95 period_per', 'threshold_min_value': '1 mm/day'} | Precipitation fraction due to very wet days (> 95th percentile). | Y | pass |
+| R99p | B | rain | pr | {'query': '> 99 period_per', 'threshold_min_value': '1 mm/day'} | Days with RR > 99th percentile of daily amounts (extremely wet days). | Y | pass |
+| R99pTOT | B | rain | pr | {'query': '> 99 period_per', 'threshold_min_value': '1 mm/day'} | Precipitation fraction due to extremely wet days (> 99th percentile). | Y | pass |
 | SD | C | snow | snd | — | Mean of daily snow depth. | N | pending |
 | SD1 | C | snow | snd | >= 1 cm | Snow days (SD >= 1 cm). | N | pending |
 | SD5cm | C | snow | snd | >= 5 cm | Number of days with snow depth >= 5 cm. | N | pending |

@@ -129,3 +129,228 @@ def spi_gamma_oracle(pr: xr.DataArray, window: int) -> np.ndarray:
             )
             result[(month_mask, *cell)] = norm.ppf(probabilities)
     return result
+
+
+def make_percentile_temperature_cube(units: str = "degC") -> xr.Dataset:
+    """Create five noleap years of correlated TG/TN/TX on a 2x2 grid."""
+    time = xr.date_range(
+        "2001-01-01",
+        "2005-12-31",
+        freq="D",
+        calendar="noleap",
+        use_cftime=True,
+    )
+    rng = np.random.default_rng(6402)
+    doy = np.asarray([value.dayofyr for value in time])
+    year = np.asarray([value.year for value in time])
+    seasonal = 12 + 11 * np.sin(2 * np.pi * (doy - 80) / 365)
+    noise = rng.normal(0, 2.2, size=(len(time), 2, 2))
+    offsets = np.array([[-1.5, 0.0], [1.0, 2.5]])
+    core = seasonal[:, None, None] + offsets[None, :, :] + noise
+    study = year >= 2004
+    core[study] = seasonal[study, None, None] + offsets[None, :, :]
+    month = np.asarray([value.month for value in time])
+    day = np.asarray([value.day for value in time])
+    high_2004 = (year == 2004) & ((month == 6) | ((month == 7) & (day <= 15)))
+    low_2004 = (year == 2004) & ((month == 1) | ((month == 2) & (day <= 15)))
+    high_2005 = (year == 2005) & (month >= 8) & (month <= 9)
+    low_2005 = (year == 2005) & (month >= 3) & (month <= 4)
+    core[high_2004 | high_2005] += 10
+    core[low_2004 | low_2005] -= 10
+    data = {"tg": core, "tn": core - 5, "tx": core + 5}
+    if units == "K":
+        data = {name: values + 273.15 for name, values in data.items()}
+    return xr.Dataset(
+        {
+            name: xr.DataArray(
+                values,
+                dims=("time", "lat", "lon"),
+                attrs={"units": units},
+            )
+            for name, values in data.items()
+        },
+        coords={"time": time, "lat": [45.0, 46.0], "lon": [1.0, 2.0]},
+    )
+
+
+def doy_percentile(
+    time: xr.DataArray,
+    values: np.ndarray,
+    percentile: float,
+    base_years: tuple[int, ...] = (2001, 2002, 2003),
+    duplicated_year: int | None = None,
+) -> np.ndarray:
+    """Derive five-day-window calendar-day percentiles using ATBD type-8 quantiles."""
+    years = time.dt.year.values
+    doy = time.dt.dayofyear.values
+    base = np.isin(years, base_years)
+    result = np.full_like(values, np.nan, dtype=float)
+    for target_day in range(1, 366):
+        distance = np.minimum((doy - target_day) % 365, (target_day - doy) % 365)
+        sample_mask = base & (distance <= 2)
+        sample = values[sample_mask]
+        if duplicated_year is not None:
+            duplicate = values[(years == duplicated_year) & (distance <= 2)]
+            sample = np.concatenate([sample, duplicate], axis=0)
+        result[doy == target_day] = np.nanquantile(
+            sample,
+            percentile / 100,
+            axis=0,
+            method="median_unbiased",
+        )
+    return result
+
+
+def annual_event_count(time: xr.DataArray, event: np.ndarray) -> np.ndarray:
+    """Count true daily events independently for each calendar year."""
+    years = np.unique(time.dt.year.values)
+    return np.stack([np.sum(event[time.dt.year.values == year], axis=0) for year in years])
+
+
+def annual_spell_count(time: xr.DataArray, event: np.ndarray, minimum: int = 6) -> np.ndarray:
+    """Count all days belonging to within-year runs of at least ``minimum`` days."""
+    years = np.unique(time.dt.year.values)
+    result = np.zeros((len(years), *event.shape[1:]), dtype=int)
+    for year_index, year in enumerate(years):
+        yearly = event[time.dt.year.values == year]
+        for cell in np.ndindex(event.shape[1:]):
+            run = 0
+            total = 0
+            for value in yearly[(slice(None), *cell)]:
+                if value:
+                    run += 1
+                else:
+                    total += run if run >= minimum else 0
+                    run = 0
+            result[(year_index, *cell)] = total + (run if run >= minimum else 0)
+    return result
+
+
+def bootstrap_temperature_count(
+    time: xr.DataArray,
+    values: np.ndarray,
+    percentile: float,
+    operator: str,
+) -> np.ndarray:
+    """Implement the ATBD leave-one-year-out bootstrap for annual counts."""
+    base_years = (2001, 2002, 2003)
+    years = np.unique(time.dt.year.values)
+    normal_threshold = doy_percentile(time, values, percentile)
+    result = np.empty((len(years), *values.shape[1:]), dtype=float)
+    compare = np.greater if operator == ">" else np.less
+    for index, year in enumerate(years):
+        target = time.dt.year.values == year
+        if year not in base_years:
+            result[index] = np.sum(compare(values[target], normal_threshold[target]), axis=0)
+            continue
+        estimates = []
+        remaining = tuple(item for item in base_years if item != year)
+        for duplicated in remaining:
+            threshold = doy_percentile(
+                time,
+                values,
+                percentile,
+                base_years=remaining,
+                duplicated_year=duplicated,
+            )
+            estimates.append(np.sum(compare(values[target], threshold[target]), axis=0))
+        result[index] = np.mean(estimates, axis=0)
+    return result
+
+
+def make_bootstrap_temperature_series() -> xr.DataArray:
+    """Create the ATBD 30-year base period plus one independent study year."""
+    time = xr.date_range(
+        "1961-01-01",
+        "1991-12-31",
+        freq="D",
+        calendar="noleap",
+        use_cftime=True,
+    )
+    rng = np.random.default_rng(9)
+    doy = np.asarray([value.dayofyr for value in time])
+    year = np.asarray([value.year for value in time])
+    values = (
+        20
+        + 10 * np.sin(2 * np.pi * (doy - 80) / 365)
+        + rng.normal(0, 2, len(time))
+        + 0.03 * (year - 1961)
+    )
+    return xr.DataArray(
+        values,
+        dims="time",
+        coords={"time": time},
+        name="tx",
+        attrs={"units": "degC"},
+    )
+
+
+def bootstrap_temperature_year(
+    source: xr.DataArray,
+    target_year: int,
+    percentile: float,
+) -> float:
+    """Average the 29 ATBD replicate-and-count estimates for one base year."""
+    base_years = tuple(range(1961, 1991))
+    remaining = tuple(year for year in base_years if year != target_year)
+    target = source.time.dt.year.values == target_year
+    estimates = []
+    for duplicated in remaining:
+        threshold = doy_percentile(
+            source.time,
+            source.values,
+            percentile,
+            base_years=remaining,
+            duplicated_year=duplicated,
+        )
+        estimates.append(np.sum(source.values[target] > threshold[target]))
+    return float(np.mean(estimates))
+
+
+def make_percentile_precip_cube(units: str = "mm/day") -> xr.DataArray:
+    """Create five years with dry, floor-equal, and heavy wet days."""
+    time = pd.date_range("2001-01-01", "2005-12-31", freq="D")
+    rng = np.random.default_rng(7525)
+    values = rng.gamma(1.8, 4.0, size=(len(time), 2, 2))
+    values[rng.random(values.shape) < 0.25] = 0
+    values[::17] = 1
+    values *= np.array([[0.8, 1.0], [1.2, 1.5]])[None, :, :]
+    values[::17] = 1
+    if units == "kg m-2 s-1":
+        values /= 86400
+    return xr.DataArray(
+        values,
+        dims=("time", "lat", "lon"),
+        coords={"time": time, "lat": [45.0, 46.0], "lon": [1.0, 2.0]},
+        name="pr",
+        attrs={"units": units},
+    )
+
+
+def precipitation_percentile_oracle(
+    pr: xr.DataArray,
+    percentile: float,
+    *,
+    fraction: bool,
+) -> np.ndarray:
+    """Apply ATBD wet-day percentile counts or fractions by calendar year."""
+    values = pr.values * (86400 if pr.attrs["units"] == "kg m-2 s-1" else 1)
+    years = pd.DatetimeIndex(pr.time.values).year
+    base = (years >= 2001) & (years <= 2003)
+    threshold = np.nanquantile(
+        np.where(values[base] >= 1, values[base], np.nan),
+        percentile / 100,
+        axis=0,
+        method="median_unbiased",
+    )
+    result = []
+    for year in np.unique(years):
+        yearly = values[years == year]
+        exceedance = yearly > threshold
+        if fraction:
+            numerator = np.sum(np.where(exceedance, yearly, 0), axis=0)
+            denominator = np.sum(np.where(yearly >= 1, yearly, 0), axis=0)
+            result.append(100 * numerator / denominator)
+        else:
+            result.append(np.sum(exceedance, axis=0))
+    return np.stack(result)
