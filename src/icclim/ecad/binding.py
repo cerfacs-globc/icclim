@@ -40,13 +40,40 @@ class GrowingSeasonLength(Indicator):
         import xclim  # noqa: PLC0415
 
         study, _ = get_single_var(config.climate_variables)
-        return xclim.atmos.growing_season_length(
+        kwargs = {
+            "tas": study,
+            "thresh": "5 degree_Celsius",
+            "window": 6,
+            "mid_date": "07-01",
+            "freq": config.frequency.pandas_freq,
+            "op": ">",
+        }
+        if config.completeness_policy.is_applied:
+            return xclim.atmos.growing_season_length(**kwargs)
+        result = xclim.indices.growing_season_length(
             tas=study,
             thresh="5 degree_Celsius",
             window=6,
             mid_date="07-01",
             freq=config.frequency.pandas_freq,
+            op=">",
         )
+        valid_period = study.notnull().resample(time=config.frequency.pandas_freq).any()
+        result = result.where(valid_period)
+        from xclim.core.formatting import update_history  # noqa: PLC0415
+
+        result.attrs.update(
+            units="days",
+            long_name=self.long_name,
+            standard_name=self.standard_name,
+            cell_methods=self.cell_methods,
+            history=update_history(
+                "growing_season_length with icclim completeness disabled",
+                study,
+                new_name=self.name,
+            ),
+        )
+        return result
 
     def preprocess(self, *args, **kwargs) -> list[xarray.DataArray]:
         """Not implemented as xclim indicator already handle pre/post processing."""
