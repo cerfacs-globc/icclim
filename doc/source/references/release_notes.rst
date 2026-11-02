@@ -2,23 +2,34 @@
  Release history
 #################
 
-**********
-Unreleased
-**********
+*****
+7.3.1
+*****
 
--  [fix] Apply ``only_leap_years`` within the requested percentile base period
-   instead of selecting leap years from the full input time range.
--  [test] Record non-bootstrap performance invariants for date-event, rolling
-   and reference-difference reducers before optimization work begins.
--  [doc] Document legacy date-event behavior and the xarray compatibility
-   constraints that affect later vectorization.
--  [fix] Return the requested maximum or minimum when ``date_event=True``
-   instead of the period sum, including for Dask-backed inputs. Rolling extrema
-   now support event dates and report the first and last dates of the selected
-   trailing window. All-NaN cells return ``NaN`` with a missing event date.
--  [fix] Return percentages, rather than fractions or raw counts, from
-   ``count_occurrences(out_unit="%")`` for annual, seasonal, daily, and custom
-   output frequencies (#520).
+date: 2026-11-01
+
+
+-  [fix] Restrict ``only_leap_years`` percentile bootstrap calculations to the
+   percentile base period (PR #514).
+-  [fix] Correct the 7.3.0 ``date_event`` extrema regression that returned the
+   period sum instead of the requested maximum or minimum. Chunked inputs no
+   longer fail, and rolling extrema now return event dates (PR #517).
+-  [fix] Non-monthly percent results have been wrong since at least 6.2.0
+   (verified in 6.2.0, 7.0.0, and 7.2.0):
+   ``count_occurrences(out_unit="%")`` returned fractions or raw counts instead
+   of percentages, making common results 100 times too small (issue #520,
+   PR #527).
+-  [fix] Use the year containing February for the ``ONDJFM`` percentage
+   denominator (issue #521, PR #530).
+-  [fix] Prevent annual percentage output from crashing across multiple years
+   on fixed CF calendars (issue #522, PR #531), and use a 360-day denominator
+   for ``360_day`` years (issue #523, PR #531).
+-  [fix] Report missing event dates when a consecutive-run period contains no
+   event (issue #524, PR #529).
+-  [fix] Include values equal to the 1 mm wet-day floor in
+   ``R75pTOT``, ``R95pTOT``, and ``R99pTOT`` calculations (issue #525,
+   PR #528).
+-  [test] Record non-bootstrap performance invariants (PR #515).
 
 *****
 7.3.0
