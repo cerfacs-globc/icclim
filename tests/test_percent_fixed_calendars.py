@@ -36,6 +36,13 @@ def test_count_occurrences_percent_supports_multiple_noleap_years() -> None:
     np.testing.assert_allclose(result, result.isel(time=0))
 
 
+def test_count_occurrences_percent_supports_multiple_all_leap_years() -> None:
+    result = _annual_percent("all_leap", 366, years=3)
+
+    assert result.sizes["time"] == 3
+    np.testing.assert_allclose(result, result.isel(time=0))
+
+
 def test_count_occurrences_percent_uses_360_day_year_length() -> None:
     result_360 = _annual_percent("360_day", 360)
     result_365 = _annual_percent("noleap", 365)
