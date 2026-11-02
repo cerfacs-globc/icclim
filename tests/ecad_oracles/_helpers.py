@@ -461,3 +461,62 @@ def compound_oracle(source: xr.Dataset, name: str) -> np.ndarray:
     rain_event = source.pr.values < rain_threshold if dry else source.pr.values > rain_threshold
     rain_event &= source.pr.values >= 1
     return annual_event_count(source.time, temp_event & rain_event)
+
+
+def make_extreme_cube(converted_units: bool = False) -> xr.Dataset:
+    """Extend the threshold cube with pressure, sunshine, humidity, and wind."""
+    source = make_threshold_cubes(
+        temperature_units="K" if converted_units else "degC",
+        precipitation_units="kg m-2 s-1" if converted_units else "mm/day",
+    )
+    length = source.sizes["time"]
+    index = np.arange(length)
+    shape = (length, 2, 2)
+    gust = np.broadcast_to((5 + index % 18)[:, None, None], shape).astype(float).copy()
+    wind = np.broadcast_to((index % 15)[:, None, None], shape).astype(float).copy()
+    direction_pattern = np.array([0, 45, 46, 135, 136, 225, 226, 315, 316], dtype=float)
+    direction = np.broadcast_to(direction_pattern[index % 9, None, None], shape).copy()
+    pressure = np.broadcast_to((1000 + (index % 11))[:, None, None], shape).astype(float).copy()
+    sunshine = np.broadcast_to((index % 13)[:, None, None], shape).astype(float).copy()
+    humidity = np.broadcast_to((40 + index % 51)[:, None, None], shape).astype(float).copy()
+    factors = np.array([[0.9, 1.0], [1.1, 1.2]])[None, :, :]
+    gust *= factors
+    wind *= factors
+    pressure += np.array([[0, 2], [4, 6]])[None, :, :]
+    sunshine *= factors
+    humidity = np.minimum(humidity * factors, 100)
+    if converted_units:
+        pressure *= 100
+    source["wsgs_max"] = xr.DataArray(gust, dims=("time", "lat", "lon"), attrs={"units": "m s-1"})
+    source["sfcWind"] = xr.DataArray(wind, dims=("time", "lat", "lon"), attrs={"units": "m s-1"})
+    source["DD"] = xr.DataArray(direction, dims=("time", "lat", "lon"), attrs={"units": "degree"})
+    source["psl"] = xr.DataArray(
+        pressure,
+        dims=("time", "lat", "lon"),
+        attrs={"units": "Pa" if converted_units else "hPa"},
+    )
+    source["sund"] = xr.DataArray(sunshine, dims=("time", "lat", "lon"), attrs={"units": "h"})
+    source["hurs"] = xr.DataArray(humidity, dims=("time", "lat", "lon"), attrs={"units": "%"})
+    return source
+
+
+def rx5day_oracle(time: xr.DataArray, values: np.ndarray) -> np.ndarray:
+    """Return maximum within-year five-day precipitation totals."""
+    years = np.unique(time.dt.year.values)
+    result = []
+    for year in years:
+        yearly = values[time.dt.year.values == year]
+        windows = np.stack(
+            [np.sum(yearly[start : start + 5], axis=0) for start in range(len(yearly) - 4)]
+        )
+        result.append(np.max(windows, axis=0))
+    return np.stack(result)
+
+
+def vdtr_oracle(time: xr.DataArray, tx: np.ndarray, tn: np.ndarray) -> np.ndarray:
+    """Return annual mean absolute day-to-day DTR differences."""
+    years = np.unique(time.dt.year.values)
+    dtr = tx - tn
+    return np.stack(
+        [np.mean(np.abs(np.diff(dtr[time.dt.year.values == year], axis=0)), axis=0) for year in years]
+    )
