@@ -35,7 +35,6 @@ def test_gsl_matches_atbd_oracle(calendar: str, units: str, chunk: int | None) -
     assert actual.attrs["standard_name"]
 
 
-@pytest.mark.xfail(strict=True, reason="#537")
 def test_gsl_strictly_excludes_days_equal_to_five_degrees() -> None:
     """ATBD v11 says TG > 5 C, so six days exactly at 5 C cannot start GSL."""
     source = make_gsl_cube("standard", "degC", equality_probe=True)
@@ -44,7 +43,6 @@ def test_gsl_strictly_excludes_days_equal_to_five_degrees() -> None:
     np.testing.assert_allclose(actual.values, expected, equal_nan=True)
 
 
-@pytest.mark.xfail(strict=True, reason="#538")
 def test_gsl_honors_disabled_completeness_for_isolated_nan() -> None:
     """One missing interior day must not erase GSL when completeness is disabled."""
     source = make_gsl_cube("standard", "degC", isolated_missing=True)
