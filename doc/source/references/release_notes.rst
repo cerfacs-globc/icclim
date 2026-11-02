@@ -8,6 +8,10 @@ Unreleased
 
 -  [fix] Apply ``only_leap_years`` within the requested percentile base period
    instead of selecting leap years from the full input time range.
+-  [test] Record non-bootstrap performance invariants for date-event, rolling
+   and reference-difference reducers before optimization work begins.
+-  [doc] Document legacy date-event behavior and the xarray compatibility
+   constraints that affect later vectorization.
 
 *****
 7.3.0
