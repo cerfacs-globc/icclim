@@ -12,6 +12,10 @@ Unreleased
    and reference-difference reducers before optimization work begins.
 -  [doc] Document legacy date-event behavior and the xarray compatibility
    constraints that affect later vectorization.
+-  [fix] Return the requested maximum or minimum when ``date_event=True``
+   instead of the period sum, including for Dask-backed inputs. Rolling extrema
+   now support event dates and report the first and last dates of the selected
+   trailing window. All-NaN cells return ``NaN`` with a missing event date.
 
 *****
 7.3.0
