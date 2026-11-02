@@ -411,9 +411,9 @@ def max_consecutive_occurrence(
 
     run_index = kwargs.get("run_index", "first")
     if kwargs.get("indicator_name") in {"CFD", "CSU"}:
-        rle = combined_exceedance_mask.resample(
-            time=resample_freq.pandas_freq
-        ).map(run_length.rle, dim="time", index=run_index)
+        rle = combined_exceedance_mask.resample(time=resample_freq.pandas_freq).map(
+            run_length.rle, dim="time", index=run_index
+        )
         rle = rle.assign_coords(time=combined_exceedance_mask.time)
     else:
         rle = run_length.rle(
