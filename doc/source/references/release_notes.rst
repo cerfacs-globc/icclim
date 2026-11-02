@@ -3,6 +3,30 @@
 #################
 
 *****
+7.3.2
+*****
+
+date: unreleased
+
+
+-  [fix] Average the ECA&D leave-one-year-out bootstrap index estimates for
+   temperature percentile counts TG10p/TG90p, TN10p/TN90p, and TX10p/TX90p
+   (issue #540, PR #545). This is a
+   7.3.0 regression: running 7.2.0 gives the correct ATBD value, while 7.3.0
+   and 7.3.1 are affected.
+-  [fix] Restrict the precipitation operand of ``CD`` and ``WD`` to wet days
+   (RR >= 1 mm) and preserve their requested percentile base period (issue
+   #541, PR #546). Affected since at least 7.2.0 through 7.3.1; the 7.2.0
+   source was read, not run.
+-  [fix] Use the strict ECA&D ``TG > 5 degC`` GSL onset and honor disabled
+   completeness for isolated missing values (issues #537 and #538, PR #548).
+   Affected since at least 7.2.0 through 7.3.1; the 7.2.0 source was read, not
+   run.
+-  [fix] Accept CF precipitation-flux units in ``RX5day`` (issue #544,
+   PR #549). Verified by running 7.3.1; the 7.2.0 source was read, but no
+   earlier range is claimed.
+
+*****
 7.3.1
 *****
 
