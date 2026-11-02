@@ -86,9 +86,30 @@ Before every release
    can appear on only one of them (an earlier rolling-window bug reproduced only
    with xarray 2026.2). The continuous integration currently runs a single
    Python/dependency set; adding a minimum-versions job is recommended.
-#. Run the independent value tests (generic indicators and ECAD indices), the
-   eager-versus-chunked option matrix, and the golden tests. All must pass, with no
-   unexplained new warnings.
+#. Run the three families of value tests below. All must pass, with no unexplained
+   new warnings.
+
+   - **Independent value tests ("oracles").** Each test builds a small input where
+     the correct answer can be worked out by hand or with a few lines of plain
+     numpy/pandas, written from the index definition and never from icclim or xclim
+     code, then compares icclim's result with it. *Example:* for SU (summer days,
+     daily maximum temperature above 25 °C), build three years of daily values,
+     count the days above 25 °C per year with ``(tx > 25).groupby("time.year").sum()``,
+     and require icclim to return exactly those numbers. A test like this would have
+     caught the annual percentage returning 1 instead of 100.
+   - **Eager versus chunked option matrix.** icclim usually runs on Dask arrays, where
+     a large file is cut into chunks along time and space and processed piece by
+     piece. The result must not depend on how the data are cut. *Example:* RX5day
+     (maximum 5-day precipitation) on a daily series loaded in memory must equal the
+     result when the same series is cut into 1-day, 7-day or 1-year time chunks,
+     including when a 5-day window straddles a chunk boundary. The matrix repeats
+     this across output frequencies (month, year, seasons), thresholds, NaN patterns
+     and calendars (standard, noleap, 360_day).
+   - **Golden tests.** These store the output of a trusted earlier run (for example
+     the monthly TG values of a small reference dataset) and fail if a later change
+     moves any number. They protect against accidental changes, for instance during
+     a performance refactor, but they are only as good as the stored reference: a
+     golden test must never freeze a number known to be wrong.
 #. For releases that touch performance, chunking, percentiles or bootstrap, run the
    real-data validation (``tools/run_real_data_validation.py``, Kraken scripts in
    ``tools/``) and compare against the previous release.
@@ -102,20 +123,37 @@ Before every release
 Periodically
 ============
 
-#. Rerun mutation testing on ``generic/functions.py``, ``input_parsing.py`` and
-   ``frequency.py`` with a generous timeout (at least 120 s per mutant) and look at
-   surviving mutants: they mark code whose values no test checks.
-#. Keep independent value coverage of the ECAD indices at 64/64 and extend it when an
-   index is added.
+#. **Mutation testing.** A tool (``mutmut``) makes small deliberate changes to the
+   code, one at a time, such as turning ``>`` into ``>=``, replacing ``100`` by ``10``
+   or removing a line, and reruns the tests. A good test suite fails for each change
+   (the change is "killed"). If the tests still pass (the change "survives"), no test
+   checks the value that line produces. *Example:* the wet-day floor of R95pTOT was
+   applied with ``>`` instead of ``>=``. A surviving ``>`` to ``>=`` mutation in that
+   code would have shown, before any user did, that no test distinguished a value
+   exactly equal to 1 mm/day. Run it on ``generic/functions.py``, ``input_parsing.py``
+   and ``frequency.py`` with a generous time limit per mutant (at least 120 s; with
+   15 s most mutants simply time out and tell us nothing), and treat every
+   survivor as a missing test.
+#. **ECAD value coverage.** Keep an independent value test (see "oracles" above) for
+   every one of the 64 ECA&D indices, and extend it whenever an index is added. The
+   target is 64/64. Before the 7.3.1 audit it was 0/64: the existing tests only
+   checked that, for example, TX90p or GSL ran and returned a result, not that the
+   numbers matched the ECA&D definition.
 
 Merging
 =======
 
-Squash-merge each pull request so that every commit on ``master`` is one change with
-its test, after the required checks (including the Read the Docs build) are green.
-Rebase dependent pull requests onto the new ``master`` before merging them. Link the
-issue with its own closing keyword (``Fixes #1, fixes #2``), because one keyword closes
-only the first issue.
+#. **Squash-merge each pull request.** The pull request becomes a single commit on
+   ``master`` that contains both the change and its tests, so every commit on
+   ``master`` passes the test suite. This keeps ``git bisect`` and ``git blame`` useful
+   when looking for the origin of a wrong value.
+#. **Wait for the required checks** (tests, and the Read the Docs build) to be green.
+#. **Rebase dependent pull requests** onto the updated ``master`` after each merge, so
+   that a pull request stacked on another does not drag the already merged commits
+   along (``git rebase --onto origin/master <old head of the merged PR> <branch>``).
+#. **Give every issue its own closing keyword.** ``Fixes #522, fixes #523`` closes both
+   issues; ``Fixes #522 and #523`` closes only the first. (This is what happened with
+   #523, which stayed open after its fix was merged.)
 
 ***********************
  Conda-forge Checklist
