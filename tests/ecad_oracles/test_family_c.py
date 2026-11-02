@@ -141,7 +141,6 @@ def test_compound_percentile_counts(name: str, chunk: int | None) -> None:
     np.testing.assert_allclose(actual.values[-2:], expected[-2:], equal_nan=True)
 
 
-@pytest.mark.xfail(strict=True, reason="#542")
 @pytest.mark.parametrize(
     ("name", "variable"), [("CSU", "tx"), ("CFD", "tn"), ("CDD", "pr"), ("CWD", "pr")]
 )
