@@ -204,10 +204,14 @@ def doy_percentile(
 def annual_event_count(time: xr.DataArray, event: np.ndarray) -> np.ndarray:
     """Count true daily events independently for each calendar year."""
     years = np.unique(time.dt.year.values)
-    return np.stack([np.sum(event[time.dt.year.values == year], axis=0) for year in years])
+    return np.stack(
+        [np.sum(event[time.dt.year.values == year], axis=0) for year in years]
+    )
 
 
-def annual_spell_count(time: xr.DataArray, event: np.ndarray, minimum: int = 6) -> np.ndarray:
+def annual_spell_count(
+    time: xr.DataArray, event: np.ndarray, minimum: int = 6
+) -> np.ndarray:
     """Count all days belonging to within-year runs of at least ``minimum`` days."""
     years = np.unique(time.dt.year.values)
     result = np.zeros((len(years), *event.shape[1:]), dtype=int)
@@ -241,7 +245,9 @@ def bootstrap_temperature_count(
     for index, year in enumerate(years):
         target = time.dt.year.values == year
         if year not in base_years:
-            result[index] = np.sum(compare(values[target], normal_threshold[target]), axis=0)
+            result[index] = np.sum(
+                compare(values[target], normal_threshold[target]), axis=0
+            )
             continue
         estimates = []
         remaining = tuple(item for item in base_years if item != year)
@@ -384,11 +390,21 @@ def make_threshold_cubes(
     coordinates = {"time": time, "lat": [45.0, 46.0], "lon": [1.0, 2.0]}
     return xr.Dataset(
         {
-            "tg": xr.DataArray(tg, dims=("time", "lat", "lon"), attrs={"units": temperature_units}),
-            "tn": xr.DataArray(tn, dims=("time", "lat", "lon"), attrs={"units": temperature_units}),
-            "tx": xr.DataArray(tx, dims=("time", "lat", "lon"), attrs={"units": temperature_units}),
-            "pr": xr.DataArray(pr, dims=("time", "lat", "lon"), attrs={"units": precipitation_units}),
-            "snd": xr.DataArray(snd, dims=("time", "lat", "lon"), attrs={"units": snow_units}),
+            "tg": xr.DataArray(
+                tg, dims=("time", "lat", "lon"), attrs={"units": temperature_units}
+            ),
+            "tn": xr.DataArray(
+                tn, dims=("time", "lat", "lon"), attrs={"units": temperature_units}
+            ),
+            "tx": xr.DataArray(
+                tx, dims=("time", "lat", "lon"), attrs={"units": temperature_units}
+            ),
+            "pr": xr.DataArray(
+                pr, dims=("time", "lat", "lon"), attrs={"units": precipitation_units}
+            ),
+            "snd": xr.DataArray(
+                snd, dims=("time", "lat", "lon"), attrs={"units": snow_units}
+            ),
         },
         coords=coordinates,
     )
@@ -448,7 +464,9 @@ def compound_oracle(source: xr.Dataset, name: str) -> np.ndarray:
     dry = name in {"CD", "WD"}
     temp_percentile = 25 if cold else 75
     temp_threshold = doy_percentile(source.time, source.tg.values, temp_percentile)
-    temp_event = source.tg.values < temp_threshold if cold else source.tg.values > temp_threshold
+    temp_event = (
+        source.tg.values < temp_threshold if cold else source.tg.values > temp_threshold
+    )
     years = source.time.dt.year.values
     base = np.isin(years, [2001, 2002, 2003])
     wet = np.where(source.pr.values[base] >= 1, source.pr.values[base], np.nan)
@@ -458,7 +476,9 @@ def compound_oracle(source: xr.Dataset, name: str) -> np.ndarray:
         axis=0,
         method="median_unbiased",
     )
-    rain_event = source.pr.values < rain_threshold if dry else source.pr.values > rain_threshold
+    rain_event = (
+        source.pr.values < rain_threshold if dry else source.pr.values > rain_threshold
+    )
     rain_event &= source.pr.values >= 1
     return annual_event_count(source.time, temp_event & rain_event)
 
@@ -476,9 +496,15 @@ def make_extreme_cube(converted_units: bool = False) -> xr.Dataset:
     wind = np.broadcast_to((index % 15)[:, None, None], shape).astype(float).copy()
     direction_pattern = np.array([0, 45, 46, 135, 136, 225, 226, 315, 316], dtype=float)
     direction = np.broadcast_to(direction_pattern[index % 9, None, None], shape).copy()
-    pressure = np.broadcast_to((1000 + (index % 11))[:, None, None], shape).astype(float).copy()
+    pressure = (
+        np.broadcast_to((1000 + (index % 11))[:, None, None], shape)
+        .astype(float)
+        .copy()
+    )
     sunshine = np.broadcast_to((index % 13)[:, None, None], shape).astype(float).copy()
-    humidity = np.broadcast_to((40 + index % 51)[:, None, None], shape).astype(float).copy()
+    humidity = (
+        np.broadcast_to((40 + index % 51)[:, None, None], shape).astype(float).copy()
+    )
     factors = np.array([[0.9, 1.0], [1.1, 1.2]])[None, :, :]
     gust *= factors
     wind *= factors
@@ -487,16 +513,26 @@ def make_extreme_cube(converted_units: bool = False) -> xr.Dataset:
     humidity = np.minimum(humidity * factors, 100)
     if converted_units:
         pressure *= 100
-    source["wsgs_max"] = xr.DataArray(gust, dims=("time", "lat", "lon"), attrs={"units": "m s-1"})
-    source["sfcWind"] = xr.DataArray(wind, dims=("time", "lat", "lon"), attrs={"units": "m s-1"})
-    source["DD"] = xr.DataArray(direction, dims=("time", "lat", "lon"), attrs={"units": "degree"})
+    source["wsgs_max"] = xr.DataArray(
+        gust, dims=("time", "lat", "lon"), attrs={"units": "m s-1"}
+    )
+    source["sfcWind"] = xr.DataArray(
+        wind, dims=("time", "lat", "lon"), attrs={"units": "m s-1"}
+    )
+    source["DD"] = xr.DataArray(
+        direction, dims=("time", "lat", "lon"), attrs={"units": "degree"}
+    )
     source["psl"] = xr.DataArray(
         pressure,
         dims=("time", "lat", "lon"),
         attrs={"units": "Pa" if converted_units else "hPa"},
     )
-    source["sund"] = xr.DataArray(sunshine, dims=("time", "lat", "lon"), attrs={"units": "h"})
-    source["hurs"] = xr.DataArray(humidity, dims=("time", "lat", "lon"), attrs={"units": "%"})
+    source["sund"] = xr.DataArray(
+        sunshine, dims=("time", "lat", "lon"), attrs={"units": "h"}
+    )
+    source["hurs"] = xr.DataArray(
+        humidity, dims=("time", "lat", "lon"), attrs={"units": "%"}
+    )
     return source
 
 
@@ -507,7 +543,10 @@ def rx5day_oracle(time: xr.DataArray, values: np.ndarray) -> np.ndarray:
     for year in years:
         yearly = values[time.dt.year.values == year]
         windows = np.stack(
-            [np.sum(yearly[start : start + 5], axis=0) for start in range(len(yearly) - 4)]
+            [
+                np.sum(yearly[start : start + 5], axis=0)
+                for start in range(len(yearly) - 4)
+            ]
         )
         result.append(np.max(windows, axis=0))
     return np.stack(result)
@@ -518,5 +557,8 @@ def vdtr_oracle(time: xr.DataArray, tx: np.ndarray, tn: np.ndarray) -> np.ndarra
     years = np.unique(time.dt.year.values)
     dtr = tx - tn
     return np.stack(
-        [np.mean(np.abs(np.diff(dtr[time.dt.year.values == year], axis=0)), axis=0) for year in years]
+        [
+            np.mean(np.abs(np.diff(dtr[time.dt.year.values == year], axis=0)), axis=0)
+            for year in years
+        ]
     )

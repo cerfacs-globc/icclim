@@ -8,8 +8,7 @@ import pytest
 import xarray as xr
 
 import icclim
-
-from ._helpers import (
+from tests.ecad_oracles._helpers import (
     annual_reduce,
     compound_oracle,
     make_compound_cube,
@@ -22,7 +21,14 @@ SIMPLE_INDICES = (
     ("FD", "tn", "count", 0, "<"),
     ("ID", "tx", "count", 0, "<"),
     ("CSU", "tx", "max_run", 25, ">"),
-    pytest.param("CFD", "tn", "max_run", 0, "<", marks=pytest.mark.xfail(strict=True, reason="#543")),
+    pytest.param(
+        "CFD",
+        "tn",
+        "max_run",
+        0,
+        "<",
+        marks=pytest.mark.xfail(strict=True, reason="#543"),
+    ),
     ("GD4", "tg", "above_sum", 4, ">"),
     ("HD17", "tg", "below_sum", 17, "<"),
     ("RR1", "pr", "count", 1, ">="),
@@ -37,7 +43,9 @@ SIMPLE_INDICES = (
 )
 
 
-def _simple_expected(source, variable: str, reducer: str, threshold: float, operator: str):
+def _simple_expected(
+    source, variable: str, reducer: str, threshold: float, operator: str
+):
     values = source[variable].values.copy()
     units = source[variable].attrs["units"]
     if units == "K":
@@ -49,16 +57,24 @@ def _simple_expected(source, variable: str, reducer: str, threshold: float, oper
     if reducer == "mean":
         return annual_reduce(source.time, values, "mean")
     if reducer == "above_sum":
-        return annual_reduce(source.time, np.where(values > threshold, values - threshold, 0), "sum")
+        return annual_reduce(
+            source.time, np.where(values > threshold, values - threshold, 0), "sum"
+        )
     if reducer == "below_sum":
-        return annual_reduce(source.time, np.where(values < threshold, threshold - values, 0), "sum")
+        return annual_reduce(
+            source.time, np.where(values < threshold, threshold - values, 0), "sum"
+        )
     comparisons = {">": np.greater, "<": np.less, ">=": np.greater_equal}
     event = comparisons[operator](values, threshold)
-    return annual_reduce(source.time, event, "max_run" if reducer == "max_run" else "sum")
+    return annual_reduce(
+        source.time, event, "max_run" if reducer == "max_run" else "sum"
+    )
 
 
 @pytest.mark.parametrize("chunk", [None, 1, 7])
-@pytest.mark.parametrize(("name", "variable", "reducer", "threshold", "operator"), SIMPLE_INDICES)
+@pytest.mark.parametrize(
+    ("name", "variable", "reducer", "threshold", "operator"), SIMPLE_INDICES
+)
 def test_fixed_threshold_indices(
     name: str,
     variable: str,
@@ -84,7 +100,11 @@ def test_fixed_threshold_indices(
         completeness="none",
     )[name].compute()
 
-    values = actual.transpose("time", "lat", "lon").values if reducer == "max_run" else actual.values
+    values = (
+        actual.transpose("time", "lat", "lon").values
+        if reducer == "max_run"
+        else actual.values
+    )
     np.testing.assert_allclose(values, expected, rtol=1e-10, atol=1e-10, equal_nan=True)
     if reducer != "max_run":
         assert actual.dims == ("time", "lat", "lon")
@@ -122,16 +142,23 @@ def test_compound_percentile_counts(name: str, chunk: int | None) -> None:
 
 
 @pytest.mark.xfail(strict=True, reason="#542")
-@pytest.mark.parametrize(("name", "variable"), [("CSU", "tx"), ("CFD", "tn"), ("CDD", "pr"), ("CWD", "pr")])
+@pytest.mark.parametrize(
+    ("name", "variable"), [("CSU", "tx"), ("CFD", "tn"), ("CDD", "pr"), ("CWD", "pr")]
+)
 def test_consecutive_outputs_keep_time_first(name: str, variable: str) -> None:
     """ECAD outputs consistently order dimensions as time then spatial axes."""
     source = make_threshold_cubes()[variable]
-    actual = getattr(icclim, name.lower())(source, out_file=None, completeness="none")[name]
+    actual = getattr(icclim, name.lower())(source, out_file=None, completeness="none")[
+        name
+    ]
     assert actual.dims == ("time", "lat", "lon")
 
 
 @pytest.mark.xfail(strict=True, reason="#543")
-@pytest.mark.parametrize(("name", "variable", "normal", "event"), [("CFD", "tn", 1.0, -1.0), ("CSU", "tx", 0.0, 30.0)])
+@pytest.mark.parametrize(
+    ("name", "variable", "normal", "event"),
+    [("CFD", "tn", 1.0, -1.0), ("CSU", "tx", 0.0, 30.0)],
+)
 def test_temperature_runs_do_not_merge_across_years(
     name: str,
     variable: str,
@@ -149,5 +176,7 @@ def test_temperature_runs_do_not_merge_across_years(
         name=variable,
         attrs={"units": "degC"},
     )
-    actual = getattr(icclim, name.lower())(source, out_file=None, completeness="none")[name].compute()
+    actual = getattr(icclim, name.lower())(source, out_file=None, completeness="none")[
+        name
+    ].compute()
     np.testing.assert_array_equal(actual.values, [92, 120])

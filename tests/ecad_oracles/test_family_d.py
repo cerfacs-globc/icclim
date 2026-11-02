@@ -6,8 +6,12 @@ import numpy as np
 import pytest
 
 import icclim
-
-from ._helpers import annual_reduce, make_extreme_cube, rx5day_oracle, vdtr_oracle
+from tests.ecad_oracles._helpers import (
+    annual_reduce,
+    make_extreme_cube,
+    rx5day_oracle,
+    vdtr_oracle,
+)
 
 SINGLE_INDICES = (
     ("TG", "tg", "mean"),
@@ -40,7 +44,9 @@ def _extreme_expected(source, variable: str, reducer: str):
         return annual_reduce(source.time, values, reducer)
     years = np.unique(source.time.dt.year.values)
     function = np.max if reducer == "max" else np.min
-    return np.stack([function(values[source.time.dt.year.values == year], axis=0) for year in years])
+    return np.stack(
+        [function(values[source.time.dt.year.values == year], axis=0) for year in years]
+    )
 
 
 @pytest.mark.parametrize("chunk", [None, 1, 7])
@@ -54,13 +60,17 @@ def test_single_variable_extrema_and_means(
     """Annual extrema, means, and sums directly implement their ATBD reductions."""
     source = make_extreme_cube(converted_units=chunk == 7)
     expected = _extreme_expected(source, variable, reducer)
-    study = source[variable] if chunk is None else source[variable].chunk({"time": chunk})
+    study = (
+        source[variable] if chunk is None else source[variable].chunk({"time": chunk})
+    )
     actual = getattr(icclim, name.lower())(
         study,
         out_file=None,
         completeness="none",
     )[name].compute()
-    np.testing.assert_allclose(actual.values, expected, rtol=1e-10, atol=1e-10, equal_nan=True)
+    np.testing.assert_allclose(
+        actual.values, expected, rtol=1e-10, atol=1e-10, equal_nan=True
+    )
     assert actual.dims == ("time", "lat", "lon")
     assert actual.attrs["units"]
     assert actual.attrs["long_name"]
@@ -87,14 +97,20 @@ def test_temperature_ranges(name: str, chunk: int | None) -> None:
         )
     else:
         expected = vdtr_oracle(source.time, tx, tn)
-    study = source[["tx", "tn"]] if chunk is None else source[["tx", "tn"]].chunk({"time": chunk})
+    study = (
+        source[["tx", "tn"]]
+        if chunk is None
+        else source[["tx", "tn"]].chunk({"time": chunk})
+    )
     actual = getattr(icclim, name.lower())(
         study,
         var_name=["tx", "tn"],
         out_file=None,
         completeness="none",
     )[name].compute()
-    np.testing.assert_allclose(actual.values, expected, rtol=1e-10, atol=1e-10, equal_nan=True)
+    np.testing.assert_allclose(
+        actual.values, expected, rtol=1e-10, atol=1e-10, equal_nan=True
+    )
 
 
 @pytest.mark.parametrize("chunk", [None, 1, 7])
@@ -108,7 +124,9 @@ def test_precipitation_extrema_and_wet_day_reducers(
     if name == "RX5day" and chunk == 7:
         request.applymarker(pytest.mark.xfail(strict=True, reason="#544"))
     source = make_extreme_cube(converted_units=chunk == 7)
-    values = source.pr.values * (86400 if source.pr.attrs["units"] == "kg m-2 s-1" else 1)
+    values = source.pr.values * (
+        86400 if source.pr.attrs["units"] == "kg m-2 s-1" else 1
+    )
     if name == "PRCPTOT":
         expected = annual_reduce(source.time, np.where(values >= 1, values, 0), "sum")
     elif name == "SDII":
@@ -118,8 +136,12 @@ def test_precipitation_extrema_and_wet_day_reducers(
     else:
         expected = rx5day_oracle(source.time, values)
     study = source.pr if chunk is None else source.pr.chunk({"time": chunk})
-    actual = getattr(icclim, name.lower())(study, out_file=None, completeness="none")[name].compute()
-    np.testing.assert_allclose(actual.values, expected, rtol=1e-10, atol=1e-10, equal_nan=True)
+    actual = getattr(icclim, name.lower())(study, out_file=None, completeness="none")[
+        name
+    ].compute()
+    np.testing.assert_allclose(
+        actual.values, expected, rtol=1e-10, atol=1e-10, equal_nan=True
+    )
 
 
 WIND_COUNTS = (
@@ -139,6 +161,10 @@ def test_wind_threshold_counts(name, condition, chunk: int | None) -> None:
     source = make_extreme_cube()
     variable = "DD" if name.startswith("DD") else "sfcWind"
     expected = annual_reduce(source.time, condition(source[variable].values), "sum")
-    study = source[variable] if chunk is None else source[variable].chunk({"time": chunk})
-    actual = getattr(icclim, name.lower())(study, out_file=None, completeness="none")[name].compute()
+    study = (
+        source[variable] if chunk is None else source[variable].chunk({"time": chunk})
+    )
+    actual = getattr(icclim, name.lower())(study, out_file=None, completeness="none")[
+        name
+    ].compute()
     np.testing.assert_allclose(actual.values, expected, equal_nan=True)

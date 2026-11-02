@@ -6,8 +6,7 @@ import numpy as np
 import pytest
 
 import icclim
-
-from ._helpers import (
+from tests.ecad_oracles._helpers import (
     annual_event_count,
     annual_spell_count,
     bootstrap_temperature_year,
@@ -31,7 +30,9 @@ TEMPERATURE_INDICES = (
 
 
 @pytest.mark.parametrize("chunk", [None, 1, 7])
-@pytest.mark.parametrize(("name", "variable", "percentile", "operator", "spell"), TEMPERATURE_INDICES)
+@pytest.mark.parametrize(
+    ("name", "variable", "percentile", "operator", "spell"), TEMPERATURE_INDICES
+)
 def test_temperature_percentile_indices(
     name: str,
     variable: str,
@@ -46,7 +47,11 @@ def test_temperature_percentile_indices(
     values = source.values - (273.15 if units == "K" else 0)
     threshold = doy_percentile(source.time, values, percentile)
     event = values > threshold if operator == ">" else values < threshold
-    expected = annual_spell_count(source.time, event) if spell else annual_event_count(source.time, event)
+    expected = (
+        annual_spell_count(source.time, event)
+        if spell
+        else annual_event_count(source.time, event)
+    )
     study = source if chunk is None else source.chunk({"time": chunk})
 
     actual = getattr(icclim, name.lower())(
@@ -111,7 +116,9 @@ def test_precipitation_percentile_indices(
         completeness="none",
     )[name].compute()
 
-    np.testing.assert_allclose(actual.values, expected, rtol=1e-10, atol=1e-10, equal_nan=True)
+    np.testing.assert_allclose(
+        actual.values, expected, rtol=1e-10, atol=1e-10, equal_nan=True
+    )
     assert actual.dims == ("time", "lat", "lon")
     assert actual.attrs["long_name"]
     assert actual.attrs["standard_name"]
