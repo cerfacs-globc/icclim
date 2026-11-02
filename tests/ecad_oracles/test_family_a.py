@@ -6,8 +6,12 @@ import numpy as np
 import pytest
 
 import icclim
-
-from ._helpers import gsl_oracle, make_gsl_cube, make_spi_cube, spi_gamma_oracle
+from tests.ecad_oracles._helpers import (
+    gsl_oracle,
+    make_gsl_cube,
+    make_spi_cube,
+    spi_gamma_oracle,
+)
 
 
 @pytest.mark.parametrize("chunk", [None, 1, 7])
@@ -75,7 +79,9 @@ def test_gsl_ignore_feb29_and_time_range_are_value_stable() -> None:
 
 @pytest.mark.parametrize("chunk", [None, 1, 7])
 @pytest.mark.parametrize(("name", "window"), [("SPI3", 3), ("SPI6", 6)])
-def test_spi_matches_direct_scipy_gamma_fit(name: str, window: int, chunk: int | None) -> None:
+def test_spi_matches_direct_scipy_gamma_fit(
+    name: str, window: int, chunk: int | None
+) -> None:
     """Compare monthly SPI with an independent scipy MLE gamma fit (atol 0.30)."""
     units = "kg m-2 s-1" if chunk == 7 else "mm/day"
     source = make_spi_cube(units)
@@ -89,7 +95,9 @@ def test_spi_matches_direct_scipy_gamma_fit(name: str, window: int, chunk: int |
         out_file=None,
     )[name].compute()
 
-    np.testing.assert_allclose(actual.values, expected, atol=0.30, rtol=0, equal_nan=True)
+    np.testing.assert_allclose(
+        actual.values, expected, atol=0.30, rtol=0, equal_nan=True
+    )
     assert actual.dims == ("time", "lat", "lon")
     assert actual.attrs["long_name"]
     assert actual.attrs["standard_name"]

@@ -87,7 +87,9 @@ def make_spi_cube(units: str = "mm/day") -> xr.DataArray:
     time = pd.date_range("1981-01-01", "2020-12-31", freq="D")
     rng = np.random.default_rng(20261102)
     values = rng.gamma(shape=2.5, scale=1.7, size=(len(time), 2, 2))
-    seasonal = 1.0 + 0.35 * np.sin(2 * np.pi * (time.dayofyear.to_numpy() - 20) / 365.25)
+    seasonal = 1.0 + 0.35 * np.sin(
+        2 * np.pi * (time.dayofyear.to_numpy() - 20) / 365.25
+    )
     values *= seasonal[:, None, None]
     values *= np.array([[0.7, 1.0], [1.3, 1.8]])[None, :, :]
     if units == "kg m-2 s-1":
@@ -114,12 +116,16 @@ def spi_gamma_oracle(pr: xr.DataArray, window: int) -> np.ndarray:
     result = np.full((len(unique_months), *values.shape[1:]), np.nan)
     calibration = (unique_months >= "1981-01-01") & (unique_months <= "2010-12-01")
     for cell in np.ndindex(values.shape[1:]):
-        daily = pd.Series(values[(slice(None), *cell)], index=pd.DatetimeIndex(pr.time.values))
+        daily = pd.Series(
+            values[(slice(None), *cell)], index=pd.DatetimeIndex(pr.time.values)
+        )
         accumulated = daily.resample("MS").sum().rolling(window).sum()
         for month in range(1, 13):
             month_mask = unique_months.month == month
             sample = accumulated[calibration & month_mask].dropna().to_numpy()
             shape, _, scale = gamma.fit(sample, floc=0)
-            probabilities = gamma.cdf(accumulated[month_mask], shape, loc=0, scale=scale)
+            probabilities = gamma.cdf(
+                accumulated[month_mask], shape, loc=0, scale=scale
+            )
             result[(month_mask, *cell)] = norm.ppf(probabilities)
     return result
