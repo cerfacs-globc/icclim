@@ -117,9 +117,9 @@ def test_fixed_threshold_indices(
 @pytest.mark.parametrize(
     "name",
     [
-        pytest.param("CD", marks=pytest.mark.xfail(strict=True, reason="#541")),
+        "CD",
         "CW",
-        pytest.param("WD", marks=pytest.mark.xfail(strict=True, reason="#541")),
+        "WD",
         "WW",
     ],
 )
