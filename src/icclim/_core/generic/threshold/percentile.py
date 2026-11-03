@@ -227,6 +227,10 @@ class PercentileThreshold(Threshold):
         else:
             msg = f"Unknown percentile unit '{self._initial_unit}'."
             raise NotImplementedError(msg)
+        # This rechunk is a graph-stabilization boundary for percentile_doy.
+        # Preserving its generated chunks causes missing-dependency failures in
+        # supported xarray/Dask combinations, even though source chunks are safe
+        # to preserve during ordinary input preparation.
         self._prepared_value = prepared_data.chunk("auto")
         self.is_ready = True
         if self._prepare_output_unit is not None:

@@ -2,6 +2,17 @@
  Release history
 #################
 
+**********
+Unreleased
+**********
+
+-  [perf] Preserve existing Dask chunks during input, applying automatic chunks
+   only to eager source arrays. Prepared percentile thresholds retain their
+   required graph-stabilizing rechunk.
+-  [enh] Add opt-in NetCDF compression and stored chunk encoding through
+   ``ICCLIM_OUTPUT_COMPRESSION_LEVEL`` and ``ICCLIM_OUTPUT_CHUNKS`` while
+   leaving default output encoding unchanged.
+
 *****
 7.3.3
 *****

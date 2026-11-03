@@ -580,7 +580,14 @@ def build_studied_data(
     standard_var = standard_var or guess_standard_variable(studied_data)
     studied_data = _normalize_temperature_units(studied_data, standard_var)
     studied_data = _normalize_amount_and_rate_units(studied_data, standard_var)
-    return studied_data.chunk("auto")
+    return _chunk_eager_data(studied_data)
+
+
+def _chunk_eager_data(data: DataArray) -> DataArray:
+    """Apply automatic chunks only when the input is not already Dask-backed."""
+    if data.chunks is not None:
+        return data
+    return data.chunk("auto")
 
 
 def _subset_to_requested_time_range(
