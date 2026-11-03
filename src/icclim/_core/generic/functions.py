@@ -3184,6 +3184,28 @@ def get_couple_of_var(
     return study, ref
 
 
+def _ensure_time_chunks_cover_window(da: DataArray, window: int) -> DataArray:
+    """
+    Make sure no Dask time chunk is shorter than a rolling window.
+
+    Chunks the user (or the file) chose are kept as they are unless one of them
+    is shorter than `window`, which a rolling operation cannot handle.  In that
+    case the time axis is rechunked in even chunks, none shorter than `window`
+    (or a single chunk when the series is shorter than two windows).
+    """
+    if da.chunks is None or "time" not in da.dims:
+        return da
+    sizes = da.chunksizes["time"]
+    if min(sizes) >= window:
+        return da
+    total = sum(sizes)
+    target = max(window, *sizes)
+    n_chunks = max(1, total // target)
+    base, extra = divmod(total, n_chunks)
+    new_sizes = tuple(base + 1 if i < extra else base for i in range(n_chunks))
+    return da.chunk({"time": new_sizes})
+
+
 def _run_rolling_reducer(
     climate_vars: list[ClimateVariable],
     resample_freq: Frequency,
@@ -3204,6 +3226,7 @@ def _run_rolling_reducer(
             if src_freq == "D"
             else rate2amount(study)
         )
+    study = _ensure_time_chunks_cover_window(study, rolling_window_width)
     if threshold:
         exceedance_mask = _compute_threshold_exceedance_mask(
             climate_var=climate_vars[0],
@@ -3212,6 +3235,7 @@ def _run_rolling_reducer(
             prepared_inputs_cache={},
         ).squeeze()
         study = study.where(exceedance_mask)
+        study = _ensure_time_chunks_cover_window(study, rolling_window_width)
     study = rolling_op(study.rolling(time=rolling_window_width))
     resampled = study.resample(time=resample_freq.pandas_freq)
     if date_event:
