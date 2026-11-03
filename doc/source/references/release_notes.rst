@@ -19,9 +19,11 @@ date: 2026-11-03
    7.3.0 regression: running 7.2.0 gives the correct ATBD value, while 7.3.0
    and 7.3.1 are affected.
 -  [fix] Restrict the precipitation operand of ``CD`` and ``WD`` to wet days
-   (RR >= 1 mm) and preserve their requested percentile base period (issue
-   #541, PR #546). Affected since at least 7.2.0 through 7.3.1; the 7.2.0
-   source was read, not run.
+   (RR >= 1 mm) (issue #541, PR #546). Affected in 7.2.0 and 7.3.1 (run).
+-  [fix] Apply the requested percentile base period, interpolation,
+   day-of-year window and ``only_leap_years`` setting to the default compound
+   thresholds used by ``CD``, ``CW``, ``WD`` and ``WW`` (issue #560,
+   PR #546). Affected in 7.2.0 and 7.3.1 (run).
 -  [fix] Use the strict ECA&D ``TG > 5 degC`` GSL onset and honor disabled
    completeness for isolated missing values (issues #537 and #538, PR #548).
    Affected since at least 7.2.0 through 7.3.1; the 7.2.0 source was read, not
