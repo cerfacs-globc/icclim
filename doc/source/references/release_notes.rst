@@ -9,6 +9,10 @@
 date: 2026-11-03
 
 
+-  [fix] Honour every percentile requested from generic ``percentile`` while
+   preserving the 7.3.1 single-percentile output shape (issue #557). From at
+   least 7.2.0 through 7.3.1, the source used only the first requested value
+   (7.2.0 source read).
 -  [fix] Average the ECA&D leave-one-year-out bootstrap index estimates for
    temperature percentile counts TG10p/TG90p, TN10p/TN90p, and TX10p/TX90p
    (issue #540, PR #545). This is a

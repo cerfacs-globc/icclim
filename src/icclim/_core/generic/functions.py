@@ -1731,7 +1731,8 @@ def percentile(
     if percentile_threshold.initial_value is None:
         msg = "PercentileThreshold must have a value"
         raise InvalidIcclimArgumentError(msg)
-    quantile = np.asarray(percentile_threshold.initial_value) * 0.01
+    requested = np.asarray(percentile_threshold.initial_value)
+    quantile = requested * 0.01 if requested.size > 1 else float(requested[0]) * 0.01
     method = cast("Any", percentile_threshold.interpolation.name)  # pragma: no mutate
     result = study.resample(time=resample_freq.pandas_freq).quantile(
         quantile, method=method
