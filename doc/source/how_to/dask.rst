@@ -35,12 +35,8 @@ chunks produces missing-dependency Dask graphs on supported dependency
 versions. This internal stabilization does not replace the source array's
 chunks.
 
-On a four-year 8 by 8 synthetic count workload, native yearly chunks produced
-60 Dask tasks and computed in 0.0044 seconds. An intentionally fragmented user
-layout produced 434 tasks and took 0.0179 seconds, while one automatic time
-chunk produced 30 tasks and took 0.0021 seconds. These small-cube figures are
-not production sizing advice; they demonstrate why preserving the caller's
-choice is preferable to silently replacing every layout with ``"auto"``.
+Chunk choices can substantially change graph size, wall time, and peak memory.
+Benchmark representative inputs before selecting a production layout.
 
 ----
 
