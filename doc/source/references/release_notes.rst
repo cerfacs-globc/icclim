@@ -31,6 +31,9 @@ date: 2026-11-03
 -  [fix] Accept CF precipitation-flux units in ``RX5day`` (issue #544,
    PR #549). Verified by running 7.3.1; the 7.2.0 source was read, but no
    earlier range is claimed.
+-  [known issue] ``CD``, ``WD`` and ``WW`` can differ by one day at the edges
+   of a subset percentile base period because the five-day calendar window is
+   truncated instead of wrapped (issue #559).
 
 *****
 7.3.1
