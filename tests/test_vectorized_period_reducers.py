@@ -121,3 +121,72 @@ def test_reference_diff_reduces_all_periods_in_one_lazy_graph() -> None:
     assert counter.starts == 0
     assert result.chunks is not None
     np.testing.assert_allclose(result.compute(), [5.0, 5.0, 5.0])
+
+
+def _nan_run_lengths() -> xr.DataArray:
+    # Month 1: one run of 3 days. Month 2: only missing values (no run).
+    values = np.full((59, 1), np.nan)
+    values[1, 0] = 3
+    return xr.DataArray(
+        values,
+        dims=("time", "station"),
+        coords={
+            "time": pd.date_range("2000-01-01", periods=59, freq="D"),
+            "station": ["a"],
+        },
+        attrs={"units": "1"},
+    )
+
+
+def test_consecutive_period_without_run_is_zero_not_nan() -> None:
+    result = _consecutive_occurrences_with_dates(
+        _nan_run_lengths().resample(time="MS"),
+        np.timedelta64(1, "D"),
+        "first",
+    ).compute()
+
+    # independent expectation: max of the non-missing run lengths, else 0
+    np.testing.assert_array_equal(result.values, [[3.0], [0.0]])
+    assert result.event_date_start.isel(station=0, time=0).item() == pd.Timestamp(
+        "2000-01-02"
+    )
+    assert pd.isna(result.event_date_start.isel(station=0, time=1).item())
+    assert pd.isna(result.event_date_end.isel(station=0, time=1).item())
+
+
+def _time_last(da: xr.DataArray) -> xr.DataArray:
+    return da.transpose("station", "time")
+
+
+def test_date_event_outputs_keep_time_first_with_time_last_input() -> None:
+    source = _time_last(_data([[1, 2], [4, 1], [2, 2]]))
+    mask = source > 1
+    runs = _time_last(_data([[0, 0], [3, 0], [0, 0]]))
+
+    results = {
+        "extreme": _reduce_with_date_event(
+            source.resample(time="MS"), DataArrayResample.max
+        ),
+        "count": _count_occurrences_with_date(mask.resample(time="MS")),
+        "consecutive": _consecutive_occurrences_with_dates(
+            runs.resample(time="MS"), np.timedelta64(1, "D"), "first"
+        ),
+    }
+
+    for name, result in results.items():
+        assert result.dims == ("time", "station"), name
+        for coord in result.coords:
+            if coord.startswith("event_date"):
+                assert result[coord].dims == ("time", "station"), (name, coord)
+
+
+def test_count_event_date_is_missing_when_no_occurrence() -> None:
+    # Behaviour change: a period with 0 occurrences used to report the first and
+    # last day of the period as event dates; it now reports no date.
+    mask = _data([[0, 0], [0, 0], [0, 0]]).astype(bool)
+
+    result = _count_occurrences_with_date(mask.resample(time="MS")).compute()
+
+    np.testing.assert_array_equal(result.values, [[0, 0]])
+    assert result.event_date_start.isnull().all()
+    assert result.event_date_end.isnull().all()
