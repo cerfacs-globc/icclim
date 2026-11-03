@@ -593,9 +593,11 @@ def rolling_sample_index_matrix(
     for center, day_of_year in enumerate(day_of_years):
         if day_of_year > day_count:
             continue
-        start = max(0, center - half_window)
-        stop = min(len(time), center + half_window + 1)
-        sample_indices[int(day_of_year)].extend(range(start, stop))
+        window_indices = np.arange(
+            center - half_window,
+            center + half_window + 1,
+        ) % len(time)
+        sample_indices[int(day_of_year)].extend(window_indices.tolist())
     max_samples = max(len(indices) for indices in sample_indices.values())
     matrix = np.full((day_count, max_samples), -1, dtype=np.int64)
     for day_of_year, indices in sample_indices.items():

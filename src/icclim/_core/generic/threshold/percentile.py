@@ -11,6 +11,7 @@ from icclim._core.constants import (
     DEFAULT_DOY_WINDOW,
     DOY_COORDINATE,
     DOY_PERCENTILE_UNIT,
+    MAX_LEAP_YEAR_DAYS,
     PERIOD_PERCENTILE_UNIT,
     UNITS_KEY,
 )
@@ -574,15 +575,89 @@ def _build_doy_per(
         only_leap_years,
         percentile_min_value,
     )
-    from xclim.core.calendar import percentile_doy  # noqa: PLC0415
-
-    return percentile_doy(
+    return _circular_percentile_doy(
         arr=reference,
         window=doy_window_width,
         per=per_val,
         alpha=interpolation.alpha,
         beta=interpolation.beta,
     )
+
+
+def _circular_percentile_doy(
+    arr: DataArray,
+    window: int,
+    per: Sequence[float],
+    alpha: float,
+    beta: float,
+) -> DataArray:
+    """Compute calendar-day percentiles with a window wrapping year boundaries."""
+    import numpy as np  # noqa: PLC0415
+    import pandas as pd  # noqa: PLC0415
+    from xclim.core.calendar import (  # noqa: PLC0415
+        adjust_doy_calendar,
+        build_climatology_bounds,
+    )
+    from xclim.core.formatting import update_history  # noqa: PLC0415
+    from xclim.core.utils import calc_perc  # noqa: PLC0415
+
+    left = window // 2
+    right = window - left - 1
+    parts = []
+    if left:
+        parts.append(arr.isel(time=slice(-left, None)))
+    parts.append(arr)
+    if right:
+        parts.append(arr.isel(time=slice(0, right)))
+    padded = xr.concat(parts, dim="time")
+    rolling = padded.rolling(min_periods=1, center=True, time=window).construct(
+        "window"
+    )
+    rolling = rolling.isel(time=slice(left, left + arr.sizes["time"]))
+
+    coordinates = xr.Coordinates.from_pandas_multiindex(
+        pd.MultiIndex.from_arrays(
+            (rolling.time.dt.year.values, rolling.time.dt.dayofyear.values),
+            names=("year", "dayofyear"),
+        ),
+        "time",
+    )
+    rolling = rolling.drop_vars("time").assign_coords(coordinates)
+    stacked = rolling.unstack("time").stack(stack_dim=("year", "window"))
+    if (
+        stacked.chunks is not None
+        and len(stacked.chunks[stacked.get_axis_num("stack_dim")]) > 1
+    ):
+        time_chunk_count = len(arr.chunks[arr.get_axis_num("time")])
+        doy_chunk_size = np.ceil(len(stacked.dayofyear) / (window * time_chunk_count))
+        stacked = stacked.chunk({"stack_dim": -1, "dayofyear": doy_chunk_size})
+
+    result = xr.apply_ufunc(
+        calc_perc,
+        stacked,
+        input_core_dims=[["stack_dim"]],
+        output_core_dims=[["percentiles"]],
+        keep_attrs=True,
+        kwargs={"percentiles": per, "alpha": alpha, "beta": beta, "copy": True},
+        dask="parallelized",
+        output_dtypes=[stacked.dtype],
+        dask_gufunc_kwargs={"output_sizes": {"percentiles": len(per)}},
+    ).assign_coords(percentiles=xr.DataArray(per, dims=("percentiles",)))
+    if result.dayofyear.max() == MAX_LEAP_YEAR_DAYS:
+        result = adjust_doy_calendar(
+            result.sel(dayofyear=(result.dayofyear < MAX_LEAP_YEAR_DAYS)), arr
+        )
+    result.attrs.update(arr.attrs.copy())
+    result.attrs["climatology_bounds"] = build_climatology_bounds(arr)
+    result.attrs["window"] = window
+    result.attrs["alpha"] = alpha
+    result.attrs["beta"] = beta
+    result.attrs["history"] = update_history(
+        "percentile_doy with a circular calendar-day window",
+        arr,
+        new_name="per",
+    )
+    return result.rename("per")
 
 
 def _build_per_thresh_from_dataset(

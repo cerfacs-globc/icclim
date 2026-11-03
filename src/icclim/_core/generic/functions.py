@@ -3362,6 +3362,40 @@ def _compute_combined_exceedance_mask(
     return logical_link(exceedance_masks)
 
 
+def _compute_fallback_threshold_exceedance_mask(
+    climate_var: ClimateVariable,
+    threshold: Threshold,
+    resample_freq: Frequency,
+    bootstrap_required: bool,
+) -> DataArray:
+    from icclim._core.generic.threshold.percentile import (  # noqa: PLC0415
+        PercentileThreshold,
+    )
+
+    if (
+        isinstance(threshold, PercentileThreshold)
+        and bootstrap_required
+        and climate_var.studied_data.chunks is None
+    ):
+        from icclim._core.generic.bootstrap import (  # noqa: PLC0415
+            compute_doy_percentile_bootstrap_union_mask_eager,
+        )
+
+        eager_mask = compute_doy_percentile_bootstrap_union_mask_eager(
+            climate_var.studied_data,
+            threshold,
+            resample_freq.pandas_freq,
+        )
+        if eager_mask is not None:
+            return eager_mask
+    return _compute_exceedance_mask(
+        study=climate_var.studied_data,
+        threshold=threshold,
+        freq=resample_freq.pandas_freq,
+        bootstrap=bootstrap_required,
+    )
+
+
 def _compute_threshold_exceedance_mask(
     *,
     climate_var: ClimateVariable,
@@ -3440,11 +3474,11 @@ def _compute_threshold_exceedance_mask(
             )
             if exact_mask is not None:
                 return exact_mask
-    return _compute_exceedance_mask(
-        study=climate_var.studied_data,
-        threshold=threshold,
-        freq=resample_freq.pandas_freq,
-        bootstrap=bootstrap_required,
+    return _compute_fallback_threshold_exceedance_mask(
+        climate_var,
+        threshold,
+        resample_freq,
+        bootstrap_required,
     )
 
 

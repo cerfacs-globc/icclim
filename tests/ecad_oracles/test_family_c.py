@@ -117,10 +117,10 @@ def test_fixed_threshold_indices(
 @pytest.mark.parametrize(
     "name",
     [
-        pytest.param("CD", marks=pytest.mark.xfail(strict=True, reason="#559")),
+        "CD",
         "CW",
-        pytest.param("WD", marks=pytest.mark.xfail(strict=True, reason="#559")),
-        pytest.param("WW", marks=pytest.mark.xfail(strict=True, reason="#559")),
+        "WD",
+        "WW",
     ],
 )
 def test_compound_percentile_counts(name: str, chunk: int | None) -> None:
