@@ -77,6 +77,21 @@ For every pull request
 #. **State behaviour changes explicitly in the release notes**, with the affected
    versions. Verify the range by reading (or running) the older releases, and say
    which was done. Do not claim a range that was not checked.
+#. **List every behaviour change in the pull request description.** A pull request
+   can change more than its title says: results, output shape or dimension order,
+   defaults, error behaviour, including side effects of a refactor. The description
+   must list every such change, and reviewers read the full diff of ``src/``, not only
+   the description. A pull request labelled as a test or documentation change must
+   not change ``src/``; if it has to, say so in the title and open an issue. *Example:*
+   a pull request titled as tests changed the generic ``percentile`` function so that
+   it honoured all requested percentiles, which also changed the output shape for a
+   single percentile. It was found only by the pre-release audit.
+#. **Decide ambiguous definitions in writing.** When the ATBD (or ETCCDI) definition can
+   be read in more than one way, do not choose silently. Put the options and the
+   reading you propose in the pull request or issue and in the docstring of the test,
+   and let a maintainer decide. *Example:* whether the longest run of frost days (CFD)
+   continues across 31 December, or stops at the period boundary, as in CDD and CWD
+   (issue #543).
 
 Before every release
 ====================
@@ -110,6 +125,18 @@ Before every release
      moves any number. They protect against accidental changes, for instance during
      a performance refactor, but they are only as good as the stored reference: a
      golden test must never freeze a number known to be wrong.
+#. **Compare with the previous release, as a change detector only.** Run the same calls
+   on the previous release and on the candidate (all indices, with and without
+   bootstrap, in memory and chunked, several calendars, base periods that overlap the
+   study period or not) and list every difference. Each difference must be explained
+   by an issue or a documented change; an unexplained difference blocks the release.
+   The previous release is **not a reference for correctness**: it can be wrong too
+   (percentages were 100 times too small in every version since at least 6.2.0). The
+   reference for what is correct is the definition (ECA&D ATBD, ETCCDI) together with
+   the independent value tests above and, where possible, a second independent
+   implementation or published index values for the same input (for example ECA&D
+   published station indices, computed with the same completeness rules, or another
+   package such as the R package ``climdex.pcic`` for the ETCCDI indices).
 #. For releases that touch performance, chunking, percentiles or bootstrap, run the
    real-data validation (``tools/run_real_data_validation.py``, Kraken scripts in
    ``tools/``) and compare against the previous release.
