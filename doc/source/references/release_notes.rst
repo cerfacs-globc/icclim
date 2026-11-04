@@ -6,7 +6,7 @@
 7.3.3
 *****
 
-date: unreleased
+date: 2026-11-04
 
 
 -  [fix] Make the interpolation of calendar-day percentile thresholds from 365
