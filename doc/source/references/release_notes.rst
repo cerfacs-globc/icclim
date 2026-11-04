@@ -32,6 +32,12 @@ date: 2026-11-04
    of the year can change slightly, and day-of-year percentile indices with
    them; period percentiles do not change. Affected: 7.3.2 (run, listed there
    as a known issue); earlier releases were not checked.
+-  [fix] Rolling-window indices such as ``RX5day`` no longer fail when a Dask
+   time chunk is shorter than the rolling window: only the chunks that are too
+   short are merged, other chunk layouts are kept (issue #526, PR #565).
+   Confirmed failing with xarray 2026.2.0 and dask 2026.1.2 (run); it did not
+   reproduce with xarray 2026.9.0 and dask 2026.8.0, so the affected releases
+   are not determined.
 -  [doc] Add the behaviour-change, ambiguity and change-detector rules to the
    release process (PR #563).
 
