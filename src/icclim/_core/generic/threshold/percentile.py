@@ -594,10 +594,7 @@ def _circular_percentile_doy(
     """Compute calendar-day percentiles with a window wrapping year boundaries."""
     import numpy as np  # noqa: PLC0415
     import pandas as pd  # noqa: PLC0415
-    from xclim.core.calendar import (  # noqa: PLC0415
-        adjust_doy_calendar,
-        build_climatology_bounds,
-    )
+    from xclim.core.calendar import build_climatology_bounds  # noqa: PLC0415
     from xclim.core.formatting import update_history  # noqa: PLC0415
     from xclim.core.utils import calc_perc  # noqa: PLC0415
 
@@ -644,7 +641,7 @@ def _circular_percentile_doy(
         dask_gufunc_kwargs={"output_sizes": {"percentiles": len(per)}},
     ).assign_coords(percentiles=xr.DataArray(per, dims=("percentiles",)))
     if result.dayofyear.max() == MAX_LEAP_YEAR_DAYS:
-        result = adjust_doy_calendar(
+        result = _adjust_doy_calendar_exact(
             result.sel(dayofyear=(result.dayofyear < MAX_LEAP_YEAR_DAYS)), arr
         )
     result.attrs.update(arr.attrs.copy())
@@ -658,6 +655,52 @@ def _circular_percentile_doy(
         new_name="per",
     )
     return result.rename("per")
+
+
+def _adjust_doy_calendar_exact(source: DataArray, target: DataArray) -> DataArray:
+    """
+    Interpolate calendar-day percentiles to the day-of-year range of `target`.
+
+    Same result as `xclim.core.calendar.adjust_doy_calendar`, but the linear
+    interpolation uses the numerically stable form `a + (b - a) * gamma` (also used
+    by the compiled bootstrap kernels). `DataArray.interp` goes through SciPy, whose
+    arithmetic is not exact between equal neighbours depending on its version:
+    10.0 can become 10.000000000000002, which turns observations tying with the
+    threshold into spurious exceedances.
+    """
+    import numpy as np  # noqa: PLC0415
+    from xclim.core.calendar import get_calendar, max_doy  # noqa: PLC0415
+
+    max_target_doy = int(target.time.dt.dayofyear.max())
+    min_target_doy = int(target.time.dt.dayofyear.min())
+    if source.dayofyear.max() == max_doy[get_calendar(target)]:
+        return source
+    if max_target_doy == min_target_doy:
+        return source
+    da = source.chunk({"dayofyear": -1}) if source.chunks is not None else source
+    filled = da.interpolate_na(dim="dayofyear")
+    size = filled.sizes["dayofyear"]
+    new_doys = np.arange(min_target_doy, max_target_doy + 1)
+    position = (
+        (new_doys - min_target_doy) * (size - 1.0) / (max_target_doy - min_target_doy)
+    )
+    lower = np.minimum(np.floor(position).astype(int), max(size - 2, 0))
+    gamma = position - lower
+    upper = np.minimum(lower + 1, size - 1)
+
+    left = filled.isel(dayofyear=lower).assign_coords(dayofyear=new_doys)
+    right = filled.isel(dayofyear=upper).assign_coords(dayofyear=new_doys)
+    weight = xr.DataArray(gamma, dims="dayofyear", coords={"dayofyear": new_doys})
+    diff = right - left
+    result = xr.where(
+        weight >= 0.5,  # noqa: PLR2004
+        right - diff * (1.0 - weight),
+        left + diff * weight,
+        keep_attrs=True,
+    )
+    result = result.transpose(*source.dims)
+    result.attrs = dict(source.attrs)
+    return result
 
 
 def _build_per_thresh_from_dataset(
