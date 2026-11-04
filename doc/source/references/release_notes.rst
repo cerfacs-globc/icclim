@@ -3,6 +3,39 @@
 #################
 
 *****
+7.3.3
+*****
+
+date: unreleased
+
+
+-  [fix] Make the interpolation of calendar-day percentile thresholds from 365
+   to 366 days exact (PR #566). With SciPy 1.18.1, ``interp1d`` returns
+   inexact values for constant multi-dimensional data (scipy/scipy#26609), so
+   ``DataArray.interp``, which icclim used through xclim's
+   ``adjust_doy_calendar``, turned neighbouring thresholds of exactly 10.0 into
+   values such as 10.000000000000002 or 9.999999999999998. Observations that tie
+   with a threshold, for example temperatures reported to 0.1 degC, were then
+   counted as exceeding it in count-type percentile indices such as ``TX90p``.
+   In a test with temperatures rounded to 0.1 degC over 30 years, the summed
+   ``TX90p`` and ``TX10p`` counts were 25970 instead of 25926 (44 additional
+   exceedance days). Affected: 7.2.0, 7.3.0, 7.3.1 and 7.3.2 installed with
+   SciPy 1.18.1 (run on a day-of-year percentile count test; SciPy 1.17.1 gives
+   the exact result). Results computed with SciPy 1.18.x should be recomputed.
+   Other SciPy 1.18 releases were not tested.
+-  [fix] Compute the calendar-day percentile windows with wrap-around at the
+   edges of the percentile base period, for nominal and bootstrap thresholds,
+   with the same thresholds in eager and chunked execution (issue #559,
+   PR #564). Before, the 5-day window of the first and last days of the base
+   period was truncated, which left ``CD``, ``WD`` and ``WW`` one day off in the
+   independent check. Behaviour change: thresholds for the first and last days
+   of the year can change slightly, and day-of-year percentile indices with
+   them; period percentiles do not change. Affected: 7.3.2 (run, listed there
+   as a known issue); earlier releases were not checked.
+-  [doc] Add the behaviour-change, ambiguity and change-detector rules to the
+   release process (PR #563).
+
+*****
 7.3.2
 *****
 
