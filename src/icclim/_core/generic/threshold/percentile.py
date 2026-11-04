@@ -681,8 +681,8 @@ def _adjust_doy_calendar_exact(source: DataArray, target: DataArray) -> DataArra
     filled = da.interpolate_na(dim="dayofyear")
     size = filled.sizes["dayofyear"]
     new_doys = np.arange(min_target_doy, max_target_doy + 1)
-    position = (new_doys - min_target_doy) * (size - 1.0) / (
-        max_target_doy - min_target_doy
+    position = (
+        (new_doys - min_target_doy) * (size - 1.0) / (max_target_doy - min_target_doy)
     )
     lower = np.minimum(np.floor(position).astype(int), max(size - 2, 0))
     gamma = position - lower
