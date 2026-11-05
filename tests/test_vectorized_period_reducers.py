@@ -40,6 +40,11 @@ def _data(values: list[list[float]]) -> xr.DataArray:
     ).chunk({"time": 2, "station": 1})
 
 
+
+def _ts(da):
+    """Single timestamp of a one-cell array, independent of numpy/xarray version."""
+    return pd.Timestamp(np.asarray(da.values).ravel()[0])
+
 def test_extreme_date_event_builds_without_scheduler_call() -> None:
     source = _data([[1, np.nan], [4, np.nan], [2, np.nan]])
     counter = _SchedulerCounter()
@@ -54,7 +59,7 @@ def test_extreme_date_event_builds_without_scheduler_call() -> None:
     assert result.chunks is not None
     actual = result.compute()
     np.testing.assert_array_equal(actual.isel(station=0), [4])
-    assert actual.event_date.isel(station=0).item() == pd.Timestamp("2000-01-02")
+    assert _ts(actual.event_date.isel(station=0)) == pd.Timestamp("2000-01-02")
     assert pd.isna(actual.event_date.isel(station=1).item())
 
 
@@ -69,8 +74,8 @@ def test_count_event_dates_remain_lazy_and_handle_empty_cells() -> None:
     assert result.chunks is not None
     actual = result.compute()
     np.testing.assert_array_equal(actual.values, [[2, 0]])
-    assert actual.event_date_start.isel(station=0).item() == pd.Timestamp("2000-01-01")
-    assert actual.event_date_end.isel(station=0).item() == pd.Timestamp("2000-01-03")
+    assert _ts(actual.event_date_start.isel(station=0)) == pd.Timestamp("2000-01-01")
+    assert _ts(actual.event_date_end.isel(station=0)) == pd.Timestamp("2000-01-03")
     assert pd.isna(actual.event_date_start.isel(station=1).item())
     assert pd.isna(actual.event_date_end.isel(station=1).item())
 
@@ -90,8 +95,8 @@ def test_consecutive_event_dates_build_without_scheduler_call() -> None:
     assert result.chunks is not None
     actual = result.compute()
     np.testing.assert_array_equal(actual.values, [[3, 0]])
-    assert actual.event_date_start.isel(station=0).item() == pd.Timestamp("2000-01-02")
-    assert actual.event_date_end.isel(station=0).item() == pd.Timestamp("2000-01-05")
+    assert _ts(actual.event_date_start.isel(station=0)) == pd.Timestamp("2000-01-02")
+    assert _ts(actual.event_date_end.isel(station=0)) == pd.Timestamp("2000-01-05")
 
 
 def test_reference_diff_reduces_all_periods_in_one_lazy_graph() -> None:
@@ -147,7 +152,7 @@ def test_consecutive_period_without_run_is_zero_not_nan() -> None:
 
     # independent expectation: max of the non-missing run lengths, else 0
     np.testing.assert_array_equal(result.values, [[3.0], [0.0]])
-    assert result.event_date_start.isel(station=0, time=0).item() == pd.Timestamp(
+    assert _ts(result.event_date_start.isel(station=0, time=0)) == pd.Timestamp(
         "2000-01-02"
     )
     assert pd.isna(result.event_date_start.isel(station=0, time=1).item())
