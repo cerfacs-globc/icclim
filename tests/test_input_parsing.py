@@ -298,22 +298,44 @@ class TestReadDataset:
         assert res == ["tasmaxAdjust"]
 
 
-def test_build_studied_data_preserves_existing_chunks() -> None:
-    source = xr.DataArray(
-        np.arange(24).reshape(6, 4),
+def _chunked_time_station(chunks: dict[str, int]) -> xr.DataArray:
+    return xr.DataArray(
+        np.arange(24, dtype="float64").reshape(6, 4),
         dims=("time", "station"),
         coords={"time": pd.date_range("2000-01-01", periods=6)},
         attrs={"units": "1"},
-    ).chunk({"time": 2, "station": 1})
+    ).chunk(chunks)
 
-    result = build_studied_data(
+
+def _prepare(source: xr.DataArray) -> xr.DataArray:
+    return build_studied_data(
         source,
         time_range=None,
         ignore_feb29th=False,
         default_units=None,
     )
 
+
+def test_build_studied_data_preserves_large_existing_chunks() -> None:
+    import dask  # noqa: PLC0415
+
+    source = _chunked_time_station({"time": 2, "station": 1})
+
+    # Chunks are 16 bytes; a tiny target makes them "large enough" to keep.
+    with dask.config.set({"array.chunk-size": "64B"}):
+        result = _prepare(source)
+
     assert result.chunks == source.chunks
+
+
+def test_build_studied_data_rechunks_tiny_existing_chunks() -> None:
+    source = _chunked_time_station({"time": 1, "station": 1})
+
+    # Default 128MiB target: 8 byte chunks are pathologically small.
+    result = _prepare(source)
+
+    assert result.chunks != source.chunks
+    assert len(result.chunks[0]) < len(source.chunks[0])
 
 
 def test_build_studied_data_auto_chunks_eager_input() -> None:

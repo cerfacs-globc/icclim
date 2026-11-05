@@ -583,11 +583,40 @@ def build_studied_data(
     return _chunk_eager_data(studied_data)
 
 
+# Dask-backed inputs whose largest chunk is below this fraction of the configured
+# ``array.chunk-size`` are rechunked to "auto". Many tiny chunks make the
+# per-period loops (rolling, spells, bootstrap, date events) orders of magnitude
+# slower and heavier, e.g. one chunk per daily file from ``open_mfdataset``.
+_MIN_PRESERVED_CHUNK_FRACTION = 8
+
+
 def _chunk_eager_data(data: DataArray) -> DataArray:
-    """Apply automatic chunks only when the input is not already Dask-backed."""
-    if data.chunks is not None:
-        return data
-    return data.chunk("auto")
+    """Choose chunks for the studied data.
+
+    Eager data is chunked automatically. Dask-backed data keeps the caller's
+    chunks, unless they are so small that they would make computations
+    needlessly slow, in which case they are rechunked automatically.
+    """
+    if data.chunks is None:
+        return data.chunk("auto")
+    if _largest_chunk_nbytes(data) < _min_preserved_chunk_nbytes():
+        return data.chunk("auto")
+    return data
+
+
+def _largest_chunk_nbytes(data: DataArray) -> int:
+    n_elements = 1
+    for chunks_along_dim in data.chunks:
+        n_elements *= max(chunks_along_dim)
+    return n_elements * data.dtype.itemsize
+
+
+def _min_preserved_chunk_nbytes() -> int:
+    from dask import config as dask_config  # noqa: PLC0415
+    from dask.utils import parse_bytes  # noqa: PLC0415
+
+    target = parse_bytes(dask_config.get("array.chunk-size"))
+    return target // _MIN_PRESERVED_CHUNK_FRACTION
 
 
 def _subset_to_requested_time_range(
