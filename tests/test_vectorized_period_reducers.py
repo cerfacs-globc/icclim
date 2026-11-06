@@ -40,10 +40,10 @@ def _data(values: list[list[float]]) -> xr.DataArray:
     ).chunk({"time": 2, "station": 1})
 
 
-
 def _ts(da):
     """Single timestamp of a one-cell array, independent of numpy/xarray version."""
     return pd.Timestamp(np.asarray(da.values).ravel()[0])
+
 
 def test_extreme_date_event_builds_without_scheduler_call() -> None:
     source = _data([[1, np.nan], [4, np.nan], [2, np.nan]])
