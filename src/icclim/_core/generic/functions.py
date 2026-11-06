@@ -3590,8 +3590,8 @@ def _with_event_dates(value: DataArray, **event_dates: DataArray) -> DataArray:
     from encoding them as times when writing a NetCDF file.
     """
     clean = {}
-    for name, dates in event_dates.items():
-        dates = dates.copy(deep=False)
+    for name, original in event_dates.items():
+        dates = original.copy(deep=False)
         dates.attrs = {}
         clean[name] = dates
     return _time_first(value.assign_coords(**clean))

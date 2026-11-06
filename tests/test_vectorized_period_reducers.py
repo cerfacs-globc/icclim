@@ -2,8 +2,7 @@
 
 from __future__ import annotations
 
-from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
 import pandas as pd
@@ -20,6 +19,9 @@ from icclim._core.generic.functions import (
     _reduce_with_date_event,
 )
 from icclim.frequency import FrequencyRegistry
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 
 class _SchedulerCounter(Callback):
