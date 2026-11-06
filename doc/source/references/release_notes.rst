@@ -2,6 +2,24 @@
  Release history
 #################
 
+**********
+Unreleased
+**********
+
+-  [fix] ``CFD`` and ``CSU`` are now computed within each output period (issue
+   #543, PR #547). Behaviour change: a run of consecutive days that crosses a
+   period boundary, for example frost days from 1 October to 30 April with a yearly
+   output, used to be counted whole in the period where it starts, and the
+   following period got 0 (or NaN) for the days of that run. Now each period keeps
+   the part of the run that lies inside it. In that example the yearly ``CFD`` was
+   ``[212, 0]`` and is now ``[92, 120]``. The ATBD defines these two indices as
+   the largest run "in period j". ``CDD`` and ``CWD`` are unchanged: the ATBD
+   states explicitly that a dry or wet spell crossing the end of the year is
+   attributed to one period, which is what icclim does. Affected: 7.2.0, 7.3.0 and
+   7.3.1 (run, in issue #543) and master after 7.3.3 (run); earlier releases
+   were not checked. Values of ``CFD`` and ``CSU`` for periods that contain a run
+   crossing a boundary should be recomputed.
+
 *****
 7.3.3
 *****
