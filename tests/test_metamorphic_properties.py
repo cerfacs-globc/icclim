@@ -142,9 +142,7 @@ def test_result_does_not_depend_on_dimension_order(name, kwargs, slice_mode):
 
 
 @pytest.mark.parametrize("units", ["degC", "degF"])
-@pytest.mark.parametrize(
-    "name", ["count_occurrences", "max_consecutive_occurrence"]
-)
+@pytest.mark.parametrize("name", ["count_occurrences", "max_consecutive_occurrence"])
 def test_counts_do_not_depend_on_the_unit_of_the_data(name, units):
     threshold = ">= 15 degC"
     expected = compute(make_tas(units="K"), name, threshold=threshold)
@@ -245,9 +243,7 @@ def test_yearly_result_is_the_same_on_a_subset_of_the_period(name, kwargs, year)
 def test_monthly_counts_add_up_to_the_yearly_count():
     tas = make_tas()
     monthly = compute(tas, "count_occurrences", threshold=">= 288 K")
-    yearly = compute(
-        tas, "count_occurrences", slice_mode="year", threshold=">= 288 K"
-    )
+    yearly = compute(tas, "count_occurrences", slice_mode="year", threshold=">= 288 K")
     summed = monthly.groupby("time.year").sum("time")
     assert_same(
         yearly.assign_coords(time=yearly.time.dt.year).rename(time="year"),
@@ -310,12 +306,13 @@ def test_a_missing_day_masks_only_its_period_and_cell_by_default():
     hit = masked.sel(time=month).isel(lat=0, lon=0)
     assert bool(np.isnan(hit).all())
     untouched = masked.where(
-        ~((masked.time.dt.strftime("%Y-%m") == month) & (masked.lat == 0.0)
-          & (masked.lon == 0.0))
+        ~(
+            (masked.time.dt.strftime("%Y-%m") == month)
+            & (masked.lat == 0.0)
+            & (masked.lon == 0.0)
+        )
     )
-    assert_same(
-        full.where(untouched.notnull()), untouched.where(untouched.notnull())
-    )
+    assert_same(full.where(untouched.notnull()), untouched.where(untouched.notnull()))
 
 
 def test_a_missing_day_that_cannot_count_does_not_change_the_count_without_masking():
