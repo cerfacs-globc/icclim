@@ -24,6 +24,23 @@ climate indices could be:
    dask.config.set({"array.chunk-size": "100 MB"})
    icclim.index(in_files="data.nc", indice_name="SU", out_file="output.nc")
 
+icclim preserves chunks already present on Dask-backed inputs when they are
+reasonably large: the largest chunk must be at least one eighth of the
+configured ``array.chunk-size`` (16 MiB with the default). Smaller chunks, such
+as one chunk per daily file from ``open_mfdataset``, are rechunked
+automatically because many tiny chunks make rolling windows, spells, bootstrap
+and date-event computations much slower and heavier. Automatic chunking is also
+applied when an eager array is supplied.
+
+Prepared percentile thresholds are an exception. They retain an internal
+automatic rechunk after ``percentile_doy`` because preserving the generated
+chunks produces missing-dependency Dask graphs on supported dependency
+versions. This internal stabilization does not replace the source array's
+chunks.
+
+Chunk choices can substantially change graph size, wall time, and peak memory.
+Benchmark representative inputs before selecting a production layout.
+
 ----
 
 |  icclim uses xarray to manipulate data and xarray provides multiple
