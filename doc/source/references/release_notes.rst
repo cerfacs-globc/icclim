@@ -3,6 +3,78 @@
 #################
 
 *****
+7.3.3
+*****
+
+date: 2026-11-04
+
+
+-  [fix] Make the interpolation of calendar-day percentile thresholds from 365
+   to 366 days exact (PR #566). With SciPy 1.18.1, ``interp1d`` returns
+   inexact values for constant multi-dimensional data (scipy/scipy#26609), so
+   ``DataArray.interp``, which icclim used through xclim's
+   ``adjust_doy_calendar``, turned neighbouring thresholds of exactly 10.0 into
+   values such as 10.000000000000002 or 9.999999999999998. Observations that tie
+   with a threshold, for example temperatures reported to 0.1 degC, were then
+   counted as exceeding it in count-type percentile indices such as ``TX90p``.
+   In a test with temperatures rounded to 0.1 degC over 30 years, the summed
+   ``TX90p`` and ``TX10p`` counts were 25970 instead of 25926 (44 additional
+   exceedance days). Affected: 7.2.0, 7.3.0, 7.3.1 and 7.3.2 installed with
+   SciPy 1.18.1 (run on a day-of-year percentile count test; SciPy 1.17.1 gives
+   the exact result). Results computed with SciPy 1.18.x should be recomputed.
+   Other SciPy 1.18 releases were not tested.
+-  [fix] Compute the calendar-day percentile windows with wrap-around at the
+   edges of the percentile base period, for nominal and bootstrap thresholds,
+   with the same thresholds in eager and chunked execution (issue #559,
+   PR #564). Before, the 5-day window of the first and last days of the base
+   period was truncated, which left ``CD``, ``WD`` and ``WW`` one day off in the
+   independent check. Behaviour change: thresholds for the first and last days
+   of the year can change slightly, and day-of-year percentile indices with
+   them; period percentiles do not change. Affected: 7.3.2 (run, listed there
+   as a known issue); earlier releases were not checked.
+-  [fix] Rolling-window indices such as ``RX5day`` no longer fail when a Dask
+   time chunk is shorter than the rolling window: only the chunks that are too
+   short are merged, other chunk layouts are kept (issue #526, PR #565).
+   Confirmed failing with xarray 2026.2.0 and dask 2026.1.2 (run); it did not
+   reproduce with xarray 2026.9.0 and dask 2026.8.0, so the affected releases
+   are not determined.
+-  [doc] Add the behaviour-change, ambiguity and change-detector rules to the
+   release process (PR #563).
+
+*****
+7.3.2
+*****
+
+date: 2026-11-03
+
+
+-  [fix] Honour every percentile requested from generic ``percentile`` while
+   preserving the 7.3.1 single-percentile output shape (issue #557). From at
+   least 7.2.0 through 7.3.1, the source used only the first requested value
+   (7.2.0 source read).
+-  [fix] Average the ECA&D leave-one-year-out bootstrap index estimates for
+   temperature percentile counts TG10p/TG90p, TN10p/TN90p, and TX10p/TX90p
+   (issue #540, PR #545). This is a
+   7.3.0 regression: running 7.2.0 gives the correct ATBD value, while 7.3.0
+   and 7.3.1 are affected.
+-  [fix] Restrict the precipitation operand of ``CD`` and ``WD`` to wet days
+   (RR >= 1 mm) (issue #541, PR #546). Affected in 7.2.0 and 7.3.1 (run).
+-  [fix] Apply the requested percentile base period, interpolation,
+   day-of-year window and ``only_leap_years`` setting to the default compound
+   thresholds used by ``CD``, ``CW``, ``WD`` and ``WW`` (issue #560,
+   PR #546). Affected in 7.2.0 and 7.3.1 (run).
+-  [fix] Use the strict ECA&D ``TG > 5 degC`` GSL onset and honor disabled
+   completeness for isolated missing values (issues #537 and #538, PR #548).
+   Affected since at least 7.2.0 through 7.3.1; the 7.2.0 source was read, not
+   run.
+-  [fix] Accept CF precipitation-flux units in ``RX5day`` (issue #544,
+   PR #549). Verified by running 7.3.1; the 7.2.0 source was read, but no
+   earlier range is claimed.
+-  [known issue] ``CD``, ``WD`` and ``WW`` can differ by one day at the edges
+   of a subset percentile base period because the five-day calendar window is
+   truncated instead of wrapped (issue #559).
+
+*****
 7.3.1
 *****
 

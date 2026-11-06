@@ -60,6 +60,7 @@ from icclim._core.generic.bootstrap_capability import (
 from icclim._core.input_parsing import PercentileDataArray
 from icclim._core.model.cf_calendar import CfCalendarRegistry
 from icclim._core.model.operator import Operator, OperatorRegistry
+from icclim._core.xclim_compat import get_xclim_compute
 from icclim.exception import InvalidIcclimArgumentError
 from icclim.frequency import (
     RUN_INDEXER,
@@ -383,9 +384,7 @@ def max_consecutive_occurrence(
             logical_link,
         )
     if bootstrap_spell_mask is not None:
-        from xclim.indices import run_length  # noqa: PLC0415
-
-        spell_run_lengths = run_length.rle(
+        spell_run_lengths = get_xclim_compute().run_length.rle(
             bootstrap_spell_mask,
             dim="time",
             index=kwargs.get("run_index", "first"),
@@ -407,8 +406,7 @@ def max_consecutive_occurrence(
         logical_link,
         force_reference_bootstrap=_force_reference_cftime_spell_masks(climate_vars),
     )
-    from xclim.indices import run_length  # noqa: PLC0415
-
+    run_length = get_xclim_compute().run_length
     run_index = kwargs.get("run_index", "first")
     if kwargs.get("indicator_name") in {"CFD", "CSU"}:
         rle = combined_exceedance_mask.resample(time=resample_freq.pandas_freq).map(
@@ -499,9 +497,7 @@ def sum_of_spell_lengths(
             logical_link,
         )
     if bootstrap_spell_mask is not None:
-        from xclim.indices import run_length  # noqa: PLC0415
-
-        spell_run_lengths = run_length.rle(
+        spell_run_lengths = get_xclim_compute().run_length.rle(
             bootstrap_spell_mask,
             dim="time",
             index=kwargs.get("run_index", "first"),
@@ -527,9 +523,7 @@ def sum_of_spell_lengths(
         logical_link,
         force_reference_bootstrap=_force_reference_cftime_spell_masks(climate_vars),
     )
-    from xclim.indices import run_length  # noqa: PLC0415
-
-    rle = run_length.rle(
+    rle = get_xclim_compute().run_length.rle(
         combined_exceedance_mask,
         dim="time",
         index=kwargs.get("run_index", "first"),
@@ -1738,7 +1732,8 @@ def percentile(
     if percentile_threshold.initial_value is None:
         msg = "PercentileThreshold must have a value"
         raise InvalidIcclimArgumentError(msg)
-    quantile = np.asarray(percentile_threshold.initial_value) * 0.01
+    requested = np.asarray(percentile_threshold.initial_value)
+    quantile = requested * 0.01 if requested.size > 1 else float(requested[0]) * 0.01
     method = cast("Any", percentile_threshold.interpolation.name)  # pragma: no mutate
     result = study.resample(time=resample_freq.pandas_freq).quantile(
         quantile, method=method
@@ -2032,6 +2027,7 @@ def _compute_fast_tiled_count_occurrences(
     max_cells: int,
 ) -> DataArray | None:
     from icclim._core.generic.bootstrap import (  # noqa: PLC0415
+        compute_doy_percentile_bootstrap_count,
         compute_doy_percentile_bootstrap_union_exceedance_count,
     )
 
@@ -2040,7 +2036,12 @@ def _compute_fast_tiled_count_occurrences(
     for tile_indexers in _iter_spatial_tiles(climate_var.studied_data, max_cells):
         tile_study = climate_var.studied_data.isel(tile_indexers)
         tile_threshold = _slice_threshold_for_tile(threshold, tile_indexers)
-        tile_result = compute_doy_percentile_bootstrap_union_exceedance_count(
+        reducer = (
+            compute_doy_percentile_bootstrap_count
+            if resample_freq == FrequencyRegistry.YEAR
+            else compute_doy_percentile_bootstrap_union_exceedance_count
+        )
+        tile_result = reducer(
             tile_study,
             tile_threshold,
             resample_freq.pandas_freq,
@@ -3184,6 +3185,28 @@ def get_couple_of_var(
     return study, ref
 
 
+def _ensure_time_chunks_cover_window(da: DataArray, window: int) -> DataArray:
+    """
+    Make sure no Dask time chunk is shorter than a rolling window.
+
+    Chunks the user (or the file) chose are kept as they are unless one of them
+    is shorter than `window`, which a rolling operation cannot handle.  In that
+    case the time axis is rechunked in even chunks, none shorter than `window`
+    (or a single chunk when the series is shorter than two windows).
+    """
+    if da.chunks is None or "time" not in da.dims:
+        return da
+    sizes = da.chunksizes["time"]
+    if min(sizes) >= window:
+        return da
+    total = sum(sizes)
+    target = max(window, *sizes)
+    n_chunks = max(1, total // target)
+    base, extra = divmod(total, n_chunks)
+    new_sizes = tuple(base + 1 if i < extra else base for i in range(n_chunks))
+    return da.chunk({"time": new_sizes})
+
+
 def _run_rolling_reducer(
     climate_vars: list[ClimateVariable],
     resample_freq: Frequency,
@@ -3195,6 +3218,16 @@ def _run_rolling_reducer(
     extreme: str | None = None,
 ) -> DataArray:
     study, threshold = get_single_var(climate_vars)
+    if _is_rate(study):
+        from xclim.core.units import rate2amount  # noqa: PLC0415
+
+        src_freq = check_freq(study, dim="time", strict=False)
+        study = (
+            _rate_to_amount_for_daily_subseries(study)
+            if src_freq == "D"
+            else rate2amount(study)
+        )
+    study = _ensure_time_chunks_cover_window(study, rolling_window_width)
     if threshold:
         exceedance_mask = _compute_threshold_exceedance_mask(
             climate_var=climate_vars[0],
@@ -3203,6 +3236,7 @@ def _run_rolling_reducer(
             prepared_inputs_cache={},
         ).squeeze()
         study = study.where(exceedance_mask)
+        study = _ensure_time_chunks_cover_window(study, rolling_window_width)
     study = rolling_op(study.rolling(time=rolling_window_width))
     resampled = study.resample(time=resample_freq.pandas_freq)
     if date_event:
@@ -3353,6 +3387,40 @@ def _compute_combined_exceedance_mask(
     return logical_link(exceedance_masks)
 
 
+def _compute_fallback_threshold_exceedance_mask(
+    climate_var: ClimateVariable,
+    threshold: Threshold,
+    resample_freq: Frequency,
+    bootstrap_required: bool,
+) -> DataArray:
+    from icclim._core.generic.threshold.percentile import (  # noqa: PLC0415
+        PercentileThreshold,
+    )
+
+    if (
+        isinstance(threshold, PercentileThreshold)
+        and bootstrap_required
+        and climate_var.studied_data.chunks is None
+    ):
+        from icclim._core.generic.bootstrap import (  # noqa: PLC0415
+            compute_doy_percentile_bootstrap_union_mask_eager,
+        )
+
+        eager_mask = compute_doy_percentile_bootstrap_union_mask_eager(
+            climate_var.studied_data,
+            threshold,
+            resample_freq.pandas_freq,
+        )
+        if eager_mask is not None:
+            return eager_mask
+    return _compute_exceedance_mask(
+        study=climate_var.studied_data,
+        threshold=threshold,
+        freq=resample_freq.pandas_freq,
+        bootstrap=bootstrap_required,
+    )
+
+
 def _compute_threshold_exceedance_mask(
     *,
     climate_var: ClimateVariable,
@@ -3431,11 +3499,11 @@ def _compute_threshold_exceedance_mask(
             )
             if exact_mask is not None:
                 return exact_mask
-    return _compute_exceedance_mask(
-        study=climate_var.studied_data,
-        threshold=threshold,
-        freq=resample_freq.pandas_freq,
-        bootstrap=bootstrap_required,
+    return _compute_fallback_threshold_exceedance_mask(
+        climate_var,
+        threshold,
+        resample_freq,
+        bootstrap_required,
     )
 
 

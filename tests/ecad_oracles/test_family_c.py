@@ -110,9 +110,9 @@ def test_fixed_threshold_indices(
 @pytest.mark.parametrize(
     "name",
     [
-        pytest.param("CD", marks=pytest.mark.xfail(strict=True, reason="#541")),
+        "CD",
         "CW",
-        pytest.param("WD", marks=pytest.mark.xfail(strict=True, reason="#541")),
+        "WD",
         "WW",
     ],
 )
@@ -131,7 +131,7 @@ def test_compound_percentile_counts(name: str, chunk: int | None) -> None:
         completeness="none",
     )[name].compute()
 
-    np.testing.assert_allclose(actual.values[-2:], expected[-2:], equal_nan=True)
+    np.testing.assert_allclose(actual.values, expected, equal_nan=True)
 
 
 @pytest.mark.xfail(strict=True, reason="#542")

@@ -118,11 +118,8 @@ def test_temperature_ranges(name: str, chunk: int | None) -> None:
 def test_precipitation_extrema_and_wet_day_reducers(
     name: str,
     chunk: int | None,
-    request: pytest.FixtureRequest,
 ) -> None:
     """Wet days are RR>=1 mm and RX5day uses within-period five-day sums."""
-    if name == "RX5day" and chunk == 7:
-        request.applymarker(pytest.mark.xfail(strict=True, reason="#544"))
     source = make_extreme_cube(converted_units=chunk == 7)
     values = source.pr.values * (
         86400 if source.pr.attrs["units"] == "kg m-2 s-1" else 1
