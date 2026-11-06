@@ -2,14 +2,17 @@
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Any
 
 import numpy as np
 import pandas as pd
+import pytest
 import xarray as xr
 from dask.callbacks import Callback
 from xarray.core.resample import DataArrayResample
 
+import icclim
 from icclim._core.generic.functions import (
     _consecutive_occurrences_with_dates,
     _count_occurrences_with_date,
@@ -195,3 +198,74 @@ def test_count_event_date_is_missing_when_no_occurrence() -> None:
     np.testing.assert_array_equal(result.values, [[0, 0]])
     assert result.event_date_start.isnull().all()
     assert result.event_date_end.isnull().all()
+
+
+def _daily_tas_dataset(periods: int = 3 * 365) -> xr.Dataset:
+    time = pd.date_range("2000-01-01", periods=periods, freq="D")
+    rng = np.random.default_rng(0)
+    values = 285 + 8 * rng.standard_normal((periods, 2, 2))
+    tas = xr.DataArray(
+        values.astype("float32"),
+        dims=("time", "lat", "lon"),
+        coords={"time": time, "lat": [0.0, 1.0], "lon": [0.0, 1.0]},
+        name="tas",
+        attrs={"units": "K", "standard_name": "air_temperature"},
+    )
+    return tas.to_dataset()
+
+
+DATED_INDICES = [
+    ("maximum", {}),
+    ("minimum", {}),
+    ("count_occurrences", {"threshold": ">= 290 K"}),
+    ("max_consecutive_occurrence", {"threshold": ">= 290 K"}),
+]
+
+
+@pytest.mark.parametrize(("index_name", "kwargs"), DATED_INDICES)
+def test_event_dates_do_not_inherit_variable_attributes(
+    index_name: str, kwargs: dict
+) -> None:
+    result = icclim.index(
+        index_name=index_name,
+        in_files=_daily_tas_dataset(),
+        var_name="tas",
+        slice_mode="month",
+        date_event=True,
+        out_file=None,
+        **kwargs,
+    )
+
+    date_names = [n for n in result.coords if n.startswith("event_date")]
+    date_names += [n for n in result.data_vars if n.startswith("event_date")]
+    assert date_names
+    for name in date_names:
+        assert "units" not in result[name].attrs
+        assert "standard_name" not in result[name].attrs
+
+
+@pytest.mark.parametrize(("index_name", "kwargs"), DATED_INDICES)
+def test_indices_with_event_dates_can_be_written_to_netcdf(
+    index_name: str, kwargs: dict, tmp_path: Path
+) -> None:
+    out_file = tmp_path / f"{index_name}.nc"
+
+    result = icclim.index(
+        index_name=index_name,
+        in_files=_daily_tas_dataset(),
+        var_name="tas",
+        slice_mode="month",
+        date_event=True,
+        out_file=str(out_file),
+        **kwargs,
+    )
+
+    assert out_file.exists()
+    with xr.open_dataset(out_file) as written:
+        names = [n for n in written.variables if n.startswith("event_date")]
+        assert names
+        for name in names:
+            assert np.issubdtype(written[name].dtype, np.datetime64)
+        first = names[0]
+        expected = result[first].transpose(*written[first].dims).compute()
+        np.testing.assert_array_equal(written[first].values, expected.values)

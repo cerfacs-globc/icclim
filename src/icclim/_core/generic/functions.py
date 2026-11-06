@@ -3564,23 +3564,37 @@ def _reduce_with_date_event(
         shortcut=False,
     )
     if window is None:
-        return _time_first(value.assign_coords(event_date=event_time))
+        return _with_event_dates(value, event_date=event_time)
     start_time = (
         event_time - (window - 1) * source_delta
         if source_delta is not None
         else event_time
     )
-    return _time_first(
-        value.assign_coords(
-            event_date_start=start_time,
-            event_date_end=event_time,
-        )
+    return _with_event_dates(
+        value,
+        event_date_start=start_time,
+        event_date_end=event_time,
     )
 
 
 def _time_first(da: DataArray) -> DataArray:
     """Put `time` first, as the per-period concatenation always did."""
     return da.transpose("time", ...)
+
+
+def _with_event_dates(value: DataArray, **event_dates: DataArray) -> DataArray:
+    """Attach event dates as coordinates, with time first.
+
+    Event dates are dates, not measurements: they must not inherit the units or
+    the standard name of the studied variable, which would also prevent xarray
+    from encoding them as times when writing a NetCDF file.
+    """
+    clean = {}
+    for name, dates in event_dates.items():
+        dates = dates.copy(deep=False)
+        dates.attrs = {}
+        clean[name] = dates
+    return _time_first(value.assign_coords(**clean))
 
 
 def _extreme_event_date(sample: DataArray, extreme: str) -> DataArray:
@@ -3598,11 +3612,10 @@ def _extreme_event_date(sample: DataArray, extreme: str) -> DataArray:
 def _count_occurrences_with_date(resampled: DataArrayResample) -> DataArray:
     occurrences = resampled.sum(dim="time")
     event_dates = resampled.map(_occurrence_event_dates, shortcut=False)
-    return _time_first(
-        occurrences.assign_coords(
-            event_date_start=event_dates.sel(event_date_bound="start", drop=True),
-            event_date_end=event_dates.sel(event_date_bound="end", drop=True),
-        )
+    return _with_event_dates(
+        occurrences,
+        event_date_start=event_dates.sel(event_date_bound="start", drop=True),
+        event_date_end=event_dates.sel(event_date_bound="end", drop=True),
     )
 
 
@@ -3660,11 +3673,10 @@ def _consecutive_occurrences_with_dates(
         start_time = anchor_time
         end_time = start_time + (longest_run * cast("Any", source_freq_delta))
     has_event = longest_run > 0
-    return _time_first(
-        longest_run.assign_coords(
-            event_date_start=start_time.where(has_event),
-            event_date_end=end_time.where(has_event),
-        )
+    return _with_event_dates(
+        longest_run,
+        event_date_start=start_time.where(has_event),
+        event_date_end=end_time.where(has_event),
     )
 
 
