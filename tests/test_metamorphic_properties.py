@@ -9,6 +9,8 @@ some layouts or options.
 
 from __future__ import annotations
 
+import itertools
+
 import numpy as np
 import pandas as pd
 import pytest
@@ -185,7 +187,7 @@ def test_count_does_not_increase_when_the_threshold_increases():
         compute(tas, "count_occurrences", threshold=f">= {t} K")
         for t in (276, 282, 288, 294, 300)
     ]
-    for lower, higher in zip(counts, counts[1:]):
+    for lower, higher in itertools.pairwise(counts):
         assert bool((higher <= lower).all())
     assert bool((counts[0] >= counts[-1]).all())
 
