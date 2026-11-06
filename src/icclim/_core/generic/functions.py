@@ -60,6 +60,7 @@ from icclim._core.generic.bootstrap_capability import (
 from icclim._core.input_parsing import PercentileDataArray
 from icclim._core.model.cf_calendar import CfCalendarRegistry
 from icclim._core.model.operator import Operator, OperatorRegistry
+from icclim._core.xclim_compat import get_xclim_compute
 from icclim.exception import InvalidIcclimArgumentError
 from icclim.frequency import (
     RUN_INDEXER,
@@ -383,9 +384,7 @@ def max_consecutive_occurrence(
             logical_link,
         )
     if bootstrap_spell_mask is not None:
-        from xclim.indices import run_length  # noqa: PLC0415
-
-        spell_run_lengths = run_length.rle(
+        spell_run_lengths = get_xclim_compute().run_length.rle(
             bootstrap_spell_mask,
             dim="time",
             index=kwargs.get("run_index", "first"),
@@ -407,9 +406,7 @@ def max_consecutive_occurrence(
         logical_link,
         force_reference_bootstrap=_force_reference_cftime_spell_masks(climate_vars),
     )
-    from xclim.indices import run_length  # noqa: PLC0415
-
-    rle = run_length.rle(
+    rle = get_xclim_compute().run_length.rle(
         combined_exceedance_mask,
         dim="time",
         index=kwargs.get("run_index", "first"),
@@ -492,9 +489,7 @@ def sum_of_spell_lengths(
             logical_link,
         )
     if bootstrap_spell_mask is not None:
-        from xclim.indices import run_length  # noqa: PLC0415
-
-        spell_run_lengths = run_length.rle(
+        spell_run_lengths = get_xclim_compute().run_length.rle(
             bootstrap_spell_mask,
             dim="time",
             index=kwargs.get("run_index", "first"),
@@ -520,9 +515,7 @@ def sum_of_spell_lengths(
         logical_link,
         force_reference_bootstrap=_force_reference_cftime_spell_masks(climate_vars),
     )
-    from xclim.indices import run_length  # noqa: PLC0415
-
-    rle = run_length.rle(
+    rle = get_xclim_compute().run_length.rle(
         combined_exceedance_mask,
         dim="time",
         index=kwargs.get("run_index", "first"),
