@@ -177,3 +177,80 @@ def test_temperature_runs_do_not_merge_across_years(
         name
     ].compute()
     np.testing.assert_array_equal(actual.values, [92, 120])
+
+
+def _longest_run(flags: np.ndarray) -> int:
+    """Longest run of consecutive True values, in plain Python."""
+    best = current = 0
+    for flag in flags:
+        current = current + 1 if flag else 0
+        best = max(best, current)
+    return best
+
+
+@pytest.mark.parametrize("chunk", [None, 30])
+@pytest.mark.parametrize(
+    ("name", "variable", "normal", "event", "operator_is_less"),
+    [("CFD", "tn", 1.0, -1.0, True), ("CSU", "tx", 0.0, 30.0, False)],
+)
+def test_runs_crossing_a_year_boundary_are_split_at_the_boundary(
+    name: str,
+    variable: str,
+    normal: float,
+    event: float,
+    operator_is_less: bool,
+    chunk: int | None,
+) -> None:
+    """
+    Issue #543: CFD/CSU are the longest run within each year.
+
+    A run that crosses 31 December is cut at the boundary: each year keeps its own
+    part of the run, and no year is NaN or 0 because the run started in the
+    previous year.
+    """
+    time = pd.date_range("2000-01-01", "2003-12-31")
+    # One event window (start, end) per cell, written from the definition.
+    windows = {
+        (0, 0): [("2000-11-15", "2001-02-10"), ("2002-12-01", "2003-03-15")],
+        (0, 1): [("2001-12-31", "2002-01-01")],
+        (1, 0): [("2001-07-01", "2003-02-28")],  # crosses two boundaries
+        (1, 1): [],  # no event at all
+    }
+    values = np.full((len(time), 2, 2), normal)
+    for (ilat, ilon), spans in windows.items():
+        for start, end in spans:
+            values[(time >= start) & (time <= end), ilat, ilon] = event
+    source = xr.DataArray(
+        values,
+        dims=("time", "lat", "lon"),
+        coords={"time": time, "lat": [0.0, 1.0], "lon": [0.0, 1.0]},
+        name=variable,
+        attrs={"units": "degC"},
+    )
+    if chunk is not None:
+        source = source.chunk({"time": chunk})
+    actual = (
+        getattr(icclim, name.lower())(source, out_file=None, completeness="none")[name]
+        .transpose("time", "lat", "lon")
+        .compute()
+    )
+    # Independent computation: split every year first, then take the longest run.
+    flags = values < 0 if operator_is_less else values > 25
+    years = time.year
+    expected = np.array(
+        [
+            [
+                [_longest_run(flags[years == year, ilat, ilon]) for ilon in range(2)]
+                for ilat in range(2)
+            ]
+            for year in range(2000, 2004)
+        ],
+        dtype=float,
+    )
+    assert actual.shape == expected.shape
+    assert not np.isnan(actual.values).any()
+    np.testing.assert_array_equal(actual.values, expected)
+    # Sanity checks on the hand-written scenario (leap years 2000 and 2004 aside).
+    assert actual.values[1, 1, 0] == 184  # 2001-07-01 to 2001-12-31
+    assert actual.values[2, 1, 0] == 365  # the whole of 2002 is inside the run
+    assert actual.values[:, 1, 1].tolist() == [0, 0, 0, 0]
