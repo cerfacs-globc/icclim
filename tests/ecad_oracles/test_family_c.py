@@ -134,9 +134,14 @@ def test_compound_percentile_counts(name: str, chunk: int | None) -> None:
     np.testing.assert_allclose(actual.values, expected, equal_nan=True)
 
 
-@pytest.mark.xfail(strict=True, reason="#542")
 @pytest.mark.parametrize(
-    ("name", "variable"), [("CSU", "tx"), ("CFD", "tn"), ("CDD", "pr"), ("CWD", "pr")]
+    ("name", "variable"),
+    [
+        ("CSU", "tx"),
+        ("CFD", "tn"),
+        pytest.param("CDD", "pr", marks=pytest.mark.xfail(strict=True, reason="#542")),
+        pytest.param("CWD", "pr", marks=pytest.mark.xfail(strict=True, reason="#542")),
+    ],
 )
 def test_consecutive_outputs_keep_time_first(name: str, variable: str) -> None:
     """ECAD outputs consistently order dimensions as time then spatial axes."""
