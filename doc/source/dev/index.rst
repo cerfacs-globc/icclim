@@ -22,5 +22,6 @@ development.
    bootstrap_architecture
    bootstrap_extension_phase_plan
    non_bootstrap_benchmarking
+   non_bootstrap_performance
    contributing
    climpact_comparison_protocol

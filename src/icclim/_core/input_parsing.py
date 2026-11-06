@@ -745,7 +745,7 @@ def build_reference_da(
             base_period_time_range,
         )
     if only_leap_years:
-        reference = _reduce_only_leap_years(original_da)
+        reference = _reduce_only_leap_years(reference)
     if percentile_min_value is not None:
         from xclim.core.units import convert_units_to  # noqa: PLC0415
 

@@ -652,8 +652,6 @@ def compute_doy_percentile_bootstrap_union_mask_eager(
         return multiple
     if not _can_compute_optimized_bootstrap(study, threshold, freq):
         return None
-    if not _use_order_stat_thresholds(study):
-        return None
 
     import xarray as xr  # noqa: PLC0415
     from xclim.core.bootstrapping import (  # noqa: PLC0415
@@ -661,7 +659,11 @@ def compute_doy_percentile_bootstrap_union_mask_eager(
         _get_year_label,
         build_bootstrap_year_da,
     )
-    from xclim.core.calendar import percentile_doy, resample_doy  # noqa: PLC0415
+    from xclim.core.calendar import resample_doy  # noqa: PLC0415
+
+    from icclim._core.generic.threshold.percentile import (  # noqa: PLC0415
+        _circular_percentile_doy,
+    )
 
     reference_sample = build_bootstrap_reference_sample(study, threshold)
     loaded_study = reference_sample.study
@@ -703,13 +705,12 @@ def compute_doy_percentile_bootstrap_union_mask_eager(
             overlap_groups,
             year_key,
         )
-        substitute_percentiles = percentile_doy.__wrapped__(
-            substituted,
+        substitute_percentiles = _circular_percentile_doy(
+            arr=substituted,
             window=nominal_percentile.attrs["window"],
             alpha=nominal_percentile.attrs["alpha"],
             beta=nominal_percentile.attrs["beta"],
             per=nominal_percentile.percentiles.data[()],
-            copy=False,
         )
         if "percentiles" in substitute_percentiles.dims:
             substitute_percentiles = substitute_percentiles.squeeze(
@@ -3058,7 +3059,7 @@ if njit is not None:
         for offset in range(length):
             doy = study_doys[start + offset]
             value = flat_study[start + offset, cell]
-            if np.isnan(min_threshold) or _compare(value, min_threshold, op_code):
+            if np.isnan(min_threshold) or value >= min_threshold:
                 total = np.float32(total + np.float32(value))
             if _compare(value, thresholds[doy - 1], op_code):
                 exceedance_total = np.float32(exceedance_total + np.float32(value))

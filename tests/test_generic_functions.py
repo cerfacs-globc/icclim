@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 import pytest
 import xarray as xr
 
@@ -25,6 +26,7 @@ from icclim._core.generic.functions import (
     sum_of_spell_lengths,
 )
 from icclim._core.model.logical_link import LogicalLinkRegistry
+from icclim._core.model.quantile_interpolation import QuantileInterpolationRegistry
 from icclim._core.model.standard_variable import StandardVariableRegistry
 from icclim.frequency import FrequencyRegistry
 from icclim.generic.registry import GenericIndicatorRegistry
@@ -63,6 +65,98 @@ def test_percentile() -> None:
         is_compared_to_reference=False,
     )
     assert result[0] == -5
+
+
+@pytest.mark.parametrize("chunk", [None, 2])
+@pytest.mark.parametrize("requested", [[10, 50, 90]])
+@pytest.mark.parametrize(
+    "method",
+    [
+        QuantileInterpolationRegistry.LINEAR.name,
+        QuantileInterpolationRegistry.MEDIAN_UNBIASED.name,
+    ],
+)
+def test_percentile_preserves_coordinates_and_interpolation(
+    requested: list[int], method: str, chunk: int | None
+) -> None:
+    values = np.array([0.0, 1.0, 2.0, 100.0])
+    study = xr.DataArray(
+        values,
+        coords={"time": pd.date_range("2000-01-01", periods=4)},
+        dims="time",
+        attrs={"units": "degC"},
+    )
+    if chunk is not None:
+        study = study.chunk({"time": chunk})
+    climate_var = ClimateVariable(
+        name="tas",
+        standard_var=StandardVariableRegistry.TAS,
+        studied_data=study,
+        threshold=build_threshold(
+            operator=">",
+            value=requested,
+            unit="period_per",
+            interpolation=method,
+        ),
+        source_frequency=FrequencyRegistry.DAY,
+        global_metadata={},
+    )
+
+    result = percentile(
+        climate_vars=[climate_var],
+        resample_freq=FrequencyRegistry.MONTH,
+    )
+
+    np.testing.assert_array_equal(result.percentiles, requested)
+    assert result.dims == ("time", "percentiles")
+    np.testing.assert_allclose(
+        result.isel(time=0),
+        np.percentile(values, requested, method=method),
+    )
+    if method != QuantileInterpolationRegistry.LINEAR.name:
+        assert not np.allclose(
+            np.percentile(values, requested, method=method),
+            np.percentile(values, requested, method="linear"),
+        )
+
+
+@pytest.mark.parametrize("chunk", [None, 2])
+def test_percentile_single_value_preserves_731_shape_and_value(
+    chunk: int | None,
+) -> None:
+    """The 7.3.1 golden is one time value and a scalar percentile coordinate."""
+    study = xr.DataArray(
+        [0.0, 1.0, 2.0, 100.0],
+        coords={"time": pd.date_range("2000-01-01", periods=4)},
+        dims="time",
+        attrs={"units": "degC"},
+    )
+    if chunk is not None:
+        study = study.chunk({"time": chunk})
+    climate_var = ClimateVariable(
+        name="tas",
+        standard_var=StandardVariableRegistry.TAS,
+        studied_data=study,
+        threshold=build_threshold(
+            operator=">",
+            value=[50],
+            unit="period_per",
+            interpolation=QuantileInterpolationRegistry.MEDIAN_UNBIASED.name,
+        ),
+        source_frequency=FrequencyRegistry.DAY,
+        global_metadata={},
+    )
+
+    result = percentile(
+        climate_vars=[climate_var],
+        resample_freq=FrequencyRegistry.MONTH,
+    ).compute()
+
+    assert result.dims == ("time",)
+    assert result.shape == (1,)
+    assert result.percentiles.ndim == 0
+    assert result.percentiles.item() == 50
+    np.testing.assert_allclose(result.values, [1.5])
 
 
 def test_missing_mask_supports_latest_xclim_constructor_style() -> None:

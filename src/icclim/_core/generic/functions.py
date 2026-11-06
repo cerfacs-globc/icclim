@@ -26,7 +26,6 @@ from dataclasses import replace
 from functools import partial
 from time import perf_counter
 from typing import TYPE_CHECKING, Any, cast
-from warnings import warn
 
 import numpy as np
 import xarray as xr
@@ -61,8 +60,14 @@ from icclim._core.generic.bootstrap_capability import (
 from icclim._core.input_parsing import PercentileDataArray
 from icclim._core.model.cf_calendar import CfCalendarRegistry
 from icclim._core.model.operator import Operator, OperatorRegistry
+from icclim._core.xclim_compat import get_xclim_compute
 from icclim.exception import InvalidIcclimArgumentError
-from icclim.frequency import RUN_INDEXER, Frequency, FrequencyRegistry
+from icclim.frequency import (
+    RUN_INDEXER,
+    Frequency,
+    FrequencyRegistry,
+    _build_resampled_time_bounds,
+)
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -379,9 +384,7 @@ def max_consecutive_occurrence(
             logical_link,
         )
     if bootstrap_spell_mask is not None:
-        from xclim.indices import run_length  # noqa: PLC0415
-
-        spell_run_lengths = run_length.rle(
+        spell_run_lengths = get_xclim_compute().run_length.rle(
             bootstrap_spell_mask,
             dim="time",
             index=kwargs.get("run_index", "first"),
@@ -403,9 +406,7 @@ def max_consecutive_occurrence(
         logical_link,
         force_reference_bootstrap=_force_reference_cftime_spell_masks(climate_vars),
     )
-    from xclim.indices import run_length  # noqa: PLC0415
-
-    rle = run_length.rle(
+    rle = get_xclim_compute().run_length.rle(
         combined_exceedance_mask,
         dim="time",
         index=kwargs.get("run_index", "first"),
@@ -488,9 +489,7 @@ def sum_of_spell_lengths(
             logical_link,
         )
     if bootstrap_spell_mask is not None:
-        from xclim.indices import run_length  # noqa: PLC0415
-
-        spell_run_lengths = run_length.rle(
+        spell_run_lengths = get_xclim_compute().run_length.rle(
             bootstrap_spell_mask,
             dim="time",
             index=kwargs.get("run_index", "first"),
@@ -516,9 +515,7 @@ def sum_of_spell_lengths(
         logical_link,
         force_reference_bootstrap=_force_reference_cftime_spell_masks(climate_vars),
     )
-    from xclim.indices import run_length  # noqa: PLC0415
-
-    rle = run_length.rle(
+    rle = get_xclim_compute().run_length.rle(
         combined_exceedance_mask,
         dim="time",
         index=kwargs.get("run_index", "first"),
@@ -749,19 +746,10 @@ def fraction_of_total(
         bootstrap_capability=bootstrap_capability,
     )
     if threshold.threshold_min_value is not None:
-        min_val = threshold.threshold_min_value
-        from xclim.core.units import convert_units_to  # noqa: PLC0415
-
-        min_val = convert_units_to(min_val, study, context="hydro")
-        op = (
-            threshold.operator
-            if isinstance(threshold.operator, Operator)
-            else OperatorRegistry.lookup(threshold.operator)
-        )
-        total = (
-            study.where(op(study, min_val))
-            .resample(time=resample_freq.pandas_freq)
-            .sum(dim="time")
+        total = _sum_values_at_or_above_threshold_floor(
+            study,
+            threshold,
+            resample_freq,
         )
     else:
         total = study.resample(time=resample_freq.pandas_freq).sum(dim="time")
@@ -1199,22 +1187,10 @@ def _compute_optimized_fraction_of_total(
         if threshold.threshold_min_value is None:
             total = study.resample(time=resample_freq.pandas_freq).sum(dim="time")
         else:
-            from xclim.core.units import convert_units_to  # noqa: PLC0415
-
-            floor = convert_units_to(
-                threshold.threshold_min_value,
+            total = _sum_values_at_or_above_threshold_floor(
                 study,
-                context="hydro",
-            )
-            op = (
-                threshold.operator
-                if isinstance(threshold.operator, Operator)
-                else OperatorRegistry.lookup(threshold.operator)
-            )
-            total = (
-                study.where(op(study, floor))
-                .resample(time=resample_freq.pandas_freq)
-                .sum(dim="time")
+                threshold,
+                resample_freq,
             )
         selected = (
             study.where(eager_mask, 0)
@@ -1227,6 +1203,21 @@ def _compute_optimized_fraction_of_total(
         threshold,
         resample_freq,
         _get_fast_bootstrap_max_cells(study),
+    )
+
+
+def _sum_values_at_or_above_threshold_floor(
+    study: DataArray,
+    threshold: Threshold,
+    resample_freq: Frequency,
+) -> DataArray:
+    from xclim.core.units import convert_units_to  # noqa: PLC0415
+
+    floor = convert_units_to(threshold.threshold_min_value, study, context="hydro")
+    return (
+        study.where(study >= floor)
+        .resample(time=resample_freq.pandas_freq)
+        .sum(dim="time")
     )
 
 
@@ -1358,6 +1349,7 @@ def max_of_rolling_sum(
         rolling_window_width=rolling_window_width,
         rolling_op=lambda x: x.sum(),
         resampled_op=lambda x: x.max(),
+        extreme="max",
         date_event=date_event,
         source_freq_delta=source_freq_delta,
     )
@@ -1406,6 +1398,7 @@ def min_of_rolling_sum(
         rolling_window_width=rolling_window_width,
         rolling_op=lambda x: x.sum(),
         resampled_op=lambda x: x.min(),
+        extreme="min",
         date_event=date_event,
         source_freq_delta=source_freq_delta,
     )
@@ -1455,6 +1448,7 @@ def min_of_rolling_average(
         rolling_window_width=rolling_window_width,
         rolling_op=lambda x: x.mean(),
         resampled_op=lambda x: x.min(),
+        extreme="min",
         date_event=date_event,
         source_freq_delta=source_freq_delta,
     )
@@ -1504,6 +1498,7 @@ def max_of_rolling_average(
         rolling_window_width=rolling_window_width,
         rolling_op=lambda x: x.mean(),
         resampled_op=lambda x: x.max(),
+        extreme="max",
         date_event=date_event,
         source_freq_delta=source_freq_delta,
     )
@@ -1725,12 +1720,13 @@ def percentile(
     coordinate variable.
     """
     study, threshold = get_single_var(climate_vars)
-    percentile_threshold = cast("PercentileThreshold", threshold)
+    percentile_threshold = cast("PercentileThreshold", threshold)  # pragma: no mutate
     if percentile_threshold.initial_value is None:
         msg = "PercentileThreshold must have a value"
         raise InvalidIcclimArgumentError(msg)
-    quantile = percentile_threshold.initial_value[0] * 0.01
-    method = cast("Any", percentile_threshold.interpolation.name)
+    requested = np.asarray(percentile_threshold.initial_value)
+    quantile = requested * 0.01 if requested.size > 1 else float(requested[0]) * 0.01
+    method = cast("Any", percentile_threshold.interpolation.name)  # pragma: no mutate
     result = study.resample(time=resample_freq.pandas_freq).quantile(
         quantile, method=method
     )
@@ -2023,6 +2019,7 @@ def _compute_fast_tiled_count_occurrences(
     max_cells: int,
 ) -> DataArray | None:
     from icclim._core.generic.bootstrap import (  # noqa: PLC0415
+        compute_doy_percentile_bootstrap_count,
         compute_doy_percentile_bootstrap_union_exceedance_count,
     )
 
@@ -2031,7 +2028,12 @@ def _compute_fast_tiled_count_occurrences(
     for tile_indexers in _iter_spatial_tiles(climate_var.studied_data, max_cells):
         tile_study = climate_var.studied_data.isel(tile_indexers)
         tile_threshold = _slice_threshold_for_tile(threshold, tile_indexers)
-        tile_result = compute_doy_percentile_bootstrap_union_exceedance_count(
+        reducer = (
+            compute_doy_percentile_bootstrap_count
+            if resample_freq == FrequencyRegistry.YEAR
+            else compute_doy_percentile_bootstrap_union_exceedance_count
+        )
+        tile_result = reducer(
             tile_study,
             tile_threshold,
             resample_freq.pandas_freq,
@@ -3175,6 +3177,28 @@ def get_couple_of_var(
     return study, ref
 
 
+def _ensure_time_chunks_cover_window(da: DataArray, window: int) -> DataArray:
+    """
+    Make sure no Dask time chunk is shorter than a rolling window.
+
+    Chunks the user (or the file) chose are kept as they are unless one of them
+    is shorter than `window`, which a rolling operation cannot handle.  In that
+    case the time axis is rechunked in even chunks, none shorter than `window`
+    (or a single chunk when the series is shorter than two windows).
+    """
+    if da.chunks is None or "time" not in da.dims:
+        return da
+    sizes = da.chunksizes["time"]
+    if min(sizes) >= window:
+        return da
+    total = sum(sizes)
+    target = max(window, *sizes)
+    n_chunks = max(1, total // target)
+    base, extra = divmod(total, n_chunks)
+    new_sizes = tuple(base + 1 if i < extra else base for i in range(n_chunks))
+    return da.chunk({"time": new_sizes})
+
+
 def _run_rolling_reducer(
     climate_vars: list[ClimateVariable],
     resample_freq: Frequency,
@@ -3183,8 +3207,19 @@ def _run_rolling_reducer(
     resampled_op: Callable[[DataArrayResample], DataArray],  # max | min
     date_event: bool,
     source_freq_delta: timedelta,
+    extreme: str | None = None,
 ) -> DataArray:
     study, threshold = get_single_var(climate_vars)
+    if _is_rate(study):
+        from xclim.core.units import rate2amount  # noqa: PLC0415
+
+        src_freq = check_freq(study, dim="time", strict=False)
+        study = (
+            _rate_to_amount_for_daily_subseries(study)
+            if src_freq == "D"
+            else rate2amount(study)
+        )
+    study = _ensure_time_chunks_cover_window(study, rolling_window_width)
     if threshold:
         exceedance_mask = _compute_threshold_exceedance_mask(
             climate_var=climate_vars[0],
@@ -3193,12 +3228,14 @@ def _run_rolling_reducer(
             prepared_inputs_cache={},
         ).squeeze()
         study = study.where(exceedance_mask)
+        study = _ensure_time_chunks_cover_window(study, rolling_window_width)
     study = rolling_op(study.rolling(time=rolling_window_width))
     resampled = study.resample(time=resample_freq.pandas_freq)
     if date_event:
         return _reduce_with_date_event(
             resampled=resampled,
             reducer=resampled_op,
+            extreme=extreme,
             window=rolling_window_width,
             source_delta=source_freq_delta,
         )
@@ -3342,6 +3379,40 @@ def _compute_combined_exceedance_mask(
     return logical_link(exceedance_masks)
 
 
+def _compute_fallback_threshold_exceedance_mask(
+    climate_var: ClimateVariable,
+    threshold: Threshold,
+    resample_freq: Frequency,
+    bootstrap_required: bool,
+) -> DataArray:
+    from icclim._core.generic.threshold.percentile import (  # noqa: PLC0415
+        PercentileThreshold,
+    )
+
+    if (
+        isinstance(threshold, PercentileThreshold)
+        and bootstrap_required
+        and climate_var.studied_data.chunks is None
+    ):
+        from icclim._core.generic.bootstrap import (  # noqa: PLC0415
+            compute_doy_percentile_bootstrap_union_mask_eager,
+        )
+
+        eager_mask = compute_doy_percentile_bootstrap_union_mask_eager(
+            climate_var.studied_data,
+            threshold,
+            resample_freq.pandas_freq,
+        )
+        if eager_mask is not None:
+            return eager_mask
+    return _compute_exceedance_mask(
+        study=climate_var.studied_data,
+        threshold=threshold,
+        freq=resample_freq.pandas_freq,
+        bootstrap=bootstrap_required,
+    )
+
+
 def _compute_threshold_exceedance_mask(
     *,
     climate_var: ClimateVariable,
@@ -3420,11 +3491,11 @@ def _compute_threshold_exceedance_mask(
             )
             if exact_mask is not None:
                 return exact_mask
-    return _compute_exceedance_mask(
-        study=climate_var.studied_data,
-        threshold=threshold,
-        freq=resample_freq.pandas_freq,
-        bootstrap=bootstrap_required,
+    return _compute_fallback_threshold_exceedance_mask(
+        climate_var,
+        threshold,
+        resample_freq,
+        bootstrap_required,
     )
 
 
@@ -3474,37 +3545,53 @@ def _get_thresholded_var(
 
 def _reduce_with_date_event(
     resampled: DataArrayResample,
-    reducer: Callable[[DataArrayResample], DataArray],
+    reducer: Callable[..., DataArray],
     source_delta: timedelta | None = None,
     window: int | None = None,
+    extreme: str | None = None,
 ) -> DataArray:
-    acc: list[DataArray] = []
-    if reducer == DataArrayResample.max:
-        group_reducer = DataArray.argmax
-    elif reducer == DataArrayResample.min:
-        group_reducer = DataArray.argmin
-    else:
-        msg = f"Can't compute `date_event` due to unknown reducer: '{reducer}'"
+    """Reduce periods to their extrema and attach the corresponding dates."""
+    if extreme is None:
+        if reducer == DataArrayResample.max:
+            extreme = "max"
+        elif reducer == DataArrayResample.min:
+            extreme = "min"
+        else:
+            msg = f"Can't compute `date_event` due to unknown reducer: '{reducer}'"
+            raise NotImplementedError(msg)
+    if extreme not in ("max", "min"):
+        msg = f"Can't compute `date_event` due to unknown reducer: '{extreme}'"
         raise NotImplementedError(msg)
+    acc: list[DataArray] = []
     for label, sample in resampled:
-        reduced_result = sample.isel(time=group_reducer(sample, dim="time"))
+        valid = sample.notnull().any(dim="time")
+        fill_value = -np.inf if extreme == "max" else np.inf
+        # The spatial index is small and must be concrete because xarray cannot
+        # use a lazy vectorized indexer. Filling NaNs also gives all-NaN cells a
+        # harmless index before their event date is masked to NaT below.
+        index_of_extreme = getattr(sample.fillna(fill_value), f"arg{extreme}")(
+            dim="time"
+        ).compute()
+        event_time = sample.time.isel(time=index_of_extreme).where(valid)
+        value = getattr(sample, extreme)(dim="time")
         if window is not None:
+            start_time = (
+                event_time - (window - 1) * source_delta
+                if source_delta is not None
+                else event_time
+            )
             result = _add_date_coords(
                 original_sample=sample,
-                result=sample.sum(dim="time"),
-                start_time=reduced_result.time,
-                end_time=(
-                    reduced_result.time + window * source_delta
-                    if window is not None and source_delta is not None
-                    else reduced_result.time
-                ),
+                result=value,
+                start_time=start_time,
+                end_time=event_time,
                 label=label,
             )
         else:
             result = _add_date_coords(
                 original_sample=sample,
-                result=sample.sum(dim="time"),
-                event_date=reduced_result.time,
+                result=value,
+                event_date=event_time,
                 label=label,
             )
         acc.append(result)
@@ -3555,11 +3642,14 @@ def _consecutive_occurrences_with_dates(
             # default to 'first' behavior
             start_time = anchor_time
             end_time = start_time + (dated_longest_run * cast("Any", source_freq_delta))
+        # A run of length 0 has no event: its dates must be missing, not the
+        # first day of the period.
+        has_event = dated_longest_run > 0
         dated_longest_run = _add_date_coords(
             original_sample=sample,
             result=dated_longest_run,
-            start_time=start_time,
-            end_time=end_time,
+            start_time=start_time.where(has_event),
+            end_time=end_time.where(has_event),
             label=label,
         )
         acc.append(dated_longest_run)
@@ -3588,49 +3678,55 @@ def _add_date_coords(
 
 def _to_percent(da: DataArray, sampling_freq: Frequency) -> DataArray:
     if sampling_freq == FrequencyRegistry.MONTH:
-        da = da / da.time.dt.daysinmonth * 100
+        period_length = da.time.dt.daysinmonth
     elif sampling_freq == FrequencyRegistry.YEAR:
-        coef = xr.full_like(da, 1)
-        leap_years = _is_leap_year(da)
-        coef[{"time": leap_years}] = 366
-        coef[{"time": ~leap_years}] = 365
-        da = da / coef
-    elif sampling_freq == FrequencyRegistry.AMJJAS:
-        da = da / 183
-    elif sampling_freq == FrequencyRegistry.ONDJFM:
-        coef = xr.full_like(da, 1)
-        leap_years = _is_leap_year(da)
-        coef[{"time": leap_years}] = 183
-        coef[{"time": ~leap_years}] = 182
-        da = da / coef
-    elif sampling_freq == FrequencyRegistry.DJF:
-        coef = xr.full_like(da, 1)
-        leap_years = _is_leap_year(da)
-        coef[{"time": leap_years}] = 91
-        coef[{"time": ~leap_years}] = 90
-        da = da / coef
-    elif sampling_freq in [FrequencyRegistry.MAM, FrequencyRegistry.JJA]:
-        da = da / 92
-    elif sampling_freq == FrequencyRegistry.SON:
-        da = da / 91
-    else:
-        # TODO @bzah: improve this for custom resampling
-        # https://github.com/cerfacs-globc/icclim/issues/289
-        warn(
-            "For now, '%' unit can only be used when `slice_mode` is one of: "
-            "{MONTH, YEAR, AMJJAS, ONDJFM, DJF, MAM, JJA, SON}.",
-            stacklevel=2,
+        time_index = da.indexes.get("time")
+        calendar = (
+            CfCalendarRegistry.lookup(time_index.calendar)
+            if isinstance(time_index, xr.CFTimeIndex)
+            else None
         )
-        return da
+        if calendar is not None and calendar.days_in_year is not None:
+            period_length = xr.full_like(da, calendar.days_in_year)
+        else:
+            period_length = xr.full_like(da, 1)
+            leap_years = _is_leap_year(da)
+            period_length[{"time": leap_years}] = 366
+            period_length[{"time": ~leap_years}] = 365
+    elif sampling_freq == FrequencyRegistry.AMJJAS:
+        period_length = 183
+    elif sampling_freq == FrequencyRegistry.ONDJFM:
+        period_length = xr.full_like(da, 1)
+        leap_years = _is_leap_year(da, year_offset=1)
+        period_length[{"time": leap_years}] = 183
+        period_length[{"time": ~leap_years}] = 182
+    elif sampling_freq == FrequencyRegistry.DJF:
+        period_length = xr.full_like(da, 1)
+        leap_years = _is_leap_year(da)
+        period_length[{"time": leap_years}] = 91
+        period_length[{"time": ~leap_years}] = 90
+    elif sampling_freq in [FrequencyRegistry.MAM, FrequencyRegistry.JJA]:
+        period_length = 92
+    elif sampling_freq == FrequencyRegistry.SON:
+        period_length = 91
+    else:
+        bounds = _build_resampled_time_bounds(da, sampling_freq.pandas_freq)
+        period_length = xr.DataArray(
+            [Timedelta(end - start).days + 1 for start, end in bounds],
+            dims="time",
+            coords={"time": da.time},
+        )
+    da = da / period_length * 100
     da.attrs[UNITS_KEY] = PART_OF_A_WHOLE_UNIT
     return da
 
 
-def _is_leap_year(da: DataArray) -> np.ndarray:
+def _is_leap_year(da: DataArray, year_offset: int = 0) -> np.ndarray:
     time_index = da.indexes.get("time")
+    years = da.time.dt.year + year_offset
     if isinstance(time_index, xr.CFTimeIndex):
-        return CfCalendarRegistry.lookup(time_index.calendar).is_leap(da.time.dt.year)
-    return da.time.dt.is_leap_year
+        return CfCalendarRegistry.lookup(time_index.calendar).is_leap(years)
+    return (years % 4 == 0) & ((years % 100 != 0) | (years % 400 == 0))
 
 
 def _is_rate(query: Quantity | DataArray) -> bool:

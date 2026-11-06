@@ -9,9 +9,12 @@ import pandas as pd
 import pytest
 import xarray as xr
 
+import icclim
 from icclim._core.constants import UNITS_KEY
 from icclim._core.input_parsing import (
     PercentileDataArray,
+    _reduce_only_leap_years,
+    build_reference_da,
     guess_standard_variable,
     guess_var_names,
     read_dataset,
@@ -20,6 +23,70 @@ from icclim._core.input_parsing import (
 from icclim._core.model.standard_variable import StandardVariableRegistry
 from icclim.ecad.registry import EcadIndexRegistry
 from icclim.exception import InvalidIcclimArgumentError
+
+
+def test_build_reference_da_filters_leap_years_within_base_period() -> None:
+    time = pd.date_range("1999-01-01", "2008-12-31", freq="D")
+    source = xr.DataArray(
+        np.arange(time.size),
+        coords={"time": time},
+        dims="time",
+    )
+
+    result = build_reference_da(
+        source,
+        base_period_time_range=("2003-01-01", "2005-12-31"),
+        only_leap_years=True,
+        percentile_min_value=None,
+    )
+
+    assert result.sizes["time"] == 366
+    assert set(result.time.dt.year.values) == {2004}
+
+
+def test_reduce_only_leap_years_keeps_time_and_complete_leap_years() -> None:
+    time = pd.date_range("1999-01-01", "2004-12-31", freq="D")
+    source = xr.DataArray(np.arange(time.size), coords={"time": time}, dims="time")
+
+    result = _reduce_only_leap_years(source)
+
+    assert result.dims == ("time",)
+    assert result.sizes["time"] == 2 * 366
+    assert set(result.time.dt.year.values) == {2000, 2004}
+
+
+@pytest.mark.parametrize(
+    ("base_period", "leap_years"),
+    [(None, {2000, 2004}), (("1999-01-01", "2001-12-31"), {2000})],
+)
+def test_public_period_percentile_uses_only_leap_year_days(
+    base_period: tuple[str, str] | None, leap_years: set[int]
+) -> None:
+    time = pd.date_range("1999-01-01", "2004-12-31", freq="D")
+    values = np.arange(time.size, dtype=float)
+    source = xr.DataArray(
+        values,
+        coords={"time": time},
+        dims="time",
+        name="tas",
+        attrs={"units": "degC"},
+    )
+
+    result = icclim.index(
+        in_files=source,
+        var_name="tas",
+        index_name="count_occurrences",
+        threshold="> 50 period_per",
+        slice_mode="year",
+        only_leap_years=True,
+        base_period_time_range=base_period,
+        save_thresholds=True,
+        completeness="none",
+    ).compute()
+
+    selected = values[np.isin(time.year, list(leap_years))]
+    expected = np.percentile(selected, 50, method="median_unbiased")
+    np.testing.assert_allclose(result["tas_thresholds"].sel(percentiles=50), expected)
 
 
 def test_update_to_standard_coords() -> None:
