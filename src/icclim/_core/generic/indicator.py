@@ -396,12 +396,9 @@ class GenericIndicator(Indicator):
         if completeness_policy.is_applied:
             # reference variable is a subset of the studied variable,
             # so no need to check it.
-            study_variables = [cv for cv in climate_vars if not cv.is_reference]
-            if sampling_method == GROUP_BY_REF_AND_RESAMPLE_STUDY_METHOD:
-                # The second variable is a reference (a "normal") that may cover
-                # a different period than the study. Output periods are the study
-                # ones, so only the study variable decides which are complete.
-                study_variables = study_variables[:1]
+            study_variables = _variables_checked_for_completeness(
+                climate_vars, sampling_method
+            )
             das = [
                 _prepare_data_for_completeness(
                     cv.studied_data,
@@ -841,6 +838,20 @@ def _allow_requested_partial_periods(
     if allow_partial_final_period:
         mask = xr.where(mask.time == mask.time[-1], False, mask)
     return mask
+
+
+def _variables_checked_for_completeness(
+    climate_vars: list[ClimateVariable],
+    sampling_method: str,
+) -> list[ClimateVariable]:
+    """Select the variables whose missing values mask the output periods."""
+    study_variables = [cv for cv in climate_vars if not cv.is_reference]
+    if sampling_method == GROUP_BY_REF_AND_RESAMPLE_STUDY_METHOD:
+        # The second variable is a reference (a "normal") that may cover a
+        # different period than the study. Output periods are the study ones,
+        # so only the study variable decides which are complete.
+        return study_variables[:1]
+    return study_variables
 
 
 def _warn_if_incomplete_without_computing(
