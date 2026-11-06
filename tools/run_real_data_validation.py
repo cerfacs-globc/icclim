@@ -4,14 +4,17 @@ import argparse
 import glob
 import json
 import os
+import resource
 import subprocess
 import sys
 import time
 from pathlib import Path
+from typing import Any
 
 import cftime
 import numpy as np
 import xarray as xr
+from dask.callbacks import Callback
 
 TAS_GLOB = "/scratch/globc/page/models/tas_day_ACCESS-CM2_historical_*.nc"
 PR_GLOB = "/scratch/globc/page/models/pr_day_ACCESS-CM2_historical_*.nc"
@@ -29,6 +32,25 @@ DATE_EVENT_TIME_RANGE = ("1980-01-01", "2014-12-31")
 DEFAULT_CHUNKS = {"time": 365, "lat": 24, "lon": 32}
 ALT_CHUNKS = {"time": 730, "lat": 7, "lon": 9}
 CHUNKS = DEFAULT_CHUNKS
+
+
+class SchedulerRecorder(Callback):
+    def __init__(self) -> None:
+        super().__init__()
+        self.graph_sizes: list[int] = []
+
+    def _start(self, dsk: Any) -> None:
+        self.graph_sizes.append(len(dsk))
+
+
+def _peak_rss_bytes() -> int:
+    peak = int(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss)
+    return peak if sys.platform == "darwin" else peak * 1024
+
+
+def _graph_task_count(dataset: xr.Dataset) -> int:
+    graph = dataset.__dask_graph__()
+    return 0 if graph is None else len(graph)
 
 
 def _selected_chunks() -> dict[str, int]:
@@ -189,6 +211,87 @@ def _build_workload(
             time_range=DATE_EVENT_TIME_RANGE,
             slice_mode="month",
             date_event=True,
+        )
+    if workload == "generic_tas_sum_yearly":
+        tas = _open_var(TAS_GLOB, "tas", chunks=chunks)
+        return icclim.sum(
+            in_files=tas,
+            var_name="tas",
+            time_range=TIME_RANGE,
+            slice_mode="year",
+        )
+    if workload == "generic_tas_rolling_sum_5day_yearly":
+        tas = _open_var(TAS_GLOB, "tas", chunks=chunks)
+        return icclim.max_of_rolling_sum(
+            in_files=tas,
+            var_name="tas",
+            time_range=TIME_RANGE,
+            slice_mode="year",
+            rolling_window_width=5,
+        )
+    if workload == "generic_tas_rolling_mean_5day_yearly":
+        tas = _open_var(TAS_GLOB, "tas", chunks=chunks)
+        return icclim.max_of_rolling_average(
+            in_files=tas,
+            var_name="tas",
+            time_range=TIME_RANGE,
+            slice_mode="year",
+            rolling_window_width=5,
+        )
+    if workload in {
+        "generic_tas_max_date_event_monthly",
+        "generic_tas_min_date_event_monthly",
+    }:
+        tas = _open_var(
+            TAS_GLOB,
+            "tas",
+            lat_slice=DATE_EVENT_LAT_SLICE,
+            lon_slice=DATE_EVENT_LON_SLICE,
+            chunks=chunks,
+        )
+        reducer = (
+            icclim.maximum
+            if workload == "generic_tas_max_date_event_monthly"
+            else icclim.minimum
+        )
+        return reducer(
+            in_files=tas,
+            var_name="tas",
+            time_range=DATE_EVENT_TIME_RANGE,
+            slice_mode="month",
+            date_event=True,
+        )
+    if workload == "generic_tas_consecutive_date_event_monthly":
+        tas = _open_var(
+            TAS_GLOB,
+            "tas",
+            lat_slice=DATE_EVENT_LAT_SLICE,
+            lon_slice=DATE_EVENT_LON_SLICE,
+            chunks=chunks,
+        )
+        return icclim.max_consecutive_occurrence(
+            in_files=tas,
+            var_name="tas",
+            threshold="> 25 degC",
+            time_range=DATE_EVENT_TIME_RANGE,
+            slice_mode="month",
+            date_event=True,
+        )
+    if workload in {
+        "generic_tas_reference_diff_daily",
+        "generic_tas_reference_diff_monthly",
+    }:
+        tas = _open_var(TAS_GLOB, "tas", chunks=chunks)
+        return icclim.index(
+            index_name="difference_of_means",
+            in_files=tas,
+            var_name="tas",
+            base_period_time_range=BASE_PERIOD,
+            time_range=("1991-01-01", TIME_RANGE[1]),
+            sampling_method="groupby_ref_and_resample_study",
+            slice_mode=(
+                "day" if workload == "generic_tas_reference_diff_daily" else "month"
+            ),
         )
     if workload == "generic_tas_bounded_count_yearly":
         tas = _open_var(TAS_GLOB, "tas", chunks=chunks)
@@ -798,13 +901,25 @@ def main() -> None:
 
     chunk_profile = DEFAULT_CHUNKS if args.chunk_profile == "default" else ALT_CHUNKS
     _warmup(icclim)
+    rss_before = _peak_rss_bytes()
     start = time.perf_counter()
-    ds = _build_workload(
-        icclim,
-        args.workload,
-        chunks=chunk_profile,
-    ).load()
+    build_recorder = SchedulerRecorder()
+    build_start = time.perf_counter()
+    with build_recorder:
+        ds = _build_workload(
+            icclim,
+            args.workload,
+            chunks=chunk_profile,
+        )
+    build_seconds = time.perf_counter() - build_start
+    task_count = _graph_task_count(ds)
+    compute_recorder = SchedulerRecorder()
+    compute_start = time.perf_counter()
+    with compute_recorder:
+        ds = ds.load()
+    compute_seconds = time.perf_counter() - compute_start
     duration = time.perf_counter() - start
+    peak_rss = _peak_rss_bytes()
 
     result_nc = out_dir / f"{args.label}-{args.workload}.result.nc"
     summary_json = out_dir / f"{args.label}-{args.workload}.summary.json"
@@ -817,6 +932,16 @@ def main() -> None:
         "head_commit": _git_rev_parse(repo, "HEAD"),
         "icclim_version": icclim.__version__,
         "duration_seconds": duration,
+        "build_seconds": build_seconds,
+        "compute_seconds": compute_seconds,
+        "task_count": task_count,
+        "scheduler_calls": len(build_recorder.graph_sizes)
+        + len(compute_recorder.graph_sizes),
+        "scheduler_build_graph_sizes": build_recorder.graph_sizes,
+        "scheduler_compute_graph_sizes": compute_recorder.graph_sizes,
+        "rss_before_bytes": rss_before,
+        "peak_rss_bytes": peak_rss,
+        "peak_rss_delta_bytes": max(0, peak_rss - rss_before),
         "chunk_profile": args.chunk_profile,
         "output_path": str(result_nc),
         "dataset": _dataset_summary(ds),
