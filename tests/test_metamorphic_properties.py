@@ -426,15 +426,7 @@ def test_dated_results_keep_time_first_whatever_the_input_order(name, kwargs):
         ("maximum", {"date_event": True}),
         ("minimum", {"date_event": True}),
         ("count_occurrences", {"threshold": ">= 288 K", "date_event": True}),
-        pytest.param(
-            "max_consecutive_occurrence",
-            {"threshold": ">= 288 K", "date_event": True},
-            marks=pytest.mark.xfail(
-                strict=False,
-                reason="Event dates inherit the variable attributes, which breaks "
-                "NetCDF encoding (fixed with the vectorized period reducers)",
-            ),
-        ),
+        ("max_consecutive_occurrence", {"threshold": ">= 288 K", "date_event": True}),
     ],
 )
 def test_every_result_can_be_written_to_netcdf_and_read_back(name, kwargs, tmp_path):
