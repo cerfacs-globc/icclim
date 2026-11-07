@@ -382,6 +382,7 @@ def index(
     allow_missing_periods: bool | None = None,
     allow_partial_final_period: bool = False,
     *,
+    split_runs_at_period_boundary: bool = False,
     # deprecated params are kwargs only
     window_width: int | None = None,
     save_percentile: bool | None = None,
@@ -493,6 +494,18 @@ def index(
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
+    split_runs_at_period_boundary: bool
+        ``optional`` Only used by the indices based on ``max_consecutive_occurrence``
+        (``CDD``, ``CWD``, ``CFD``, ``CSU``), ignored otherwise.
+        When ``False`` (default), a run of consecutive days that crosses the end of
+        an output period is counted whole in a single period: the one where the run
+        starts with ``run_index="first"`` (default), or the one where it ends with
+        ``run_index="last"``. The following (or preceding) period then gets no
+        credit for the days of that run, so its value can be 0.
+        When ``True``, runs are cut at the boundary of every output period and each
+        period gets the longest run found inside it. ``run_index`` then has no
+        effect on the values.
+        Default is ``False``.
     only_leap_years: bool
         ``optional`` Option for February 29th (default: False).
     ignore_Feb29th: bool
@@ -672,6 +685,7 @@ def index(
             rolling_window_width=rolling_window_width,
             sampling_method=sampling_method,
             run_index=run_index,
+            split_runs_at_period_boundary=split_runs_at_period_boundary,
             allow_partial_seasons=allow_partial_seasons or False,
             completeness=completeness,
             allow_missing_periods=allow_missing_periods,
@@ -703,6 +717,7 @@ def index(
             rolling_window_width=rolling_window_width,
             sampling_method=sampling_method,
             run_index=run_index,
+            split_runs_at_period_boundary=split_runs_at_period_boundary,
             allow_partial_seasons=allow_partial_seasons,
             completeness=completeness,
             allow_missing_periods=allow_missing_periods,
@@ -806,6 +821,7 @@ def _build_index_provenance_user_parameters(
     rolling_window_width: int | None,
     sampling_method: SamplingMethodLike,
     run_index: str | None,
+    split_runs_at_period_boundary: bool,
     allow_partial_seasons: bool | Literal["start", "end"],
     completeness: CompletenessLike,
     allow_missing_periods: bool | None,
@@ -838,6 +854,7 @@ def _build_index_provenance_user_parameters(
         "rolling_window_width": rolling_window_width,
         "sampling_method": _serialize_provenance_value(sampling_method),
         "run_index": run_index,
+        "split_runs_at_period_boundary": split_runs_at_period_boundary,
         "allow_partial_seasons": allow_partial_seasons,
         "completeness": completeness,
         "allow_missing_periods": allow_missing_periods,
@@ -881,6 +898,7 @@ def _build_config_from_request(
     rolling_window_width: int | None,
     sampling_method: SamplingMethodLike,
     run_index: str | None,
+    split_runs_at_period_boundary: bool,
     allow_partial_seasons: bool | Literal["start", "end"],
     completeness: CompletenessLike,
     allow_missing_periods: bool | None,
@@ -912,6 +930,7 @@ def _build_config_from_request(
         rolling_window_width=rolling_window_width,
         sampling_method=sampling_method,
         run_index=run_index,
+        split_runs_at_period_boundary=split_runs_at_period_boundary,
         allow_partial_seasons=allow_partial_seasons,
         completeness=completeness,
         allow_missing_periods=allow_missing_periods,
@@ -943,6 +962,7 @@ def _build_config(
     rolling_window_width: int | None,
     sampling_method: SamplingMethodLike,
     run_index: str | None,
+    split_runs_at_period_boundary: bool,
     allow_partial_seasons: bool | Literal["start", "end"],
     completeness: CompletenessLike,
     allow_missing_periods: bool | None,
@@ -971,6 +991,7 @@ def _build_config(
             rolling_window_width=rolling_window_width,
             sampling_method=sampling_method,
             run_index=run_index,
+            split_runs_at_period_boundary=split_runs_at_period_boundary,
             allow_partial_seasons=allow_partial_seasons,
             completeness=completeness,
             allow_missing_periods=allow_missing_periods,
@@ -1000,6 +1021,7 @@ def _build_config(
             rolling_window_width=rolling_window_width,
             sampling_method=sampling_method,
             run_index=run_index,
+            split_runs_at_period_boundary=split_runs_at_period_boundary,
             allow_partial_seasons=allow_partial_seasons,
             completeness=completeness,
             allow_missing_periods=allow_missing_periods,
@@ -1081,6 +1103,7 @@ def _build_legacy_user_index_config(
     rolling_window_width: int | None,
     sampling_method: SamplingMethodLike,
     run_index: str | None,
+    split_runs_at_period_boundary: bool,
     allow_partial_seasons: bool | Literal["start", "end"],
     completeness: CompletenessLike,
     allow_missing_periods: bool | None,
@@ -1130,6 +1153,7 @@ def _build_legacy_user_index_config(
         indicator=legacy_user_index_config.indicator,
         reference=ICCLIM_REFERENCE,
         run_index=run_index,
+        split_runs_at_period_boundary=split_runs_at_period_boundary,
         allow_partial_seasons=allow_partial_seasons,
         completeness=completeness,
         allow_missing_periods=allow_missing_periods,
@@ -1160,6 +1184,7 @@ def _build_standard_index_config(
     rolling_window_width: int | None,
     sampling_method: SamplingMethodLike,
     run_index: str | None,
+    split_runs_at_period_boundary: bool,
     allow_partial_seasons: bool | Literal["start", "end"],
     completeness: CompletenessLike,
     allow_missing_periods: bool | None,
@@ -1219,6 +1244,7 @@ def _build_standard_index_config(
         indicator=indicator,
         reference=reference,
         run_index=run_index,
+        split_runs_at_period_boundary=split_runs_at_period_boundary,
         allow_partial_seasons=allow_partial_seasons,
         completeness=completeness,
         allow_missing_periods=allow_missing_periods,
@@ -1316,6 +1342,7 @@ def _assemble_index_config(
     indicator: Indicator,
     reference: str,
     run_index: str | None,
+    split_runs_at_period_boundary: bool,
     allow_partial_seasons: bool | Literal["start", "end"],
     completeness: CompletenessLike,
     allow_missing_periods: bool | None,
@@ -1343,6 +1370,7 @@ def _assemble_index_config(
         indicator=indicator,
         reference=reference,
         run_index=run_index,
+        split_runs_at_period_boundary=split_runs_at_period_boundary,
         allow_partial_seasons=allow_partial_seasons,
         completeness_policy=resolve_completeness_policy(
             completeness=completeness,

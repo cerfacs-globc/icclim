@@ -529,6 +529,7 @@ class GenericIndicator(Indicator):
             to_percent=config.out_unit == "%",
             sampling_method=config.sampling_method,
             run_index=config.run_index,
+            split_runs_at_period_boundary=config.split_runs_at_period_boundary,
         )
         return self.postprocess(
             result,
