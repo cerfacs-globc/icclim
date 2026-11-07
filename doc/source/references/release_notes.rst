@@ -28,6 +28,11 @@ Unreleased
    ``run_index="last"``) and ``[92, 120]`` with the option. The output dimension
    order is the same with and without the option. ``sum_of_spell_lengths`` and the
    indices built on it (``WSDI``, ``CSDI``) are not concerned by the option.
+-  [test] Add an isolated non-bootstrap performance matrix reporting graph
+   construction, task count, scheduler calls, wall time and peak RSS across
+   workloads, input layouts and chunking policies.
+-  [test] Add matching Kraken real-data workloads and a slow synthetic-cube
+   memory regression test.
 
 *****
 7.3.3
