@@ -224,6 +224,51 @@ Use ``run_index="last"`` to stamp the spell at its *end* date (Climdex conventio
        threshold="< 1 mm/day", run_index="last"
    ).max_consecutive_occurrence.compute()
 
+Runs that cross the end of a period
+===================================
+
+A run of consecutive days can start in one output period and end in the next one,
+for example frost days from 1 October to 30 April with a yearly output. By default
+the whole run is counted in a single period: the one where it starts
+(``run_index="first"``, the default) or the one where it ends
+(``run_index="last"``). The other period gets no credit for the days of that run, so
+its value can be 0. This is the behaviour of ``max_consecutive_occurrence`` and of
+the ECA&D indices built on it (CDD, CWD, CFD and CSU), and it is not modified unless
+you ask for it.
+
+Set ``split_runs_at_period_boundary=True`` to cut the runs at the boundary of every
+output period: each period then gets the longest run found inside it.
+``run_index`` has no effect on the values in that case.
+
+.. code:: python
+
+   import numpy as np
+   import pandas as pd
+   import xarray as xr
+   import icclim
+
+   time = pd.date_range("2001-01-01", "2002-12-31")
+   tn = xr.DataArray(
+       np.where((time >= "2001-10-01") & (time <= "2002-04-30"), -1.0, 1.0),
+       dims="time", coords={"time": time}, name="tn", attrs={"units": "degC"},
+   )
+   for options in ({}, {"run_index": "last"}, {"split_runs_at_period_boundary": True}):
+       cfd = icclim.cfd(tn, out_file=None, **options).CFD.values
+       print(options, cfd)
+
+======================================  ============  ============
+options                                 2001          2002
+======================================  ============  ============
+default (``run_index="first"``)         212           0
+``run_index="last"``                    0             212
+``split_runs_at_period_boundary=True``  92            120
+======================================  ============  ============
+
+The option is available on ``max_consecutive_occurrence``, ``icclim.cdd``,
+``icclim.cwd``, ``icclim.cfd`` and ``icclim.csu``. It is not used by the other
+indices, including the spell indices based on ``sum_of_spell_lengths`` such as WSDI
+and CSDI, which always attribute a spell according to ``run_index``.
+
 File-based:
 
 .. code:: python

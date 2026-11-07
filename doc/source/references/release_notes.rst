@@ -2,6 +2,33 @@
  Release history
 #################
 
+**********
+Unreleased
+**********
+
+-  [perf] Keep the Dask chunks of caller-provided arrays when they are
+   reasonably large, instead of rechunking with ``"auto"`` (PR #518). Arrays
+   whose largest chunk is smaller than 1/8 of ``array.chunk-size`` (16 MiB with
+   the default), and eager arrays, are still chunked with ``"auto"``: with
+   one chunk per daily file the preserved chunks made some indices 3 to 7 times
+   slower. Results are unchanged.
+-  [enh] Add opt-in NetCDF4 compression and stored chunk encoding through
+   ``ICCLIM_OUTPUT_COMPRESSION_LEVEL`` and ``ICCLIM_OUTPUT_CHUNKS``. The default
+   output is unchanged (PR #518).
+-  [enh] New option ``split_runs_at_period_boundary`` for ``max_consecutive_occurrence``
+   and the ECA&D indices ``CDD``, ``CWD``, ``CFD`` and ``CSU`` (issue #543, PR #547).
+   No change by default (``False``): a run of consecutive days that crosses the end
+   of an output period is still counted whole in the period where it starts
+   (``run_index="first"``, the default) or where it ends (``run_index="last"``), and
+   the other period gets no credit for the days of that run, so its value can be 0.
+   With ``split_runs_at_period_boundary=True`` the runs are cut at the boundary of
+   every output period and each period gets the longest run found inside it. For
+   daily data from 2001 to 2002 with frost days from 2001-10-01 to 2002-04-30 and a
+   yearly output, ``CFD`` is ``[212, 0]`` by default (``[0, 212]`` with
+   ``run_index="last"``) and ``[92, 120]`` with the option. The output dimension
+   order is the same with and without the option. ``sum_of_spell_lengths`` and the
+   indices built on it (``WSDI``, ``CSDI``) are not concerned by the option.
+
 *****
 7.3.3
 *****

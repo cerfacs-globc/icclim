@@ -180,6 +180,27 @@ scientific-method choice and should stay stable across comparable runs. During
 migration, compare the number and location of masked output periods and inspect
 the ``completeness_*`` attributes before accepting changed statistics.
 
+Cells without any data
+======================
+
+Gridded observations or model outputs often have cells without any value for the
+whole period, for example the ocean cells of a land-only dataset. Counting
+indices (``SU``, ``FD``, ``TN10p``, ``CSDI``, ``WSDI``, ``CFD``, ...) compare
+each day with a threshold, and a comparison with ``NaN`` is never true. A cell
+without data therefore counts no event.
+
+Before icclim 7.2 nothing flagged such a cell as missing, so these indices
+returned ``0`` over the ocean, while indices that take a minimum or a maximum
+(``TNn``, ``TXx``, ...) returned ``NaN``. With 7.2 and later the default
+completeness policy masks every period where too many values are missing, so a
+cell without data is ``NaN`` for all indices.
+
+If an old workflow still shows ``0`` over cells without data, check the installed
+version with ``python -c "import icclim; print(icclim.__version__)"`` and
+upgrade. To keep the pre-7.2 behavior on purpose, set ``completeness="none"``;
+the zeros then come back, and ocean cells have to be masked afterwards, for
+example with a land-sea mask.
+
 Output provenance
 =================
 

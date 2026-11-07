@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import re
 from collections.abc import Sequence
+from tokenize import TokenError
 from typing import TYPE_CHECKING, cast
 
 from pint.errors import UndefinedUnitError
@@ -191,7 +192,7 @@ def _read_string_threshold(query: str) -> tuple[str, str | None, float]:
 
         try:
             quantity = xc_units.Quantity(no_op_query)
-        except UndefinedUnitError as e:
+        except (UndefinedUnitError, TokenError) as e:
             msg = f"Could not build threshold from {query}"
             raise InvalidIcclimArgumentError(msg) from e
         val = quantity.m
