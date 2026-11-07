@@ -6,19 +6,19 @@
 Unreleased
 **********
 
--  [fix] ``CFD`` and ``CSU`` are now computed within each output period (issue
-   #543, PR #547). Behaviour change: a run of consecutive days that crosses a
-   period boundary, for example frost days from 1 October to 30 April with a yearly
-   output, used to be counted whole in the period where it starts, and the
-   following period got 0 (or NaN) for the days of that run. Now each period keeps
-   the part of the run that lies inside it. In that example the yearly ``CFD`` was
-   ``[212, 0]`` and is now ``[92, 120]``. The ATBD defines these two indices as
-   the largest run "in period j". ``CDD`` and ``CWD`` are unchanged: the ATBD
-   states explicitly that a dry or wet spell crossing the end of the year is
-   attributed to one period, which is what icclim does. Affected: 7.2.0, 7.3.0 and
-   7.3.1 (run, in issue #543) and master after 7.3.3 (run); earlier releases
-   were not checked. Values of ``CFD`` and ``CSU`` for periods that contain a run
-   crossing a boundary should be recomputed.
+-  [enh] New option ``split_runs_at_period_boundary`` for ``max_consecutive_occurrence``
+   and the ECA&D indices ``CDD``, ``CWD``, ``CFD`` and ``CSU`` (issue #543, PR #547).
+   No change by default (``False``): a run of consecutive days that crosses the end
+   of an output period is still counted whole in the period where it starts
+   (``run_index="first"``, the default) or where it ends (``run_index="last"``), and
+   the other period gets no credit for the days of that run, so its value can be 0.
+   With ``split_runs_at_period_boundary=True`` the runs are cut at the boundary of
+   every output period and each period gets the longest run found inside it. For
+   daily data from 2001 to 2002 with frost days from 2001-10-01 to 2002-04-30 and a
+   yearly output, ``CFD`` is ``[212, 0]`` by default (``[0, 212]`` with
+   ``run_index="last"``) and ``[92, 120]`` with the option. The output dimension
+   order is the same with and without the option. ``sum_of_spell_lengths`` and the
+   indices built on it (``WSDI``, ``CSDI``) are not concerned by the option.
 
 *****
 7.3.3
