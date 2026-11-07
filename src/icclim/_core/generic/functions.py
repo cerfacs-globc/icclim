@@ -303,8 +303,8 @@ def _run_length_encoding(
     and is therefore attributed whole to a single period.
     With ``split_at_period_boundary`` the encoding restarts at the beginning of each
     output period, so a run is cut at the boundaries.
-    The dimension order is the one of the default encoding in both cases
-    (``time`` is the last dimension).
+    The dimension order is the one of the default encoding in both cases, whatever
+    order the installed xclim produces (it differs between xclim versions).
     """
     run_length = get_xclim_compute().run_length
     if not split_at_period_boundary:
@@ -312,7 +312,13 @@ def _run_length_encoding(
     rle = mask.resample(time=resample_freq.pandas_freq).map(
         run_length.rle, dim="time", index=run_index
     )
-    return rle.assign_coords(time=mask.time).transpose(..., "time")
+    # Encoding two time steps gives the dimension order of the default path without
+    # computing anything on the whole series (one step fails on Dask arrays with
+    # recent xclim versions).
+    default_dims = run_length.rle(
+        mask.isel(time=slice(0, 2)), dim="time", index=run_index
+    ).dims
+    return rle.assign_coords(time=mask.time).transpose(*default_dims)
 
 
 def max_consecutive_occurrence(
