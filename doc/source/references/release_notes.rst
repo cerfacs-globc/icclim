@@ -6,6 +6,15 @@
 Unreleased
 **********
 
+-  [perf] Keep the Dask chunks of caller-provided arrays when they are
+   reasonably large, instead of rechunking with ``"auto"`` (PR #518). Arrays
+   whose largest chunk is smaller than 1/8 of ``array.chunk-size`` (16 MiB with
+   the default), and eager arrays, are still chunked with ``"auto"``: with
+   one chunk per daily file the preserved chunks made some indices 3 to 7 times
+   slower. Results are unchanged.
+-  [enh] Add opt-in NetCDF4 compression and stored chunk encoding through
+   ``ICCLIM_OUTPUT_COMPRESSION_LEVEL`` and ``ICCLIM_OUTPUT_CHUNKS``. The default
+   output is unchanged (PR #518).
 -  [enh] New option ``split_runs_at_period_boundary`` for ``max_consecutive_occurrence``
    and the ECA&D indices ``CDD``, ``CWD``, ``CFD`` and ``CSU`` (issue #543, PR #547).
    No change by default (``False``): a run of consecutive days that crosses the end

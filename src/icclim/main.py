@@ -12,7 +12,9 @@ A convenience function `indices` is also exposed to compute multiple indices at 
 from __future__ import annotations
 
 import datetime as dt
+import json
 import operator
+import os
 import time
 from collections.abc import Callable, Sequence
 from functools import reduce
@@ -82,6 +84,9 @@ log: IcclimLogger = IcclimLogger.get_instance(VerbosityRegistry.LOW)
 HISTORY_CF_KEY = "history"
 SOURCE_CF_KEY = "source"
 NUMBER_OF_NOTNULL_VAR = "number_of_notnull"
+OUTPUT_COMPRESSION_LEVEL_ENV = "ICCLIM_OUTPUT_COMPRESSION_LEVEL"
+OUTPUT_CHUNKS_ENV = "ICCLIM_OUTPUT_CHUNKS"
+MAX_OUTPUT_COMPRESSION_LEVEL = 9
 
 
 class NormalizedIndexRequest:
@@ -1402,6 +1407,24 @@ def _write_output_file(
     file_path: str,
 ) -> None:
     """Write `result_ds` to a netCDF file on `out_file` path."""
+    encoding = _build_output_encoding(
+        result_ds,
+        input_time_encoding,
+        netcdf_version,
+    )
+    result_ds.to_netcdf(
+        file_path,
+        format=netcdf_version.name,
+        encoding=encoding,
+    )
+
+
+def _build_output_encoding(
+    result_ds: xr.Dataset,
+    input_time_encoding: dict | None,
+    netcdf_version: NetcdfVersion,
+) -> dict[str, dict[str, Any]]:
+    """Build default time encoding plus explicitly requested storage options."""
     if input_time_encoding:
         time_encoding = {
             "calendar": input_time_encoding.get("calendar"),
@@ -1414,11 +1437,87 @@ def _write_output_file(
             UNITS_KEY: "days since 1850-1-1",
             "dtype": np.float64,  # force float
         }
-    result_ds.to_netcdf(
-        file_path,
-        format=netcdf_version.name,
-        encoding={"time": time_encoding},
-    )
+    encoding: dict[str, dict[str, Any]] = {"time": time_encoding}
+    compression_level = _read_output_compression_level()
+    requested_chunks = _read_output_chunks()
+    if compression_level is not None and netcdf_version.name.startswith("NETCDF3"):
+        msg = (
+            f"{OUTPUT_COMPRESSION_LEVEL_ENV} requires a NETCDF4 output format, "
+            f"not {netcdf_version.name}."
+        )
+        raise InvalidIcclimArgumentError(msg)
+    if requested_chunks is not None and netcdf_version.name.startswith("NETCDF3"):
+        msg = (
+            f"{OUTPUT_CHUNKS_ENV} requires a NETCDF4 output format, "
+            f"not {netcdf_version.name}."
+        )
+        raise InvalidIcclimArgumentError(msg)
+    if compression_level is None and requested_chunks is None:
+        return encoding
+    for name, data_var in result_ds.data_vars.items():
+        variable_encoding: dict[str, Any] = {}
+        if compression_level is not None:
+            variable_encoding.update(zlib=True, complevel=compression_level)
+        if requested_chunks is not None and data_var.dims:
+            variable_encoding["chunksizes"] = tuple(
+                min(
+                    data_var.sizes[dim],
+                    requested_chunks.get(
+                        dim,
+                        _first_chunk_size(data_var, dim),
+                    ),
+                )
+                for dim in data_var.dims
+            )
+        if variable_encoding:
+            encoding[str(name)] = variable_encoding
+    return encoding
+
+
+def _first_chunk_size(data_var: xr.DataArray, dim: str) -> int:
+    if data_var.chunksizes:
+        return int(data_var.chunksizes[dim][0])
+    return int(data_var.sizes[dim])
+
+
+def _read_output_compression_level() -> int | None:
+    raw_level = os.environ.get(OUTPUT_COMPRESSION_LEVEL_ENV)
+    if raw_level is None:
+        return None
+    try:
+        level = int(raw_level)
+    except ValueError as error:
+        msg = f"{OUTPUT_COMPRESSION_LEVEL_ENV} must be an integer from 1 to 9."
+        raise InvalidIcclimArgumentError(msg) from error
+    if not 1 <= level <= MAX_OUTPUT_COMPRESSION_LEVEL:
+        msg = f"{OUTPUT_COMPRESSION_LEVEL_ENV} must be an integer from 1 to 9."
+        raise InvalidIcclimArgumentError(msg)
+    return level
+
+
+def _read_output_chunks() -> dict[str, int] | None:
+    raw_chunks = os.environ.get(OUTPUT_CHUNKS_ENV)
+    if raw_chunks is None:
+        return None
+    try:
+        chunks = json.loads(raw_chunks)
+    except json.JSONDecodeError as error:
+        msg = f"{OUTPUT_CHUNKS_ENV} must be a JSON object of dimension sizes."
+        raise InvalidIcclimArgumentError(msg) from error
+    if (
+        not isinstance(chunks, dict)
+        or not chunks
+        or any(
+            not isinstance(dim, str)
+            or isinstance(size, bool)
+            or not isinstance(size, int)
+            or size <= 0
+            for dim, size in chunks.items()
+        )
+    ):
+        msg = f"{OUTPUT_CHUNKS_ENV} must be a JSON object of positive integer sizes."
+        raise InvalidIcclimArgumentError(msg)
+    return chunks
 
 
 def _normalize_index_request(
