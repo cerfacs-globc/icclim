@@ -22,4 +22,5 @@ To grasp the basic usage of icclim, you may consider following
    Configure period completeness <completeness>
    Use icclim through OCGIS (deprecated) <ocgis>
    Parallelize computation with Dask <dask>
+   Configure NetCDF output storage <output_storage>
    Migrate deprecated user_index recipes <recipes_custom>

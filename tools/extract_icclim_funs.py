@@ -106,6 +106,9 @@ GENERIC_POP_ARGS = (
     ]
 )
 
+# Only the indices based on ``max_consecutive_occurrence`` use this argument.
+SPLIT_RUNS_ARG = "split_runs_at_period_boundary"
+
 NORMAL_INDEX_POP_ARGS = (
     STANDARD_INDEX_POP_ARGS + NON_REFERENCE_FIELDS + ["base_period_time_range"]
 )
@@ -197,6 +200,7 @@ def _get_user_index_declaration() -> str:
     icclim_index_args = dict(inspect.signature(icclim_index).parameters)
     pop_args = DEPRECATED_ARGS + UNNECESSARY_ARGS
     pop_args.append("threshold")
+    pop_args.append(SPLIT_RUNS_ARG)
     for pop_arg in pop_args:
         icclim_index_args.pop(pop_arg)
     fun_signature_args = _build_fun_signature_args(icclim_index_args)
@@ -246,11 +250,19 @@ def _get_typical_index_declaration(index: StandardIndex, registry: Registry) -> 
     )
 
     if _is_quantile_based(index):
-        index_args = _get_arguments(STANDARD_INDEX_POP_ARGS)
+        index_args = _get_arguments(
+            STANDARD_INDEX_POP_ARGS + _split_runs_pop_args(index)
+        )
     elif _can_have_reference_period(index):
-        index_args = _get_arguments(STANDARD_INDEX_POP_ARGS + NON_REFERENCE_FIELDS)
+        index_args = _get_arguments(
+            STANDARD_INDEX_POP_ARGS + NON_REFERENCE_FIELDS + _split_runs_pop_args(index)
+        )
     else:
-        index_args = _get_arguments(STANDARD_INDEX_POP_ARGS + QUANTILE_INDEX_FIELDS)
+        index_args = _get_arguments(
+            STANDARD_INDEX_POP_ARGS
+            + QUANTILE_INDEX_FIELDS
+            + _split_runs_pop_args(index)
+        )
     fun_signature_args = _build_fun_signature_args(index_args)
     doc_string = icclim_index.__doc__ or ""
     args_docs = _get_params_docstring(list(index_args.keys()), doc_string)
@@ -321,7 +333,7 @@ def _get_normal_based_declaration(index: StandardIndex, registry: Registry) -> s
         raise NotImplementedError
 
     # Build index arguments
-    index_args = _get_arguments(NORMAL_INDEX_POP_ARGS)
+    index_args = _get_arguments(NORMAL_INDEX_POP_ARGS + _split_runs_pop_args(index))
     normal_sig = inspect.signature(_normal_index_placeholder)
     passed_to_index_args = [f"{arg}={arg}" for arg in index_args]
     index_args["normal"] = normal_sig.parameters["normal"]
@@ -381,6 +393,15 @@ def {index.short_name.lower()}(
 # -----------------------
 # Common helper functions
 # -----------------------
+def _split_runs_pop_args(index: StandardIndex | GenericIndicator) -> list[str]:
+    from icclim.generic.registry import GenericIndicatorRegistry
+
+    indicator = getattr(index, "indicator", index)
+    if indicator is GenericIndicatorRegistry.MaxConsecutiveOccurrence:
+        return []
+    return [SPLIT_RUNS_ARG]
+
+
 def _is_compared_to_normal(index: StandardIndex) -> bool:
     return index.qualifiers is not None and NEEDS_NORMAL in index.qualifiers
 
@@ -449,6 +470,7 @@ def _get_generic_index_declaration(index: GenericIndicator) -> str:
     ]:
         pop_args += ["rolling_window_width"]
 
+    pop_args += _split_runs_pop_args(index)
     index_args = _get_arguments(pop_args)
     fun_signature_args = _build_fun_signature_args(index_args)
     args_docs = _get_params_docstring(list(index_args.keys()), icclim_index.__doc__)
