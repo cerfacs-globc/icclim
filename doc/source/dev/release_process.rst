@@ -89,9 +89,10 @@ For every pull request
 #. **Decide ambiguous definitions in writing.** When the ATBD (or ETCCDI) definition can
    be read in more than one way, do not choose silently. Put the options and the
    reading you propose in the pull request or issue and in the docstring of the test,
-   and let a maintainer decide. *Example:* whether the longest run of frost days (CFD)
-   continues across 31 December, or stops at the period boundary, as in CDD and CWD
-   (issue #543).
+   and let a maintainer decide. *Example:* whether a run of consecutive days that
+   crosses 31 December is counted whole in the period where it starts, as icclim does
+   by default for CDD and CWD, or is cut at the period boundary
+   (``split_runs_at_period_boundary``, issues #543 and #580).
 
 Before every release
 ====================
