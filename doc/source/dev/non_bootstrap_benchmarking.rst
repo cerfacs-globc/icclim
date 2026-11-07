@@ -1,8 +1,8 @@
 .. _dev_non_bootstrap_benchmarking:
 
-##################################
+###################################
 Non-bootstrap performance benchmark
-##################################
+###################################
 
 ``tools/benchmark_non_bootstrap.py`` provides the reproducible benchmark matrix
 for post-7.3.0 performance and memory work. Each case runs in a fresh subprocess
