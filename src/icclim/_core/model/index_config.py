@@ -401,6 +401,11 @@ class IndexConfig:
     run_index : str | None
         The index to use for the run length encoding.
         None if the index is not a spell index.
+    split_runs_at_period_boundary : bool
+        Only used by the indices based on ``max_consecutive_occurrence``.
+        If True, runs of consecutive days are cut at the boundary of each output
+        period instead of being attributed whole to the period where they start
+        (or end, depending on ``run_index``).
     allow_partial_seasons : bool | Literal["start", "end"]
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
@@ -442,6 +447,7 @@ class IndexConfig:
     indicator: Indicator
     reference: str
     run_index: str | None = None
+    split_runs_at_period_boundary: bool = False
     allow_partial_seasons: bool | Literal["start", "end"] = False
     completeness_policy: CompletenessPolicy = dataclasses.field(
         default_factory=lambda: CompletenessPolicy(name="strict", method="any")

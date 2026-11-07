@@ -288,6 +288,33 @@ def count_occurrences(
     )
 
 
+def _run_length_encoding(
+    mask: DataArray,
+    resample_freq: Frequency,
+    run_index: str,
+    *,
+    split_at_period_boundary: bool,
+) -> DataArray:
+    """
+    Run length encode a boolean mask along time.
+
+    By default the encoding runs on the whole series: a run that crosses the end of
+    an output period is encoded once, at its first (or last, see ``run_index``) day,
+    and is therefore attributed whole to a single period.
+    With ``split_at_period_boundary`` the encoding restarts at the beginning of each
+    output period, so a run is cut at the boundaries.
+    The dimension order is the one of the default encoding in both cases
+    (``time`` is the last dimension).
+    """
+    run_length = get_xclim_compute().run_length
+    if not split_at_period_boundary:
+        return run_length.rle(mask, dim="time", index=run_index)
+    rle = mask.resample(time=resample_freq.pandas_freq).map(
+        run_length.rle, dim="time", index=run_index
+    )
+    return rle.assign_coords(time=mask.time).transpose(..., "time")
+
+
 def max_consecutive_occurrence(
     climate_vars: list[ClimateVariable],
     resample_freq: Frequency,
@@ -312,7 +339,12 @@ def max_consecutive_occurrence(
     source_freq_delta : timedelta
         The time difference between consecutive data points in the source data.
     **kwargs : dict
-        Ignored keyword arguments (for compatibility).
+        ``run_index`` ("first" by default, or "last") selects the end of a run to
+        which its whole length is attributed.
+        ``split_runs_at_period_boundary`` (False by default): when True, runs are cut
+        at the boundary of every output period instead of being attributed whole to
+        the period where they start (or end).
+        Other keyword arguments are ignored (for compatibility).
 
     Returns
     -------
@@ -383,11 +415,14 @@ def max_consecutive_occurrence(
             resample_freq,
             logical_link,
         )
+    run_index = kwargs.get("run_index", "first")
+    split_runs = bool(kwargs.get("split_runs_at_period_boundary", False))
     if bootstrap_spell_mask is not None:
-        spell_run_lengths = get_xclim_compute().run_length.rle(
+        spell_run_lengths = _run_length_encoding(
             bootstrap_spell_mask,
-            dim="time",
-            index=kwargs.get("run_index", "first"),
+            resample_freq,
+            run_index,
+            split_at_period_boundary=split_runs,
         )
         result = spell_run_lengths.resample(time=resample_freq.pandas_freq).max(
             dim="time"
@@ -406,19 +441,12 @@ def max_consecutive_occurrence(
         logical_link,
         force_reference_bootstrap=_force_reference_cftime_spell_masks(climate_vars),
     )
-    run_length = get_xclim_compute().run_length
-    run_index = kwargs.get("run_index", "first")
-    if kwargs.get("indicator_name") in {"CFD", "CSU"}:
-        rle = combined_exceedance_mask.resample(time=resample_freq.pandas_freq).map(
-            run_length.rle, dim="time", index=run_index
-        )
-        rle = rle.assign_coords(time=combined_exceedance_mask.time)
-    else:
-        rle = run_length.rle(
-            combined_exceedance_mask,
-            dim="time",
-            index=run_index,
-        )
+    rle = _run_length_encoding(
+        combined_exceedance_mask,
+        resample_freq,
+        run_index,
+        split_at_period_boundary=split_runs,
+    )
     resampled = rle.resample(time=resample_freq.pandas_freq)
     if date_event:
         result = _consecutive_occurrences_with_dates(
