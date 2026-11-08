@@ -2,10 +2,36 @@
  Release history
 #################
 
-**********
-Unreleased
-**********
+*****
+7.3.4
+*****
 
+date: 2026-11-08
+
+
+-  [fix] Support xclim 1.0 (PR #579). xclim 1.0.0 removed ``xclim.indices``
+   (moved to ``xclim.compute``), renamed the ``op`` argument of
+   ``growing_season_length`` to ``condition``, and returns a ``Dataset`` from
+   its indicators. icclim 7.3.3 and earlier declare ``xclim>=0.45.0`` without
+   an upper bound, so a fresh install picks up xclim 1.0.0. With it, ``CDD``
+   raised ``ModuleNotFoundError: No module named 'xclim.indices'`` and ``GSL``
+   raised ``TypeError: select_time() got an unexpected keyword argument 'op'``
+   (run on 7.3.3 with xclim 1.0.0). The other 7.x releases were not tested with
+   xclim 1.0.0. The test suite passes with xclim 0.60.0 and xclim 1.0.0.
+-  [fix] ``difference_of_means`` no longer returns NaN everywhere when
+   ``sampling_method="groupby_ref_and_resample_study"`` is used with a
+   reference given as a separate input that covers another period (issue #571,
+   PR #572). The completeness check combined the masks of the study and of the
+   reference, so with disjoint periods every output period was masked, without
+   any error or warning. Now only the study variable decides which output
+   periods are complete. Affected: 7.2.0, 7.3.0, 7.3.1, 7.3.2 and 7.3.3 (run on
+   a study 2002-2003 against a reference 2000-2001; 7.1.10 returns the expected
+   values). Results computed with these releases for such a call should be
+   recomputed; ``allow_missing_periods=True`` restored the values.
+-  [fix] Threshold queries that cannot be tokenized, such as
+   ``"Coco l'asticot"``, now raise ``InvalidIcclimArgumentError`` on
+   Python 3.13. The tokenizer of Python 3.13 makes pint raise
+   ``tokenize.TokenError``, which was not caught (PR #570).
 -  [perf] Keep the Dask chunks of caller-provided arrays when they are
    reasonably large, instead of rechunking with ``"auto"`` (PR #518). Arrays
    whose largest chunk is smaller than 1/8 of ``array.chunk-size`` (16 MiB with
@@ -15,8 +41,15 @@ Unreleased
 -  [enh] Add opt-in NetCDF4 compression and stored chunk encoding through
    ``ICCLIM_OUTPUT_COMPRESSION_LEVEL`` and ``ICCLIM_OUTPUT_CHUNKS``. The default
    output is unchanged (PR #518).
+-  [perf] Compute the per-period reducers with vectorized reductions instead of
+   Python loops over the periods: maximum and minimum with ``date_event``,
+   count with ``date_event`` and consecutive occurrences with dates (PR #573).
+   On the ACCESS-CM2 benchmark the date-event indices go from about 2 hours to
+   about 1 minute, with identical results. ``date_event`` with ``txx`` and
+   ``tnn`` now also works on non-standard (cftime) calendars. The dated
+   ``max_consecutive_occurrence`` on cftime calendars still fails (issue #574).
 -  [enh] New option ``split_runs_at_period_boundary`` for ``max_consecutive_occurrence``
-   and the ECA&D indices ``CDD``, ``CWD``, ``CFD`` and ``CSU`` (issue #543, PR #547).
+   and the ECA&D indices ``CDD``, ``CWD``, ``CFD`` and ``CSU`` (issue #543, PRs #547 and #585).
    No change by default (``False``): a run of consecutive days that crosses the end
    of an output period is still counted whole in the period where it starts
    (``run_index="first"``, the default) or where it ends (``run_index="last"``), and
@@ -28,11 +61,16 @@ Unreleased
    ``run_index="last"``) and ``[92, 120]`` with the option. The output dimension
    order is the same with and without the option. ``sum_of_spell_lengths`` and the
    indices built on it (``WSDI``, ``CSDI``) are not concerned by the option.
+-  [doc] Explain in the completeness how-to why counting indices returned 0 over
+   cells without any data before 7.2 (a comparison with NaN is never true), why
+   they now return NaN, and how to keep the old behaviour with
+   ``completeness="none"`` (PR #575).
 -  [test] Add an isolated non-bootstrap performance matrix reporting graph
    construction, task count, scheduler calls, wall time and peak RSS across
    workloads, input layouts and chunking policies.
 -  [test] Add matching Kraken real-data workloads and a slow synthetic-cube
    memory regression test.
+-  [test] Add metamorphic property tests (PR #578).
 
 *****
 7.3.3
