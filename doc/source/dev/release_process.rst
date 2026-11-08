@@ -176,6 +176,15 @@ Merging
    ``master`` passes the test suite. This keeps ``git bisect`` and ``git blame`` useful
    when looking for the origin of a wrong value.
 #. **Wait for the required checks** (tests, and the Read the Docs build) to be green.
+#. **Check the Read the Docs build of the pull request yourself.** The build is not
+   always reported as a GitHub status, so a green GitHub check does not prove that the
+   documentation builds. Open the builds of the project
+   (https://app.readthedocs.org/projects/icclim/builds/), find the build named after the
+   pull request number, and require it to be marked as passed. Sphinx runs with
+   warnings treated as errors (``-W``): one warning, for example a title overline
+   shorter than its title, fails the build of the pull request and then every later
+   build of ``master``. After the merge, check that the ``latest`` build of ``master``
+   passed too.
 #. **Rebase dependent pull requests** onto the updated ``master`` after each merge, so
    that a pull request stacked on another does not drag the already merged commits
    along (``git rebase --onto origin/master <old head of the merged PR> <branch>``).
