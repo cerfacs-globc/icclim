@@ -459,7 +459,11 @@ def max_consecutive_occurrence(
             resampled, source_freq_delta, run_index
         )
     else:
-        result = resampled.max(dim="time")
+        # Results without dates follow the dimension order of the input. Dated
+        # results keep ``time`` first, whatever the order of the input.
+        result = _transpose_like_study(
+            resampled.max(dim="time"), climate_vars[0].studied_data
+        )
     freq = check_freq(climate_vars[0].studied_data, dim="time")
     return _safe_to_agg_units(
         result, climate_vars[0].studied_data, "count", deffreq=freq
