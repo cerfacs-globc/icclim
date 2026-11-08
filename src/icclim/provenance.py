@@ -40,6 +40,8 @@ FILTERED_ENV_VARS = (
     "SLURM_ARRAY_JOB_ID",
     "SLURM_ARRAY_TASK_ID",
     "OMP_NUM_THREADS",
+    "ICCLIM_OUTPUT_COMPRESSION_LEVEL",
+    "ICCLIM_OUTPUT_CHUNKS",
 )
 
 
@@ -259,6 +261,7 @@ def collect_resolved_parameters(
                 else None,
                 "sampling_method": config.sampling_method,
                 "run_index": config.run_index,
+                "split_runs_at_period_boundary": config.split_runs_at_period_boundary,
                 "min_spell_length": config.min_spell_length,
                 "rolling_window_width": config.rolling_window_width,
                 "allow_partial_seasons": config.allow_partial_seasons,

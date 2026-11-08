@@ -69,7 +69,6 @@ def test_temperature_percentile_indices(
     assert actual.attrs["standard_name"]
 
 
-@pytest.mark.xfail(strict=True, reason="#540")
 def test_tx90p_bootstrap_matches_atbd_leave_one_year_out() -> None:
     """Base-period overlap follows the ATBD replicate-and-average bootstrap."""
     source = make_bootstrap_temperature_series()

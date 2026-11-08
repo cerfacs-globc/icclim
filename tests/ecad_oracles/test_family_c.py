@@ -117,9 +117,9 @@ def test_fixed_threshold_indices(
 @pytest.mark.parametrize(
     "name",
     [
-        pytest.param("CD", marks=pytest.mark.xfail(strict=True, reason="#541")),
+        "CD",
         "CW",
-        pytest.param("WD", marks=pytest.mark.xfail(strict=True, reason="#541")),
+        "WD",
         "WW",
     ],
 )
@@ -138,7 +138,7 @@ def test_compound_percentile_counts(name: str, chunk: int | None) -> None:
         completeness="none",
     )[name].compute()
 
-    np.testing.assert_allclose(actual.values[-2:], expected[-2:], equal_nan=True)
+    np.testing.assert_allclose(actual.values, expected, equal_nan=True)
 
 
 @pytest.mark.parametrize(
@@ -153,18 +153,17 @@ def test_consecutive_outputs_keep_time_first(name: str, variable: str) -> None:
     assert actual.dims == ("time", "lat", "lon")
 
 
-@pytest.mark.xfail(strict=True, reason="#543")
 @pytest.mark.parametrize(
     ("name", "variable", "normal", "event"),
     [("CFD", "tn", 1.0, -1.0), ("CSU", "tx", 0.0, 30.0)],
 )
-def test_temperature_runs_do_not_merge_across_years(
+def test_temperature_runs_are_split_at_year_boundary_with_option(
     name: str,
     variable: str,
     normal: float,
     event: float,
 ) -> None:
-    """CFD/CSU maxima are defined within each period, unlike CDD/CWD."""
+    """With the option, the longest run is searched within each period (#543)."""
     time = pd.date_range("2001-01-01", "2002-12-31")
     values = np.full(len(time), normal)
     values[(time >= "2001-10-01") & (time <= "2002-04-30")] = event
@@ -175,7 +174,10 @@ def test_temperature_runs_do_not_merge_across_years(
         name=variable,
         attrs={"units": "degC"},
     )
-    actual = getattr(icclim, name.lower())(source, out_file=None, completeness="none")[
-        name
-    ].compute()
+    actual = getattr(icclim, name.lower())(
+        source,
+        out_file=None,
+        completeness="none",
+        split_runs_at_period_boundary=True,
+    )[name].compute()
     np.testing.assert_array_equal(actual.values, [92, 120])

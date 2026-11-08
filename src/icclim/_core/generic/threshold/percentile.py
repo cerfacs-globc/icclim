@@ -11,6 +11,7 @@ from icclim._core.constants import (
     DEFAULT_DOY_WINDOW,
     DOY_COORDINATE,
     DOY_PERCENTILE_UNIT,
+    MAX_LEAP_YEAR_DAYS,
     PERIOD_PERCENTILE_UNIT,
     UNITS_KEY,
 )
@@ -226,6 +227,10 @@ class PercentileThreshold(Threshold):
         else:
             msg = f"Unknown percentile unit '{self._initial_unit}'."
             raise NotImplementedError(msg)
+        # This rechunk is a graph-stabilization boundary for percentile_doy.
+        # Preserving its generated chunks causes missing-dependency failures in
+        # supported xarray/Dask combinations, even though source chunks are safe
+        # to preserve during ordinary input preparation.
         self._prepared_value = prepared_data.chunk("auto")
         self.is_ready = True
         if self._prepare_output_unit is not None:
@@ -473,11 +478,12 @@ class PercentileThreshold(Threshold):
             freq: str,  # noqa: ARG001
             bootstrap: bool,  # noqa: ARG001
         ) -> DataArray:
+            comparison_floor = None
             if self.threshold_min_value is not None:
-                # there is only a threshold_min_value when we are computing > or >=
                 thresh = self.threshold_min_value
                 from xclim.core.units import convert_units_to  # noqa: PLC0415
 
+                comparison_floor = convert_units_to(thresh, da, context="hydro")
                 thresh = convert_units_to(thresh, per, context="hydro")
                 per = per.where(per > thresh, thresh)
             if is_doy_per_threshold:
@@ -487,6 +493,8 @@ class PercentileThreshold(Threshold):
             else:
                 threshold_value = per
             result = op(da, threshold_value)
+            if comparison_floor is not None:
+                result = result.where(da >= comparison_floor, False)
             if "units" not in result.attrs and "units" in da.attrs:
                 result.attrs["units"] = da.attrs["units"]
             return result
@@ -571,15 +579,132 @@ def _build_doy_per(
         only_leap_years,
         percentile_min_value,
     )
-    from xclim.core.calendar import percentile_doy  # noqa: PLC0415
-
-    return percentile_doy(
+    return _circular_percentile_doy(
         arr=reference,
         window=doy_window_width,
         per=per_val,
         alpha=interpolation.alpha,
         beta=interpolation.beta,
     )
+
+
+def _circular_percentile_doy(
+    arr: DataArray,
+    window: int,
+    per: Sequence[float],
+    alpha: float,
+    beta: float,
+) -> DataArray:
+    """Compute calendar-day percentiles with a window wrapping year boundaries."""
+    import numpy as np  # noqa: PLC0415
+    import pandas as pd  # noqa: PLC0415
+    from xclim.core.calendar import build_climatology_bounds  # noqa: PLC0415
+    from xclim.core.formatting import update_history  # noqa: PLC0415
+    from xclim.core.utils import calc_perc  # noqa: PLC0415
+
+    left = window // 2
+    right = window - left - 1
+    parts = []
+    if left:
+        parts.append(arr.isel(time=slice(-left, None)))
+    parts.append(arr)
+    if right:
+        parts.append(arr.isel(time=slice(0, right)))
+    padded = xr.concat(parts, dim="time")
+    rolling = padded.rolling(min_periods=1, center=True, time=window).construct(
+        "window"
+    )
+    rolling = rolling.isel(time=slice(left, left + arr.sizes["time"]))
+
+    coordinates = xr.Coordinates.from_pandas_multiindex(
+        pd.MultiIndex.from_arrays(
+            (rolling.time.dt.year.values, rolling.time.dt.dayofyear.values),
+            names=("year", "dayofyear"),
+        ),
+        "time",
+    )
+    rolling = rolling.drop_vars("time").assign_coords(coordinates)
+    stacked = rolling.unstack("time").stack(stack_dim=("year", "window"))
+    if (
+        stacked.chunks is not None
+        and len(stacked.chunks[stacked.get_axis_num("stack_dim")]) > 1
+    ):
+        time_chunk_count = len(arr.chunks[arr.get_axis_num("time")])
+        doy_chunk_size = np.ceil(len(stacked.dayofyear) / (window * time_chunk_count))
+        stacked = stacked.chunk({"stack_dim": -1, "dayofyear": doy_chunk_size})
+
+    result = xr.apply_ufunc(
+        calc_perc,
+        stacked,
+        input_core_dims=[["stack_dim"]],
+        output_core_dims=[["percentiles"]],
+        keep_attrs=True,
+        kwargs={"percentiles": per, "alpha": alpha, "beta": beta, "copy": True},
+        dask="parallelized",
+        output_dtypes=[stacked.dtype],
+        dask_gufunc_kwargs={"output_sizes": {"percentiles": len(per)}},
+    ).assign_coords(percentiles=xr.DataArray(per, dims=("percentiles",)))
+    if result.dayofyear.max() == MAX_LEAP_YEAR_DAYS:
+        result = _adjust_doy_calendar_exact(
+            result.sel(dayofyear=(result.dayofyear < MAX_LEAP_YEAR_DAYS)), arr
+        )
+    result.attrs.update(arr.attrs.copy())
+    result.attrs["climatology_bounds"] = build_climatology_bounds(arr)
+    result.attrs["window"] = window
+    result.attrs["alpha"] = alpha
+    result.attrs["beta"] = beta
+    result.attrs["history"] = update_history(
+        "percentile_doy with a circular calendar-day window",
+        arr,
+        new_name="per",
+    )
+    return result.rename("per")
+
+
+def _adjust_doy_calendar_exact(source: DataArray, target: DataArray) -> DataArray:
+    """
+    Interpolate calendar-day percentiles to the day-of-year range of `target`.
+
+    Same result as `xclim.core.calendar.adjust_doy_calendar`, but the linear
+    interpolation uses the numerically stable form `a + (b - a) * gamma` (also used
+    by the compiled bootstrap kernels). `DataArray.interp` goes through SciPy, whose
+    arithmetic is not exact between equal neighbours depending on its version:
+    10.0 can become 10.000000000000002, which turns observations tying with the
+    threshold into spurious exceedances.
+    """
+    import numpy as np  # noqa: PLC0415
+    from xclim.core.calendar import get_calendar, max_doy  # noqa: PLC0415
+
+    max_target_doy = int(target.time.dt.dayofyear.max())
+    min_target_doy = int(target.time.dt.dayofyear.min())
+    if source.dayofyear.max() == max_doy[get_calendar(target)]:
+        return source
+    if max_target_doy == min_target_doy:
+        return source
+    da = source.chunk({"dayofyear": -1}) if source.chunks is not None else source
+    filled = da.interpolate_na(dim="dayofyear")
+    size = filled.sizes["dayofyear"]
+    new_doys = np.arange(min_target_doy, max_target_doy + 1)
+    position = (
+        (new_doys - min_target_doy) * (size - 1.0) / (max_target_doy - min_target_doy)
+    )
+    lower = np.minimum(np.floor(position).astype(int), max(size - 2, 0))
+    gamma = position - lower
+    upper = np.minimum(lower + 1, size - 1)
+
+    left = filled.isel(dayofyear=lower).assign_coords(dayofyear=new_doys)
+    right = filled.isel(dayofyear=upper).assign_coords(dayofyear=new_doys)
+    weight = xr.DataArray(gamma, dims="dayofyear", coords={"dayofyear": new_doys})
+    diff = right - left
+    result = xr.where(
+        weight >= 0.5,  # noqa: PLR2004
+        right - diff * (1.0 - weight),
+        left + diff * weight,
+        keep_attrs=True,
+    )
+    result = result.transpose(*source.dims)
+    result.attrs = dict(source.attrs)
+    return result
 
 
 def _build_per_thresh_from_dataset(

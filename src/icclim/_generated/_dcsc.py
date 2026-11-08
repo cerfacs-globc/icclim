@@ -3897,6 +3897,7 @@ def pxcdd(
     completeness: CompletenessLike = None,
     allow_missing_periods: bool | None = None,
     allow_partial_final_period: bool = False,
+    split_runs_at_period_boundary: bool = False,
 ) -> Dataset:
     """Période de sécheresse (Max [Nbj consécutifs RR < 1 mm]).
 
@@ -3956,6 +3957,18 @@ def pxcdd(
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
+    split_runs_at_period_boundary : bool, default=is
+        ``optional`` Only used by the indices based on ``max_consecutive_occurrence``
+        (``CDD``, ``CWD``, ``CFD``, ``CSU``), ignored otherwise.
+        When ``False`` (default), a run of consecutive days that crosses the end of
+        an output period is counted whole in a single period: the one where the run
+        starts with ``run_index="first"`` (default), or the one where it ends with
+        ``run_index="last"``. The following (or preceding) period then gets no
+        credit for the days of that run, so its value can be 0.
+        When ``True``, runs are cut at the boundary of every output period and each
+        period gets the longest run found inside it. ``run_index`` then has no
+        effect on the values.
+        Default is ``False``.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
     netcdf_version : str | NetcdfVersion
@@ -4025,6 +4038,7 @@ def pxcdd(
         completeness=completeness,
         allow_missing_periods=allow_missing_periods,
         allow_partial_final_period=allow_partial_final_period,
+        split_runs_at_period_boundary=split_runs_at_period_boundary,
         threshold=build_threshold(
             query="< 1 mm/day",
         ),
@@ -4048,6 +4062,7 @@ def pxcwd(
     completeness: CompletenessLike = None,
     allow_missing_periods: bool | None = None,
     allow_partial_final_period: bool = False,
+    split_runs_at_period_boundary: bool = False,
 ) -> Dataset:
     """Nombre maximum de jours pluvieux consécutifs (Max [Nbj consécutifs RR > 1 mm]).
 
@@ -4107,6 +4122,18 @@ def pxcwd(
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
+    split_runs_at_period_boundary : bool, default=is
+        ``optional`` Only used by the indices based on ``max_consecutive_occurrence``
+        (``CDD``, ``CWD``, ``CFD``, ``CSU``), ignored otherwise.
+        When ``False`` (default), a run of consecutive days that crosses the end of
+        an output period is counted whole in a single period: the one where the run
+        starts with ``run_index="first"`` (default), or the one where it ends with
+        ``run_index="last"``. The following (or preceding) period then gets no
+        credit for the days of that run, so its value can be 0.
+        When ``True``, runs are cut at the boundary of every output period and each
+        period gets the longest run found inside it. ``run_index`` then has no
+        effect on the values.
+        Default is ``False``.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
     netcdf_version : str | NetcdfVersion
@@ -4176,6 +4203,7 @@ def pxcwd(
         completeness=completeness,
         allow_missing_periods=allow_missing_periods,
         allow_partial_final_period=allow_partial_final_period,
+        split_runs_at_period_boundary=split_runs_at_period_boundary,
         threshold=build_threshold(
             query=">= 1 mm/day",
         ),

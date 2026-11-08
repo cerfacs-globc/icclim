@@ -79,6 +79,9 @@ testpaths = ["tests", "src/icclim"]
 addopts = "--doctest-modules"
 doctest_optionflags = ["NORMALIZE_WHITESPACE", "ELLIPSIS"]
 norecursedirs = ["src/icclim/_generated"]
+markers = [
+  "slow: synthetic memory and performance regression tests"
+]
 
 [tool.ruff]
 

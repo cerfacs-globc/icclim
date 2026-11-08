@@ -3,6 +3,148 @@
 #################
 
 *****
+7.3.4
+*****
+
+date: 2026-11-08
+
+
+-  [fix] Support xclim 1.0 (PR #579). xclim 1.0.0 removed ``xclim.indices``
+   (moved to ``xclim.compute``), renamed the ``op`` argument of
+   ``growing_season_length`` to ``condition``, and returns a ``Dataset`` from
+   its indicators. icclim 7.3.3 and earlier declare ``xclim>=0.45.0`` without
+   an upper bound, so a fresh install picks up xclim 1.0.0. With it, ``CDD``
+   raised ``ModuleNotFoundError: No module named 'xclim.indices'`` and ``GSL``
+   raised ``TypeError: select_time() got an unexpected keyword argument 'op'``
+   (run on 7.3.3 with xclim 1.0.0). The other 7.x releases were not tested with
+   xclim 1.0.0. The test suite passes with xclim 0.60.0 and xclim 1.0.0.
+-  [fix] ``difference_of_means`` no longer returns NaN everywhere when
+   ``sampling_method="groupby_ref_and_resample_study"`` is used with a
+   reference given as a separate input that covers another period (issue #571,
+   PR #572). The completeness check combined the masks of the study and of the
+   reference, so with disjoint periods every output period was masked, without
+   any error or warning. Now only the study variable decides which output
+   periods are complete. Affected: 7.2.0, 7.3.0, 7.3.1, 7.3.2 and 7.3.3 (run on
+   a study 2002-2003 against a reference 2000-2001; 7.1.10 returns the expected
+   values). Results computed with these releases for such a call should be
+   recomputed; ``allow_missing_periods=True`` restored the values.
+-  [fix] Threshold queries that cannot be tokenized, such as
+   ``"Coco l'asticot"``, now raise ``InvalidIcclimArgumentError`` on
+   Python 3.13. The tokenizer of Python 3.13 makes pint raise
+   ``tokenize.TokenError``, which was not caught (PR #570).
+-  [perf] Keep the Dask chunks of caller-provided arrays when they are
+   reasonably large, instead of rechunking with ``"auto"`` (PR #518). Arrays
+   whose largest chunk is smaller than 1/8 of ``array.chunk-size`` (16 MiB with
+   the default), and eager arrays, are still chunked with ``"auto"``: with
+   one chunk per daily file the preserved chunks made some indices 3 to 7 times
+   slower. Results are unchanged.
+-  [enh] Add opt-in NetCDF4 compression and stored chunk encoding through
+   ``ICCLIM_OUTPUT_COMPRESSION_LEVEL`` and ``ICCLIM_OUTPUT_CHUNKS``. The default
+   output is unchanged (PR #518).
+-  [perf] Compute the per-period reducers with vectorized reductions instead of
+   Python loops over the periods: maximum and minimum with ``date_event``,
+   count with ``date_event`` and consecutive occurrences with dates (PR #573).
+   On the ACCESS-CM2 benchmark the date-event indices go from about 2 hours to
+   about 1 minute, with identical results. ``date_event`` with ``txx`` and
+   ``tnn`` now also works on non-standard (cftime) calendars. The dated
+   ``max_consecutive_occurrence`` on cftime calendars still fails (issue #574).
+-  [enh] New option ``split_runs_at_period_boundary`` for ``max_consecutive_occurrence``
+   and the ECA&D indices ``CDD``, ``CWD``, ``CFD`` and ``CSU`` (issue #543, PRs #547 and #585).
+   No change by default (``False``): a run of consecutive days that crosses the end
+   of an output period is still counted whole in the period where it starts
+   (``run_index="first"``, the default) or where it ends (``run_index="last"``), and
+   the other period gets no credit for the days of that run, so its value can be 0.
+   With ``split_runs_at_period_boundary=True`` the runs are cut at the boundary of
+   every output period and each period gets the longest run found inside it. For
+   daily data from 2001 to 2002 with frost days from 2001-10-01 to 2002-04-30 and a
+   yearly output, ``CFD`` is ``[212, 0]`` by default (``[0, 212]`` with
+   ``run_index="last"``) and ``[92, 120]`` with the option. The output dimension
+   order is the same with and without the option. ``sum_of_spell_lengths`` and the
+   indices built on it (``WSDI``, ``CSDI``) are not concerned by the option.
+-  [doc] Explain in the completeness how-to why counting indices returned 0 over
+   cells without any data before 7.2 (a comparison with NaN is never true), why
+   they now return NaN, and how to keep the old behaviour with
+   ``completeness="none"`` (PR #575).
+-  [test] Add an isolated non-bootstrap performance matrix reporting graph
+   construction, task count, scheduler calls, wall time and peak RSS across
+   workloads, input layouts and chunking policies.
+-  [test] Add matching Kraken real-data workloads and a slow synthetic-cube
+   memory regression test.
+-  [test] Add metamorphic property tests (PR #578).
+
+*****
+7.3.3
+*****
+
+date: 2026-11-04
+
+
+-  [fix] Make the interpolation of calendar-day percentile thresholds from 365
+   to 366 days exact (PR #566). With SciPy 1.18.1, ``interp1d`` returns
+   inexact values for constant multi-dimensional data (scipy/scipy#26609), so
+   ``DataArray.interp``, which icclim used through xclim's
+   ``adjust_doy_calendar``, turned neighbouring thresholds of exactly 10.0 into
+   values such as 10.000000000000002 or 9.999999999999998. Observations that tie
+   with a threshold, for example temperatures reported to 0.1 degC, were then
+   counted as exceeding it in count-type percentile indices such as ``TX90p``.
+   In a test with temperatures rounded to 0.1 degC over 30 years, the summed
+   ``TX90p`` and ``TX10p`` counts were 25970 instead of 25926 (44 additional
+   exceedance days). Affected: 7.2.0, 7.3.0, 7.3.1 and 7.3.2 installed with
+   SciPy 1.18.1 (run on a day-of-year percentile count test; SciPy 1.17.1 gives
+   the exact result). Results computed with SciPy 1.18.x should be recomputed.
+   Other SciPy 1.18 releases were not tested.
+-  [fix] Compute the calendar-day percentile windows with wrap-around at the
+   edges of the percentile base period, for nominal and bootstrap thresholds,
+   with the same thresholds in eager and chunked execution (issue #559,
+   PR #564). Before, the 5-day window of the first and last days of the base
+   period was truncated, which left ``CD``, ``WD`` and ``WW`` one day off in the
+   independent check. Behaviour change: thresholds for the first and last days
+   of the year can change slightly, and day-of-year percentile indices with
+   them; period percentiles do not change. Affected: 7.3.2 (run, listed there
+   as a known issue); earlier releases were not checked.
+-  [fix] Rolling-window indices such as ``RX5day`` no longer fail when a Dask
+   time chunk is shorter than the rolling window: only the chunks that are too
+   short are merged, other chunk layouts are kept (issue #526, PR #565).
+   Confirmed failing with xarray 2026.2.0 and dask 2026.1.2 (run); it did not
+   reproduce with xarray 2026.9.0 and dask 2026.8.0, so the affected releases
+   are not determined.
+-  [doc] Add the behaviour-change, ambiguity and change-detector rules to the
+   release process (PR #563).
+
+*****
+7.3.2
+*****
+
+date: 2026-11-03
+
+
+-  [fix] Honour every percentile requested from generic ``percentile`` while
+   preserving the 7.3.1 single-percentile output shape (issue #557). From at
+   least 7.2.0 through 7.3.1, the source used only the first requested value
+   (7.2.0 source read).
+-  [fix] Average the ECA&D leave-one-year-out bootstrap index estimates for
+   temperature percentile counts TG10p/TG90p, TN10p/TN90p, and TX10p/TX90p
+   (issue #540, PR #545). This is a
+   7.3.0 regression: running 7.2.0 gives the correct ATBD value, while 7.3.0
+   and 7.3.1 are affected.
+-  [fix] Restrict the precipitation operand of ``CD`` and ``WD`` to wet days
+   (RR >= 1 mm) (issue #541, PR #546). Affected in 7.2.0 and 7.3.1 (run).
+-  [fix] Apply the requested percentile base period, interpolation,
+   day-of-year window and ``only_leap_years`` setting to the default compound
+   thresholds used by ``CD``, ``CW``, ``WD`` and ``WW`` (issue #560,
+   PR #546). Affected in 7.2.0 and 7.3.1 (run).
+-  [fix] Use the strict ECA&D ``TG > 5 degC`` GSL onset and honor disabled
+   completeness for isolated missing values (issues #537 and #538, PR #548).
+   Affected since at least 7.2.0 through 7.3.1; the 7.2.0 source was read, not
+   run.
+-  [fix] Accept CF precipitation-flux units in ``RX5day`` (issue #544,
+   PR #549). Verified by running 7.3.1; the 7.2.0 source was read, but no
+   earlier range is claimed.
+-  [known issue] ``CD``, ``WD`` and ``WW`` can differ by one day at the edges
+   of a subset percentile base period because the five-day calendar window is
+   truncated instead of wrapped (issue #559).
+
+*****
 7.3.1
 *****
 

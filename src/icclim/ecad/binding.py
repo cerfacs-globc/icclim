@@ -8,6 +8,11 @@ from pandas import to_datetime
 
 from icclim._core.generic.functions import get_single_var
 from icclim._core.generic.indicator import Indicator
+from icclim._core.xclim_compat import (
+    as_dataarray,
+    get_comparison_kwarg,
+    get_xclim_compute,
+)
 from icclim.exception import InvalidIcclimArgumentError
 from icclim.frequency import FrequencyRegistry
 
@@ -40,13 +45,40 @@ class GrowingSeasonLength(Indicator):
         import xclim  # noqa: PLC0415
 
         study, _ = get_single_var(config.climate_variables)
-        return xclim.atmos.growing_season_length(
+        kwargs = {
+            "tas": study,
+            "thresh": "5 degree_Celsius",
+            "window": 6,
+            "mid_date": "07-01",
+            "freq": config.frequency.pandas_freq,
+        }
+        if config.completeness_policy.is_applied:
+            kwargs[get_comparison_kwarg(xclim.atmos.growing_season_length)] = ">"
+            return as_dataarray(xclim.atmos.growing_season_length(**kwargs))
+        result = get_xclim_compute().growing_season_length(
             tas=study,
             thresh="5 degree_Celsius",
             window=6,
             mid_date="07-01",
             freq=config.frequency.pandas_freq,
+            op=">",
         )
+        valid_period = study.notnull().resample(time=config.frequency.pandas_freq).any()
+        result = result.where(valid_period)
+        from xclim.core.formatting import update_history  # noqa: PLC0415
+
+        result.attrs.update(
+            units="days",
+            long_name=self.long_name,
+            standard_name=self.standard_name,
+            cell_methods=self.cell_methods,
+            history=update_history(
+                "growing_season_length with icclim completeness disabled",
+                study,
+                new_name=self.name,
+            ),
+        )
+        return result
 
     def preprocess(self, *args, **kwargs) -> list[xarray.DataArray]:
         """Not implemented as xclim indicator already handle pre/post processing."""
@@ -98,15 +130,17 @@ class StandardizedPrecipitationIndex3(Indicator):
         start, end = to_datetime(study_cv.reference_period, format="%m-%d-%Y")
         # Convert back to YYYY-MM-DD
         cal_start, cal_end = start.strftime("%Y-%m-%d"), end.strftime("%Y-%m-%d")
-        return xclim.atmos.standardized_precipitation_index(
-            pr=study,
-            freq="MS",
-            window=3,
-            cal_start=cal_start,
-            cal_end=cal_end,
-            dist="gamma",
-            method="APP",
-            fitkwargs={"floc": 0},
+        return as_dataarray(
+            xclim.atmos.standardized_precipitation_index(
+                pr=study,
+                freq="MS",
+                window=3,
+                cal_start=cal_start,
+                cal_end=cal_end,
+                dist="gamma",
+                method="APP",
+                fitkwargs={"floc": 0},
+            )
         )
 
     def preprocess(self, *args, **kwargs) -> list[xarray.DataArray]:
@@ -159,15 +193,17 @@ class StandardizedPrecipitationIndex6(Indicator):
         start, end = to_datetime(study_cv.reference_period, format="%m-%d-%Y")
         # Convert back to YYYY-MM-DD
         cal_start, cal_end = start.strftime("%Y-%m-%d"), end.strftime("%Y-%m-%d")
-        return xclim.atmos.standardized_precipitation_index(
-            pr=study,
-            freq="MS",
-            window=6,
-            cal_start=cal_start,
-            cal_end=cal_end,
-            dist="gamma",
-            method="APP",
-            fitkwargs={"floc": 0},
+        return as_dataarray(
+            xclim.atmos.standardized_precipitation_index(
+                pr=study,
+                freq="MS",
+                window=6,
+                cal_start=cal_start,
+                cal_end=cal_end,
+                dist="gamma",
+                method="APP",
+                fitkwargs={"floc": 0},
+            )
         )
 
     def preprocess(self, *args, **kwargs) -> list[xarray.DataArray]:

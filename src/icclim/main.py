@@ -12,7 +12,9 @@ A convenience function `indices` is also exposed to compute multiple indices at 
 from __future__ import annotations
 
 import datetime as dt
+import json
 import operator
+import os
 import time
 from collections.abc import Callable, Sequence
 from functools import reduce
@@ -82,6 +84,9 @@ log: IcclimLogger = IcclimLogger.get_instance(VerbosityRegistry.LOW)
 HISTORY_CF_KEY = "history"
 SOURCE_CF_KEY = "source"
 NUMBER_OF_NOTNULL_VAR = "number_of_notnull"
+OUTPUT_COMPRESSION_LEVEL_ENV = "ICCLIM_OUTPUT_COMPRESSION_LEVEL"
+OUTPUT_CHUNKS_ENV = "ICCLIM_OUTPUT_CHUNKS"
+MAX_OUTPUT_COMPRESSION_LEVEL = 9
 
 
 class NormalizedIndexRequest:
@@ -377,6 +382,7 @@ def index(
     allow_missing_periods: bool | None = None,
     allow_partial_final_period: bool = False,
     *,
+    split_runs_at_period_boundary: bool = False,
     # deprecated params are kwargs only
     window_width: int | None = None,
     save_percentile: bool | None = None,
@@ -488,6 +494,18 @@ def index(
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
+    split_runs_at_period_boundary: bool
+        ``optional`` Only used by the indices based on ``max_consecutive_occurrence``
+        (``CDD``, ``CWD``, ``CFD``, ``CSU``), ignored otherwise.
+        When ``False`` (default), a run of consecutive days that crosses the end of
+        an output period is counted whole in a single period: the one where the run
+        starts with ``run_index="first"`` (default), or the one where it ends with
+        ``run_index="last"``. The following (or preceding) period then gets no
+        credit for the days of that run, so its value can be 0.
+        When ``True``, runs are cut at the boundary of every output period and each
+        period gets the longest run found inside it. ``run_index`` then has no
+        effect on the values.
+        Default is ``False``.
     only_leap_years: bool
         ``optional`` Option for February 29th (default: False).
     ignore_Feb29th: bool
@@ -667,6 +685,7 @@ def index(
             rolling_window_width=rolling_window_width,
             sampling_method=sampling_method,
             run_index=run_index,
+            split_runs_at_period_boundary=split_runs_at_period_boundary,
             allow_partial_seasons=allow_partial_seasons or False,
             completeness=completeness,
             allow_missing_periods=allow_missing_periods,
@@ -698,6 +717,7 @@ def index(
             rolling_window_width=rolling_window_width,
             sampling_method=sampling_method,
             run_index=run_index,
+            split_runs_at_period_boundary=split_runs_at_period_boundary,
             allow_partial_seasons=allow_partial_seasons,
             completeness=completeness,
             allow_missing_periods=allow_missing_periods,
@@ -801,6 +821,7 @@ def _build_index_provenance_user_parameters(
     rolling_window_width: int | None,
     sampling_method: SamplingMethodLike,
     run_index: str | None,
+    split_runs_at_period_boundary: bool,
     allow_partial_seasons: bool | Literal["start", "end"],
     completeness: CompletenessLike,
     allow_missing_periods: bool | None,
@@ -833,6 +854,7 @@ def _build_index_provenance_user_parameters(
         "rolling_window_width": rolling_window_width,
         "sampling_method": _serialize_provenance_value(sampling_method),
         "run_index": run_index,
+        "split_runs_at_period_boundary": split_runs_at_period_boundary,
         "allow_partial_seasons": allow_partial_seasons,
         "completeness": completeness,
         "allow_missing_periods": allow_missing_periods,
@@ -876,6 +898,7 @@ def _build_config_from_request(
     rolling_window_width: int | None,
     sampling_method: SamplingMethodLike,
     run_index: str | None,
+    split_runs_at_period_boundary: bool,
     allow_partial_seasons: bool | Literal["start", "end"],
     completeness: CompletenessLike,
     allow_missing_periods: bool | None,
@@ -907,6 +930,7 @@ def _build_config_from_request(
         rolling_window_width=rolling_window_width,
         sampling_method=sampling_method,
         run_index=run_index,
+        split_runs_at_period_boundary=split_runs_at_period_boundary,
         allow_partial_seasons=allow_partial_seasons,
         completeness=completeness,
         allow_missing_periods=allow_missing_periods,
@@ -938,6 +962,7 @@ def _build_config(
     rolling_window_width: int | None,
     sampling_method: SamplingMethodLike,
     run_index: str | None,
+    split_runs_at_period_boundary: bool,
     allow_partial_seasons: bool | Literal["start", "end"],
     completeness: CompletenessLike,
     allow_missing_periods: bool | None,
@@ -966,6 +991,7 @@ def _build_config(
             rolling_window_width=rolling_window_width,
             sampling_method=sampling_method,
             run_index=run_index,
+            split_runs_at_period_boundary=split_runs_at_period_boundary,
             allow_partial_seasons=allow_partial_seasons,
             completeness=completeness,
             allow_missing_periods=allow_missing_periods,
@@ -995,6 +1021,7 @@ def _build_config(
             rolling_window_width=rolling_window_width,
             sampling_method=sampling_method,
             run_index=run_index,
+            split_runs_at_period_boundary=split_runs_at_period_boundary,
             allow_partial_seasons=allow_partial_seasons,
             completeness=completeness,
             allow_missing_periods=allow_missing_periods,
@@ -1076,6 +1103,7 @@ def _build_legacy_user_index_config(
     rolling_window_width: int | None,
     sampling_method: SamplingMethodLike,
     run_index: str | None,
+    split_runs_at_period_boundary: bool,
     allow_partial_seasons: bool | Literal["start", "end"],
     completeness: CompletenessLike,
     allow_missing_periods: bool | None,
@@ -1125,6 +1153,7 @@ def _build_legacy_user_index_config(
         indicator=legacy_user_index_config.indicator,
         reference=ICCLIM_REFERENCE,
         run_index=run_index,
+        split_runs_at_period_boundary=split_runs_at_period_boundary,
         allow_partial_seasons=allow_partial_seasons,
         completeness=completeness,
         allow_missing_periods=allow_missing_periods,
@@ -1155,6 +1184,7 @@ def _build_standard_index_config(
     rolling_window_width: int | None,
     sampling_method: SamplingMethodLike,
     run_index: str | None,
+    split_runs_at_period_boundary: bool,
     allow_partial_seasons: bool | Literal["start", "end"],
     completeness: CompletenessLike,
     allow_missing_periods: bool | None,
@@ -1214,6 +1244,7 @@ def _build_standard_index_config(
         indicator=indicator,
         reference=reference,
         run_index=run_index,
+        split_runs_at_period_boundary=split_runs_at_period_boundary,
         allow_partial_seasons=allow_partial_seasons,
         completeness=completeness,
         allow_missing_periods=allow_missing_periods,
@@ -1311,6 +1342,7 @@ def _assemble_index_config(
     indicator: Indicator,
     reference: str,
     run_index: str | None,
+    split_runs_at_period_boundary: bool,
     allow_partial_seasons: bool | Literal["start", "end"],
     completeness: CompletenessLike,
     allow_missing_periods: bool | None,
@@ -1338,6 +1370,7 @@ def _assemble_index_config(
         indicator=indicator,
         reference=reference,
         run_index=run_index,
+        split_runs_at_period_boundary=split_runs_at_period_boundary,
         allow_partial_seasons=allow_partial_seasons,
         completeness_policy=resolve_completeness_policy(
             completeness=completeness,
@@ -1374,6 +1407,24 @@ def _write_output_file(
     file_path: str,
 ) -> None:
     """Write `result_ds` to a netCDF file on `out_file` path."""
+    encoding = _build_output_encoding(
+        result_ds,
+        input_time_encoding,
+        netcdf_version,
+    )
+    result_ds.to_netcdf(
+        file_path,
+        format=netcdf_version.name,
+        encoding=encoding,
+    )
+
+
+def _build_output_encoding(
+    result_ds: xr.Dataset,
+    input_time_encoding: dict | None,
+    netcdf_version: NetcdfVersion,
+) -> dict[str, dict[str, Any]]:
+    """Build default time encoding plus explicitly requested storage options."""
     if input_time_encoding:
         time_encoding = {
             "calendar": input_time_encoding.get("calendar"),
@@ -1386,11 +1437,87 @@ def _write_output_file(
             UNITS_KEY: "days since 1850-1-1",
             "dtype": np.float64,  # force float
         }
-    result_ds.to_netcdf(
-        file_path,
-        format=netcdf_version.name,
-        encoding={"time": time_encoding},
-    )
+    encoding: dict[str, dict[str, Any]] = {"time": time_encoding}
+    compression_level = _read_output_compression_level()
+    requested_chunks = _read_output_chunks()
+    if compression_level is not None and netcdf_version.name.startswith("NETCDF3"):
+        msg = (
+            f"{OUTPUT_COMPRESSION_LEVEL_ENV} requires a NETCDF4 output format, "
+            f"not {netcdf_version.name}."
+        )
+        raise InvalidIcclimArgumentError(msg)
+    if requested_chunks is not None and netcdf_version.name.startswith("NETCDF3"):
+        msg = (
+            f"{OUTPUT_CHUNKS_ENV} requires a NETCDF4 output format, "
+            f"not {netcdf_version.name}."
+        )
+        raise InvalidIcclimArgumentError(msg)
+    if compression_level is None and requested_chunks is None:
+        return encoding
+    for name, data_var in result_ds.data_vars.items():
+        variable_encoding: dict[str, Any] = {}
+        if compression_level is not None:
+            variable_encoding.update(zlib=True, complevel=compression_level)
+        if requested_chunks is not None and data_var.dims:
+            variable_encoding["chunksizes"] = tuple(
+                min(
+                    data_var.sizes[dim],
+                    requested_chunks.get(
+                        dim,
+                        _first_chunk_size(data_var, dim),
+                    ),
+                )
+                for dim in data_var.dims
+            )
+        if variable_encoding:
+            encoding[str(name)] = variable_encoding
+    return encoding
+
+
+def _first_chunk_size(data_var: xr.DataArray, dim: str) -> int:
+    if data_var.chunksizes:
+        return int(data_var.chunksizes[dim][0])
+    return int(data_var.sizes[dim])
+
+
+def _read_output_compression_level() -> int | None:
+    raw_level = os.environ.get(OUTPUT_COMPRESSION_LEVEL_ENV)
+    if raw_level is None:
+        return None
+    try:
+        level = int(raw_level)
+    except ValueError as error:
+        msg = f"{OUTPUT_COMPRESSION_LEVEL_ENV} must be an integer from 1 to 9."
+        raise InvalidIcclimArgumentError(msg) from error
+    if not 1 <= level <= MAX_OUTPUT_COMPRESSION_LEVEL:
+        msg = f"{OUTPUT_COMPRESSION_LEVEL_ENV} must be an integer from 1 to 9."
+        raise InvalidIcclimArgumentError(msg)
+    return level
+
+
+def _read_output_chunks() -> dict[str, int] | None:
+    raw_chunks = os.environ.get(OUTPUT_CHUNKS_ENV)
+    if raw_chunks is None:
+        return None
+    try:
+        chunks = json.loads(raw_chunks)
+    except json.JSONDecodeError as error:
+        msg = f"{OUTPUT_CHUNKS_ENV} must be a JSON object of dimension sizes."
+        raise InvalidIcclimArgumentError(msg) from error
+    if (
+        not isinstance(chunks, dict)
+        or not chunks
+        or any(
+            not isinstance(dim, str)
+            or isinstance(size, bool)
+            or not isinstance(size, int)
+            or size <= 0
+            for dim, size in chunks.items()
+        )
+    ):
+        msg = f"{OUTPUT_CHUNKS_ENV} must be a JSON object of positive integer sizes."
+        raise InvalidIcclimArgumentError(msg)
+    return chunks
 
 
 def _normalize_index_request(
@@ -1599,6 +1726,18 @@ def _build_request_threshold(
     interpolation: QuantileInterpolation,
 ) -> Threshold:
     if isinstance(threshold, Threshold):
+        from copy import deepcopy  # noqa: PLC0415
+
+        from icclim._core.generic.threshold.percentile import (  # noqa: PLC0415
+            PercentileThreshold,
+        )
+
+        threshold = deepcopy(threshold)
+        if isinstance(threshold, PercentileThreshold):
+            threshold.doy_window_width = doy_window_width
+            threshold.reference_period = reference_period
+            threshold.only_leap_years = only_leap_years
+            threshold.interpolation = interpolation
         return threshold
     if isinstance(threshold, dict):
         kwargs = {
