@@ -109,9 +109,9 @@ For a detailed description of each ECA&D index, please visit: https://www.ecad.e
         :target: https://anaconda.org/conda-forge/icclim
         :alt: Conda-forge Build Version
 
-.. |doi| image:: https://zenodo.org/badge/15936714.svg
-        :target: https://zenodo.org/badge/latestdoi/15936714
-        :alt: D.O.I link
+.. |doi| image:: https://zenodo.org/badge/DOI/10.5281/zenodo.6046052.svg
+        :target: https://doi.org/10.5281/zenodo.6046052
+        :alt: DOI of all versions of icclim
 
 .. |logo| image:: https://github.com/cerfacs-globc/icclim/raw/master/doc/source/_static/logo_icclim_colored__displayed.svg
         :target: https://github.com/cerfacs-globc/icclim
