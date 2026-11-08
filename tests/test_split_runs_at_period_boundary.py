@@ -16,6 +16,8 @@ import pytest
 import xarray as xr
 
 import icclim
+from icclim._core.generic.functions import _run_length_encoding
+from icclim.frequency import FrequencyRegistry
 
 
 @dataclass(frozen=True)
@@ -253,3 +255,38 @@ def test_date_event_with_the_option_dates_the_run_inside_each_period(
     # With the option each period dates its own part of the run.
     assert as_days(split.event_date_start) == ["2001-10-01", "2002-01-01"]
     assert as_days(split.event_date_end) == ["2002-01-01", "2002-05-01"]
+
+
+@pytest.mark.parametrize("chunked", [False, True], ids=["eager", "chunked"])
+@pytest.mark.parametrize("time_last", [False, True], ids=["time-first", "time-last"])
+@pytest.mark.parametrize("run_index", ["first", "last"])
+def test_split_encoding_has_the_dimension_order_of_the_default_encoding(
+    run_index: str, time_last: bool, chunked: bool
+) -> None:
+    """
+    The order of the dimensions of a run length encoding depends on xclim.
+
+    The split encoding must produce the same order as the default one, whichever
+    order the installed xclim returns (checked with xclim 0.45.0, 0.60.0 and 1.0.0).
+    """
+    time = pd.date_range("2001-01-01", "2002-12-31")
+    flags = (time >= "2001-10-01") & (time <= "2002-04-30")
+    cube = xr.DataArray(
+        np.broadcast_to(flags[:, None, None], (len(time), 2, 3)).copy(),
+        dims=("time", "lat", "lon"),
+        coords={"time": time, "lat": [0.0, 1.0], "lon": [0.0, 1.0, 2.0]},
+    )
+    if time_last:
+        cube = cube.transpose("lat", "lon", "time")
+    if chunked:
+        cube = cube.chunk({"lat": 1})
+    year = FrequencyRegistry.YEAR
+    default = _run_length_encoding(
+        cube, year, run_index, split_at_period_boundary=False
+    )
+    split = _run_length_encoding(cube, year, run_index, split_at_period_boundary=True)
+    assert split.dims == default.dims
+    assert split.shape == default.shape
+    # Only the values differ: the split encoding restarts in each year.
+    assert int(default.max()) == 212
+    assert int(split.max()) == 120
