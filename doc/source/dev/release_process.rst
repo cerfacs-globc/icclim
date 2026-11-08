@@ -151,6 +151,12 @@ Before every release
 #. After publishing, verify the install in a **fresh virtual environment with a
    supported Python (>= 3.10)**: ``pip install icclim==X.Y.Z`` and print
    ``icclim.__version__``.
+#. After publishing, check on Zenodo that the new version exists. Zenodo creates the
+   version DOI of each release itself (for example ``10.5281/zenodo.24052515`` for
+   7.3.4). Do not write it in ``CITATION.cff`` or ``.zenodo.json``, which have no
+   ``doi`` field on purpose. To cite icclim in general, use the concept DOI
+   ``10.5281/zenodo.6046052`` (README badge): it always resolves to the latest
+   version. A version DOI is only for citing one specific version.
 
 Periodically
 ============
