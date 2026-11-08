@@ -2,6 +2,23 @@
  Release history
 #################
 
+**********
+Unreleased
+**********
+
+-  [fix] ``CDD``, ``CWD``, ``CFD``, ``CSU`` and ``max_consecutive_occurrence``
+   return their dimensions in the order of the input (issue #542, PR #550).
+   Behaviour change in the layout only, the values do not change. With
+   xclim 0.60.0 and later these results had ``time`` after the spatial
+   dimensions, whatever the input; xclim 0.45.0 already kept the order of the
+   input. Before: an input ordered ``(time, lat, lon)`` gave
+   ``(lat, lon, time)`` and an input ordered ``(lat, lon, time)`` gave
+   ``(lat, lon, time)``. Now: ``(time, lat, lon)`` and ``(lat, lon, time)``.
+   Results computed with ``date_event=True`` are not concerned: ``time`` stays
+   the first dimension whatever the order of the input. Code that selects these
+   results by axis position instead of by dimension name has to be updated.
+   Affected: 7.1.10, 7.2.0, 7.3.1 and 7.3.3 (run with xclim 0.60.0), and 7.3.4.
+
 *****
 7.3.4
 *****
