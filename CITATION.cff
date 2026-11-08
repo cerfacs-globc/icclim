@@ -10,7 +10,7 @@ authors:
 title: "icclim: Index Calculation CLIMate"
 version: 7.3.4
 doi: 10.5281/zenodo.6046052
-date-released: 2026-11-07
+date-released: 2026-11-08
 url: "https://github.com/cerfacs-globc/icclim"
 repository-code: "https://github.com/cerfacs-globc/icclim"
 identifiers:

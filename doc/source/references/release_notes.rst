@@ -6,7 +6,7 @@
 7.3.4
 *****
 
-date: 2026-11-07
+date: 2026-11-08
 
 
 -  [fix] Support xclim 1.0 (PR #579). xclim 1.0.0 removed ``xclim.indices``
@@ -49,7 +49,7 @@ date: 2026-11-07
    ``tnn`` now also works on non-standard (cftime) calendars. The dated
    ``max_consecutive_occurrence`` on cftime calendars still fails (issue #574).
 -  [enh] New option ``split_runs_at_period_boundary`` for ``max_consecutive_occurrence``
-   and the ECA&D indices ``CDD``, ``CWD``, ``CFD`` and ``CSU`` (issue #543, PR #547).
+   and the ECA&D indices ``CDD``, ``CWD``, ``CFD`` and ``CSU`` (issue #543, PRs #547 and #585).
    No change by default (``False``): a run of consecutive days that crosses the end
    of an output period is still counted whole in the period where it starts
    (``run_index="first"``, the default) or where it ends (``run_index="last"``), and
