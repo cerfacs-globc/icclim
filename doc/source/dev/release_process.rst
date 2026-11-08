@@ -143,7 +143,11 @@ Before every release
    ``tools/``) and compare against the previous release.
 #. Check the release notes mention every behaviour change and bug fix with its issue
    number, and state plainly when earlier results were wrong.
-#. Bump ``__version__`` and set the release date in the notes.
+#. Bump the version and set the release date in all four places before tagging:
+   ``__version__`` in ``src/icclim/__init__.py``, ``CITATION.cff``, ``.zenodo.json``
+   and the heading and date of the release notes. They must all give the same version
+   and the same date: Zenodo takes the metadata of the archived version from
+   ``.zenodo.json`` and ``CITATION.cff``.
 #. After publishing, verify the install in a **fresh virtual environment with a
    supported Python (>= 3.10)**: ``pip install icclim==X.Y.Z`` and print
    ``icclim.__version__``.
