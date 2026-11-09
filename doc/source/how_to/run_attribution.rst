@@ -8,7 +8,11 @@
 ``max_consecutive_occurrence`` can contain a run that crosses an output-period
 boundary. Since icclim 7.4.0, their default is ``run_index="last"``: the whole
 run is attributed to the period in which it ends. This is a behaviour change;
-the same call can produce different values from earlier releases.
+the same call can produce different values from earlier releases. The rule
+applies at every output-period boundary, including months and seasons, not only
+years. For monthly output, a 12-day run from January 25 through February 5 is
+``[12, 0]`` with ``run_index="first"``, ``[0, 12]`` with the new default, and
+``[7, 5]`` when split at the boundary.
 
 For example, the ECA&D ATBD describes a dry spell beginning in December 2000
 and ending in January 2001. It counts toward 2001. For a longer dry spell from

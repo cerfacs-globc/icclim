@@ -9,7 +9,10 @@ Unreleased
 -  [Behaviour change] Since 7.4.0, ``CDD``, ``CWD``, ``CFD``, ``CSU``,
    ``PXCDD``, ``PXCWD`` and ``max_consecutive_occurrence`` default to
    ``run_index="last"``: a run crossing an output-period boundary is counted in
-   the period where it ends (issue #580). The ECA&D example of a dry spell from
+   the period where it ends (issue #580). This applies to every output frequency,
+   including months and seasons, not only years: a January 25--February 5 run is
+   ``[12, 0]`` with ``run_index="first"``, ``[0, 12]`` by default, and ``[7, 5]``
+   when split. The ECA&D example of a dry spell from
    December 2000 to January 2001 therefore counts toward 2001. With yearly output,
    a dry spell from 2001-10-01 through 2002-04-30 changes from ``[212, 0]`` under
    the old default to ``[0, 212]``. Pass ``run_index="first"`` for the pre-7.4.0
