@@ -123,6 +123,7 @@ def tg(
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -133,7 +134,7 @@ def tg(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -146,13 +147,13 @@ def tg(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -171,10 +172,16 @@ def tg(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
-        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
-        Default is "first".
-        Ignored for non spell indices.
+    run_index : str | None
+        ``optional`` The index used to attribute a run that crosses an output-period
+        boundary. Since icclim 7.4.0, omitting this argument selects ``"last"`` for
+        ``CDD``, ``CWD``, ``CFD``, ``CSU``, ``PXCDD``, ``PXCWD`` and
+        ``max_consecutive_occurrence``: the whole run is counted in the period where
+        it ends. Pass ``run_index="first"`` for the pre-7.4.0 behavior, or pass
+        ``split_runs_at_period_boundary=True`` to cut runs at every boundary.
+        ``WSDI`` and ``CSDI`` are unchanged. ECA&D ATBD v11, pp. 20--21 specifies
+        end-period attribution for CDD and CWD; the same convention is applied to
+        CFD, CSU, PXCDD, PXCWD and the generic function for consistency.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
     netcdf_version : str | NetcdfVersion
@@ -186,7 +193,7 @@ def tg(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -271,6 +278,7 @@ def tn(
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -281,7 +289,7 @@ def tn(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -294,13 +302,13 @@ def tn(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -319,10 +327,16 @@ def tn(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
-        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
-        Default is "first".
-        Ignored for non spell indices.
+    run_index : str | None
+        ``optional`` The index used to attribute a run that crosses an output-period
+        boundary. Since icclim 7.4.0, omitting this argument selects ``"last"`` for
+        ``CDD``, ``CWD``, ``CFD``, ``CSU``, ``PXCDD``, ``PXCWD`` and
+        ``max_consecutive_occurrence``: the whole run is counted in the period where
+        it ends. Pass ``run_index="first"`` for the pre-7.4.0 behavior, or pass
+        ``split_runs_at_period_boundary=True`` to cut runs at every boundary.
+        ``WSDI`` and ``CSDI`` are unchanged. ECA&D ATBD v11, pp. 20--21 specifies
+        end-period attribution for CDD and CWD; the same convention is applied to
+        CFD, CSU, PXCDD, PXCWD and the generic function for consistency.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
     netcdf_version : str | NetcdfVersion
@@ -334,7 +348,7 @@ def tn(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -419,6 +433,7 @@ def tx(
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -429,7 +444,7 @@ def tx(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -442,13 +457,13 @@ def tx(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -467,10 +482,16 @@ def tx(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
-        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
-        Default is "first".
-        Ignored for non spell indices.
+    run_index : str | None
+        ``optional`` The index used to attribute a run that crosses an output-period
+        boundary. Since icclim 7.4.0, omitting this argument selects ``"last"`` for
+        ``CDD``, ``CWD``, ``CFD``, ``CSU``, ``PXCDD``, ``PXCWD`` and
+        ``max_consecutive_occurrence``: the whole run is counted in the period where
+        it ends. Pass ``run_index="first"`` for the pre-7.4.0 behavior, or pass
+        ``split_runs_at_period_boundary=True`` to cut runs at every boundary.
+        ``WSDI`` and ``CSDI`` are unchanged. ECA&D ATBD v11, pp. 20--21 specifies
+        end-period attribution for CDD and CWD; the same convention is applied to
+        CFD, CSU, PXCDD, PXCWD and the generic function for consistency.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
     netcdf_version : str | NetcdfVersion
@@ -482,7 +503,7 @@ def tx(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -567,6 +588,7 @@ def dtr(
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -577,7 +599,7 @@ def dtr(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -590,13 +612,13 @@ def dtr(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -615,10 +637,16 @@ def dtr(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
-        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
-        Default is "first".
-        Ignored for non spell indices.
+    run_index : str | None
+        ``optional`` The index used to attribute a run that crosses an output-period
+        boundary. Since icclim 7.4.0, omitting this argument selects ``"last"`` for
+        ``CDD``, ``CWD``, ``CFD``, ``CSU``, ``PXCDD``, ``PXCWD`` and
+        ``max_consecutive_occurrence``: the whole run is counted in the period where
+        it ends. Pass ``run_index="first"`` for the pre-7.4.0 behavior, or pass
+        ``split_runs_at_period_boundary=True`` to cut runs at every boundary.
+        ``WSDI`` and ``CSDI`` are unchanged. ECA&D ATBD v11, pp. 20--21 specifies
+        end-period attribution for CDD and CWD; the same convention is applied to
+        CFD, CSU, PXCDD, PXCWD and the generic function for consistency.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
     netcdf_version : str | NetcdfVersion
@@ -630,7 +658,7 @@ def dtr(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -715,6 +743,7 @@ def etr(
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -725,7 +754,7 @@ def etr(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -738,13 +767,13 @@ def etr(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -763,10 +792,16 @@ def etr(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
-        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
-        Default is "first".
-        Ignored for non spell indices.
+    run_index : str | None
+        ``optional`` The index used to attribute a run that crosses an output-period
+        boundary. Since icclim 7.4.0, omitting this argument selects ``"last"`` for
+        ``CDD``, ``CWD``, ``CFD``, ``CSU``, ``PXCDD``, ``PXCWD`` and
+        ``max_consecutive_occurrence``: the whole run is counted in the period where
+        it ends. Pass ``run_index="first"`` for the pre-7.4.0 behavior, or pass
+        ``split_runs_at_period_boundary=True`` to cut runs at every boundary.
+        ``WSDI`` and ``CSDI`` are unchanged. ECA&D ATBD v11, pp. 20--21 specifies
+        end-period attribution for CDD and CWD; the same convention is applied to
+        CFD, CSU, PXCDD, PXCWD and the generic function for consistency.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
     netcdf_version : str | NetcdfVersion
@@ -778,7 +813,7 @@ def etr(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -863,6 +898,7 @@ def vdtr(
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -873,7 +909,7 @@ def vdtr(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -886,13 +922,13 @@ def vdtr(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -911,10 +947,16 @@ def vdtr(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
-        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
-        Default is "first".
-        Ignored for non spell indices.
+    run_index : str | None
+        ``optional`` The index used to attribute a run that crosses an output-period
+        boundary. Since icclim 7.4.0, omitting this argument selects ``"last"`` for
+        ``CDD``, ``CWD``, ``CFD``, ``CSU``, ``PXCDD``, ``PXCWD`` and
+        ``max_consecutive_occurrence``: the whole run is counted in the period where
+        it ends. Pass ``run_index="first"`` for the pre-7.4.0 behavior, or pass
+        ``split_runs_at_period_boundary=True`` to cut runs at every boundary.
+        ``WSDI`` and ``CSDI`` are unchanged. ECA&D ATBD v11, pp. 20--21 specifies
+        end-period attribution for CDD and CWD; the same convention is applied to
+        CFD, CSU, PXCDD, PXCWD and the generic function for consistency.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
     netcdf_version : str | NetcdfVersion
@@ -926,7 +968,7 @@ def vdtr(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -1011,6 +1053,7 @@ def su(
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -1021,7 +1064,7 @@ def su(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -1034,13 +1077,13 @@ def su(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -1059,10 +1102,16 @@ def su(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
-        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
-        Default is "first".
-        Ignored for non spell indices.
+    run_index : str | None
+        ``optional`` The index used to attribute a run that crosses an output-period
+        boundary. Since icclim 7.4.0, omitting this argument selects ``"last"`` for
+        ``CDD``, ``CWD``, ``CFD``, ``CSU``, ``PXCDD``, ``PXCWD`` and
+        ``max_consecutive_occurrence``: the whole run is counted in the period where
+        it ends. Pass ``run_index="first"`` for the pre-7.4.0 behavior, or pass
+        ``split_runs_at_period_boundary=True`` to cut runs at every boundary.
+        ``WSDI`` and ``CSDI`` are unchanged. ECA&D ATBD v11, pp. 20--21 specifies
+        end-period attribution for CDD and CWD; the same convention is applied to
+        CFD, CSU, PXCDD, PXCWD and the generic function for consistency.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
     netcdf_version : str | NetcdfVersion
@@ -1074,7 +1123,7 @@ def su(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -1162,6 +1211,7 @@ def tr(
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -1172,7 +1222,7 @@ def tr(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -1185,13 +1235,13 @@ def tr(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -1210,10 +1260,16 @@ def tr(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
-        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
-        Default is "first".
-        Ignored for non spell indices.
+    run_index : str | None
+        ``optional`` The index used to attribute a run that crosses an output-period
+        boundary. Since icclim 7.4.0, omitting this argument selects ``"last"`` for
+        ``CDD``, ``CWD``, ``CFD``, ``CSU``, ``PXCDD``, ``PXCWD`` and
+        ``max_consecutive_occurrence``: the whole run is counted in the period where
+        it ends. Pass ``run_index="first"`` for the pre-7.4.0 behavior, or pass
+        ``split_runs_at_period_boundary=True`` to cut runs at every boundary.
+        ``WSDI`` and ``CSDI`` are unchanged. ECA&D ATBD v11, pp. 20--21 specifies
+        end-period attribution for CDD and CWD; the same convention is applied to
+        CFD, CSU, PXCDD, PXCWD and the generic function for consistency.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
     netcdf_version : str | NetcdfVersion
@@ -1225,7 +1281,7 @@ def tr(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -1317,6 +1373,7 @@ def wsdi(
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -1327,7 +1384,7 @@ def wsdi(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -1340,13 +1397,13 @@ def wsdi(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -1379,15 +1436,21 @@ def wsdi(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
-        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
-        Default is "first".
-        Ignored for non spell indices.
+    run_index : str | None
+        ``optional`` The index used to attribute a run that crosses an output-period
+        boundary. Since icclim 7.4.0, omitting this argument selects ``"last"`` for
+        ``CDD``, ``CWD``, ``CFD``, ``CSU``, ``PXCDD``, ``PXCWD`` and
+        ``max_consecutive_occurrence``: the whole run is counted in the period where
+        it ends. Pass ``run_index="first"`` for the pre-7.4.0 behavior, or pass
+        ``split_runs_at_period_boundary=True`` to cut runs at every boundary.
+        ``WSDI`` and ``CSDI`` are unchanged. ECA&D ATBD v11, pp. 20--21 specifies
+        end-period attribution for CDD and CWD; the same convention is applied to
+        CFD, CSU, PXCDD, PXCWD and the generic function for consistency.
     only_leap_years : bool
         ``optional`` Option for February 29th (default: False).
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
-    interpolation : str | QuantileInterpolation | None, default="median_unbiased"
+    interpolation : str | QuantileInterpolation | None
         ``optional`` Interpolation method to compute percentile values:
         ``{"linear", "median_unbiased"}``
         Default is "median_unbiased", a.k.a type 8 or method 8.
@@ -1404,7 +1467,7 @@ def wsdi(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -1504,6 +1567,7 @@ def tg90p(
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -1514,7 +1578,7 @@ def tg90p(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -1527,13 +1591,13 @@ def tg90p(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -1566,15 +1630,21 @@ def tg90p(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
-        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
-        Default is "first".
-        Ignored for non spell indices.
+    run_index : str | None
+        ``optional`` The index used to attribute a run that crosses an output-period
+        boundary. Since icclim 7.4.0, omitting this argument selects ``"last"`` for
+        ``CDD``, ``CWD``, ``CFD``, ``CSU``, ``PXCDD``, ``PXCWD`` and
+        ``max_consecutive_occurrence``: the whole run is counted in the period where
+        it ends. Pass ``run_index="first"`` for the pre-7.4.0 behavior, or pass
+        ``split_runs_at_period_boundary=True`` to cut runs at every boundary.
+        ``WSDI`` and ``CSDI`` are unchanged. ECA&D ATBD v11, pp. 20--21 specifies
+        end-period attribution for CDD and CWD; the same convention is applied to
+        CFD, CSU, PXCDD, PXCWD and the generic function for consistency.
     only_leap_years : bool
         ``optional`` Option for February 29th (default: False).
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
-    interpolation : str | QuantileInterpolation | None, default="median_unbiased"
+    interpolation : str | QuantileInterpolation | None
         ``optional`` Interpolation method to compute percentile values:
         ``{"linear", "median_unbiased"}``
         Default is "median_unbiased", a.k.a type 8 or method 8.
@@ -1591,7 +1661,7 @@ def tg90p(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -1691,6 +1761,7 @@ def tn90p(
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -1701,7 +1772,7 @@ def tn90p(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -1714,13 +1785,13 @@ def tn90p(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -1753,15 +1824,21 @@ def tn90p(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
-        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
-        Default is "first".
-        Ignored for non spell indices.
+    run_index : str | None
+        ``optional`` The index used to attribute a run that crosses an output-period
+        boundary. Since icclim 7.4.0, omitting this argument selects ``"last"`` for
+        ``CDD``, ``CWD``, ``CFD``, ``CSU``, ``PXCDD``, ``PXCWD`` and
+        ``max_consecutive_occurrence``: the whole run is counted in the period where
+        it ends. Pass ``run_index="first"`` for the pre-7.4.0 behavior, or pass
+        ``split_runs_at_period_boundary=True`` to cut runs at every boundary.
+        ``WSDI`` and ``CSDI`` are unchanged. ECA&D ATBD v11, pp. 20--21 specifies
+        end-period attribution for CDD and CWD; the same convention is applied to
+        CFD, CSU, PXCDD, PXCWD and the generic function for consistency.
     only_leap_years : bool
         ``optional`` Option for February 29th (default: False).
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
-    interpolation : str | QuantileInterpolation | None, default="median_unbiased"
+    interpolation : str | QuantileInterpolation | None
         ``optional`` Interpolation method to compute percentile values:
         ``{"linear", "median_unbiased"}``
         Default is "median_unbiased", a.k.a type 8 or method 8.
@@ -1778,7 +1855,7 @@ def tn90p(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -1878,6 +1955,7 @@ def tx90p(
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -1888,7 +1966,7 @@ def tx90p(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -1901,13 +1979,13 @@ def tx90p(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -1940,15 +2018,21 @@ def tx90p(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
-        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
-        Default is "first".
-        Ignored for non spell indices.
+    run_index : str | None
+        ``optional`` The index used to attribute a run that crosses an output-period
+        boundary. Since icclim 7.4.0, omitting this argument selects ``"last"`` for
+        ``CDD``, ``CWD``, ``CFD``, ``CSU``, ``PXCDD``, ``PXCWD`` and
+        ``max_consecutive_occurrence``: the whole run is counted in the period where
+        it ends. Pass ``run_index="first"`` for the pre-7.4.0 behavior, or pass
+        ``split_runs_at_period_boundary=True`` to cut runs at every boundary.
+        ``WSDI`` and ``CSDI`` are unchanged. ECA&D ATBD v11, pp. 20--21 specifies
+        end-period attribution for CDD and CWD; the same convention is applied to
+        CFD, CSU, PXCDD, PXCWD and the generic function for consistency.
     only_leap_years : bool
         ``optional`` Option for February 29th (default: False).
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
-    interpolation : str | QuantileInterpolation | None, default="median_unbiased"
+    interpolation : str | QuantileInterpolation | None
         ``optional`` Interpolation method to compute percentile values:
         ``{"linear", "median_unbiased"}``
         Default is "median_unbiased", a.k.a type 8 or method 8.
@@ -1965,7 +2049,7 @@ def tx90p(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -2061,6 +2145,7 @@ def txx(
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -2071,7 +2156,7 @@ def txx(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -2084,13 +2169,13 @@ def txx(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -2109,10 +2194,16 @@ def txx(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
-        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
-        Default is "first".
-        Ignored for non spell indices.
+    run_index : str | None
+        ``optional`` The index used to attribute a run that crosses an output-period
+        boundary. Since icclim 7.4.0, omitting this argument selects ``"last"`` for
+        ``CDD``, ``CWD``, ``CFD``, ``CSU``, ``PXCDD``, ``PXCWD`` and
+        ``max_consecutive_occurrence``: the whole run is counted in the period where
+        it ends. Pass ``run_index="first"`` for the pre-7.4.0 behavior, or pass
+        ``split_runs_at_period_boundary=True`` to cut runs at every boundary.
+        ``WSDI`` and ``CSDI`` are unchanged. ECA&D ATBD v11, pp. 20--21 specifies
+        end-period attribution for CDD and CWD; the same convention is applied to
+        CFD, CSU, PXCDD, PXCWD and the generic function for consistency.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
     netcdf_version : str | NetcdfVersion
@@ -2124,7 +2215,7 @@ def txx(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -2209,6 +2300,7 @@ def tnx(
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -2219,7 +2311,7 @@ def tnx(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -2232,13 +2324,13 @@ def tnx(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -2257,10 +2349,16 @@ def tnx(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
-        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
-        Default is "first".
-        Ignored for non spell indices.
+    run_index : str | None
+        ``optional`` The index used to attribute a run that crosses an output-period
+        boundary. Since icclim 7.4.0, omitting this argument selects ``"last"`` for
+        ``CDD``, ``CWD``, ``CFD``, ``CSU``, ``PXCDD``, ``PXCWD`` and
+        ``max_consecutive_occurrence``: the whole run is counted in the period where
+        it ends. Pass ``run_index="first"`` for the pre-7.4.0 behavior, or pass
+        ``split_runs_at_period_boundary=True`` to cut runs at every boundary.
+        ``WSDI`` and ``CSDI`` are unchanged. ECA&D ATBD v11, pp. 20--21 specifies
+        end-period attribution for CDD and CWD; the same convention is applied to
+        CFD, CSU, PXCDD, PXCWD and the generic function for consistency.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
     netcdf_version : str | NetcdfVersion
@@ -2272,7 +2370,7 @@ def tnx(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -2345,7 +2443,7 @@ def csu(
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
-    run_index: str | None = "first",
+    run_index: str | None = None,
     allow_partial_seasons: bool | Literal["start", "end"] | None = None,
     completeness: CompletenessLike = None,
     allow_missing_periods: bool | None = None,
@@ -2358,6 +2456,20 @@ def csu(
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
+    .. warning::
+       Since icclim 7.4.0, the default is ``run_index="last"``: a run crossing
+       a period boundary is counted in the period where it ends. A dry spell
+       from December 2000 to January 2001 therefore counts toward 2001. For a
+       dry spell from 2001-10-01 through 2002-04-30, yearly results changed from
+       ``[212, 0]`` to ``[0, 212]``; ``split_runs_at_period_boundary=True`` gives
+       ``[92, 120]``. Use ``run_index="first"`` for the pre-7.4.0 behavior.
+
+       ECA&D ATBD v11, pp. 20--21, the RClimDex manual (Appendix C), and
+       climdex.pcic specify end-period attribution for CDD/CWD. CFD, CSU,
+       PXCDD, PXCWD and this generic operation use the same convention for
+       consistency; the ATBD does not require it for those indices.
+
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -2368,7 +2480,7 @@ def csu(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -2381,13 +2493,13 @@ def csu(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -2406,17 +2518,23 @@ def csu(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
-        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
-        Default is "first".
-        Ignored for non spell indices.
-    split_runs_at_period_boundary : bool, default=is
+    run_index : str | None
+        ``optional`` The index used to attribute a run that crosses an output-period
+        boundary. Since icclim 7.4.0, omitting this argument selects ``"last"`` for
+        ``CDD``, ``CWD``, ``CFD``, ``CSU``, ``PXCDD``, ``PXCWD`` and
+        ``max_consecutive_occurrence``: the whole run is counted in the period where
+        it ends. Pass ``run_index="first"`` for the pre-7.4.0 behavior, or pass
+        ``split_runs_at_period_boundary=True`` to cut runs at every boundary.
+        ``WSDI`` and ``CSDI`` are unchanged. ECA&D ATBD v11, pp. 20--21 specifies
+        end-period attribution for CDD and CWD; the same convention is applied to
+        CFD, CSU, PXCDD, PXCWD and the generic function for consistency.
+    split_runs_at_period_boundary : bool
         ``optional`` Only used by the indices based on ``max_consecutive_occurrence``
         (``CDD``, ``CWD``, ``CFD``, ``CSU``), ignored otherwise.
         When ``False`` (default), a run of consecutive days that crosses the end of
         an output period is counted whole in a single period: the one where the run
-        starts with ``run_index="first"`` (default), or the one where it ends with
-        ``run_index="last"``. The following (or preceding) period then gets no
+        starts with ``run_index="first"``, or the one where it ends with
+        ``run_index="last"`` (the default since 7.4.0). The following (or preceding) period then gets no
         credit for the days of that run, so its value can be 0.
         When ``True``, runs are cut at the boundary of every output period and each
         period gets the longest run found inside it. ``run_index`` then has no
@@ -2433,7 +2551,7 @@ def csu(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -2522,6 +2640,7 @@ def gd4(
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -2532,7 +2651,7 @@ def gd4(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -2545,13 +2664,13 @@ def gd4(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -2570,10 +2689,16 @@ def gd4(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
-        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
-        Default is "first".
-        Ignored for non spell indices.
+    run_index : str | None
+        ``optional`` The index used to attribute a run that crosses an output-period
+        boundary. Since icclim 7.4.0, omitting this argument selects ``"last"`` for
+        ``CDD``, ``CWD``, ``CFD``, ``CSU``, ``PXCDD``, ``PXCWD`` and
+        ``max_consecutive_occurrence``: the whole run is counted in the period where
+        it ends. Pass ``run_index="first"`` for the pre-7.4.0 behavior, or pass
+        ``split_runs_at_period_boundary=True`` to cut runs at every boundary.
+        ``WSDI`` and ``CSDI`` are unchanged. ECA&D ATBD v11, pp. 20--21 specifies
+        end-period attribution for CDD and CWD; the same convention is applied to
+        CFD, CSU, PXCDD, PXCWD and the generic function for consistency.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
     netcdf_version : str | NetcdfVersion
@@ -2585,7 +2710,7 @@ def gd4(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -2673,6 +2798,7 @@ def fd(
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -2683,7 +2809,7 @@ def fd(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -2696,13 +2822,13 @@ def fd(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -2721,10 +2847,16 @@ def fd(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
-        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
-        Default is "first".
-        Ignored for non spell indices.
+    run_index : str | None
+        ``optional`` The index used to attribute a run that crosses an output-period
+        boundary. Since icclim 7.4.0, omitting this argument selects ``"last"`` for
+        ``CDD``, ``CWD``, ``CFD``, ``CSU``, ``PXCDD``, ``PXCWD`` and
+        ``max_consecutive_occurrence``: the whole run is counted in the period where
+        it ends. Pass ``run_index="first"`` for the pre-7.4.0 behavior, or pass
+        ``split_runs_at_period_boundary=True`` to cut runs at every boundary.
+        ``WSDI`` and ``CSDI`` are unchanged. ECA&D ATBD v11, pp. 20--21 specifies
+        end-period attribution for CDD and CWD; the same convention is applied to
+        CFD, CSU, PXCDD, PXCWD and the generic function for consistency.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
     netcdf_version : str | NetcdfVersion
@@ -2736,7 +2868,7 @@ def fd(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -2812,7 +2944,7 @@ def cfd(
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
-    run_index: str | None = "first",
+    run_index: str | None = None,
     allow_partial_seasons: bool | Literal["start", "end"] | None = None,
     completeness: CompletenessLike = None,
     allow_missing_periods: bool | None = None,
@@ -2825,6 +2957,20 @@ def cfd(
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
+    .. warning::
+       Since icclim 7.4.0, the default is ``run_index="last"``: a run crossing
+       a period boundary is counted in the period where it ends. A dry spell
+       from December 2000 to January 2001 therefore counts toward 2001. For a
+       dry spell from 2001-10-01 through 2002-04-30, yearly results changed from
+       ``[212, 0]`` to ``[0, 212]``; ``split_runs_at_period_boundary=True`` gives
+       ``[92, 120]``. Use ``run_index="first"`` for the pre-7.4.0 behavior.
+
+       ECA&D ATBD v11, pp. 20--21, the RClimDex manual (Appendix C), and
+       climdex.pcic specify end-period attribution for CDD/CWD. CFD, CSU,
+       PXCDD, PXCWD and this generic operation use the same convention for
+       consistency; the ATBD does not require it for those indices.
+
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -2835,7 +2981,7 @@ def cfd(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -2848,13 +2994,13 @@ def cfd(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -2873,17 +3019,23 @@ def cfd(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
-        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
-        Default is "first".
-        Ignored for non spell indices.
-    split_runs_at_period_boundary : bool, default=is
+    run_index : str | None
+        ``optional`` The index used to attribute a run that crosses an output-period
+        boundary. Since icclim 7.4.0, omitting this argument selects ``"last"`` for
+        ``CDD``, ``CWD``, ``CFD``, ``CSU``, ``PXCDD``, ``PXCWD`` and
+        ``max_consecutive_occurrence``: the whole run is counted in the period where
+        it ends. Pass ``run_index="first"`` for the pre-7.4.0 behavior, or pass
+        ``split_runs_at_period_boundary=True`` to cut runs at every boundary.
+        ``WSDI`` and ``CSDI`` are unchanged. ECA&D ATBD v11, pp. 20--21 specifies
+        end-period attribution for CDD and CWD; the same convention is applied to
+        CFD, CSU, PXCDD, PXCWD and the generic function for consistency.
+    split_runs_at_period_boundary : bool
         ``optional`` Only used by the indices based on ``max_consecutive_occurrence``
         (``CDD``, ``CWD``, ``CFD``, ``CSU``), ignored otherwise.
         When ``False`` (default), a run of consecutive days that crosses the end of
         an output period is counted whole in a single period: the one where the run
-        starts with ``run_index="first"`` (default), or the one where it ends with
-        ``run_index="last"``. The following (or preceding) period then gets no
+        starts with ``run_index="first"``, or the one where it ends with
+        ``run_index="last"`` (the default since 7.4.0). The following (or preceding) period then gets no
         credit for the days of that run, so its value can be 0.
         When ``True``, runs are cut at the boundary of every output period and each
         period gets the longest run found inside it. ``run_index`` then has no
@@ -2900,7 +3052,7 @@ def cfd(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -2989,6 +3141,7 @@ def hd17(
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -2999,7 +3152,7 @@ def hd17(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -3012,13 +3165,13 @@ def hd17(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -3037,10 +3190,16 @@ def hd17(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
-        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
-        Default is "first".
-        Ignored for non spell indices.
+    run_index : str | None
+        ``optional`` The index used to attribute a run that crosses an output-period
+        boundary. Since icclim 7.4.0, omitting this argument selects ``"last"`` for
+        ``CDD``, ``CWD``, ``CFD``, ``CSU``, ``PXCDD``, ``PXCWD`` and
+        ``max_consecutive_occurrence``: the whole run is counted in the period where
+        it ends. Pass ``run_index="first"`` for the pre-7.4.0 behavior, or pass
+        ``split_runs_at_period_boundary=True`` to cut runs at every boundary.
+        ``WSDI`` and ``CSDI`` are unchanged. ECA&D ATBD v11, pp. 20--21 specifies
+        end-period attribution for CDD and CWD; the same convention is applied to
+        CFD, CSU, PXCDD, PXCWD and the generic function for consistency.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
     netcdf_version : str | NetcdfVersion
@@ -3052,7 +3211,7 @@ def hd17(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -3140,6 +3299,7 @@ def id(
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -3150,7 +3310,7 @@ def id(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -3163,13 +3323,13 @@ def id(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -3188,10 +3348,16 @@ def id(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
-        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
-        Default is "first".
-        Ignored for non spell indices.
+    run_index : str | None
+        ``optional`` The index used to attribute a run that crosses an output-period
+        boundary. Since icclim 7.4.0, omitting this argument selects ``"last"`` for
+        ``CDD``, ``CWD``, ``CFD``, ``CSU``, ``PXCDD``, ``PXCWD`` and
+        ``max_consecutive_occurrence``: the whole run is counted in the period where
+        it ends. Pass ``run_index="first"`` for the pre-7.4.0 behavior, or pass
+        ``split_runs_at_period_boundary=True`` to cut runs at every boundary.
+        ``WSDI`` and ``CSDI`` are unchanged. ECA&D ATBD v11, pp. 20--21 specifies
+        end-period attribution for CDD and CWD; the same convention is applied to
+        CFD, CSU, PXCDD, PXCWD and the generic function for consistency.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
     netcdf_version : str | NetcdfVersion
@@ -3203,7 +3369,7 @@ def id(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -3295,6 +3461,7 @@ def tg10p(
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -3305,7 +3472,7 @@ def tg10p(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -3318,13 +3485,13 @@ def tg10p(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -3357,15 +3524,21 @@ def tg10p(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
-        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
-        Default is "first".
-        Ignored for non spell indices.
+    run_index : str | None
+        ``optional`` The index used to attribute a run that crosses an output-period
+        boundary. Since icclim 7.4.0, omitting this argument selects ``"last"`` for
+        ``CDD``, ``CWD``, ``CFD``, ``CSU``, ``PXCDD``, ``PXCWD`` and
+        ``max_consecutive_occurrence``: the whole run is counted in the period where
+        it ends. Pass ``run_index="first"`` for the pre-7.4.0 behavior, or pass
+        ``split_runs_at_period_boundary=True`` to cut runs at every boundary.
+        ``WSDI`` and ``CSDI`` are unchanged. ECA&D ATBD v11, pp. 20--21 specifies
+        end-period attribution for CDD and CWD; the same convention is applied to
+        CFD, CSU, PXCDD, PXCWD and the generic function for consistency.
     only_leap_years : bool
         ``optional`` Option for February 29th (default: False).
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
-    interpolation : str | QuantileInterpolation | None, default="median_unbiased"
+    interpolation : str | QuantileInterpolation | None
         ``optional`` Interpolation method to compute percentile values:
         ``{"linear", "median_unbiased"}``
         Default is "median_unbiased", a.k.a type 8 or method 8.
@@ -3382,7 +3555,7 @@ def tg10p(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -3482,6 +3655,7 @@ def tn10p(
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -3492,7 +3666,7 @@ def tn10p(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -3505,13 +3679,13 @@ def tn10p(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -3544,15 +3718,21 @@ def tn10p(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
-        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
-        Default is "first".
-        Ignored for non spell indices.
+    run_index : str | None
+        ``optional`` The index used to attribute a run that crosses an output-period
+        boundary. Since icclim 7.4.0, omitting this argument selects ``"last"`` for
+        ``CDD``, ``CWD``, ``CFD``, ``CSU``, ``PXCDD``, ``PXCWD`` and
+        ``max_consecutive_occurrence``: the whole run is counted in the period where
+        it ends. Pass ``run_index="first"`` for the pre-7.4.0 behavior, or pass
+        ``split_runs_at_period_boundary=True`` to cut runs at every boundary.
+        ``WSDI`` and ``CSDI`` are unchanged. ECA&D ATBD v11, pp. 20--21 specifies
+        end-period attribution for CDD and CWD; the same convention is applied to
+        CFD, CSU, PXCDD, PXCWD and the generic function for consistency.
     only_leap_years : bool
         ``optional`` Option for February 29th (default: False).
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
-    interpolation : str | QuantileInterpolation | None, default="median_unbiased"
+    interpolation : str | QuantileInterpolation | None
         ``optional`` Interpolation method to compute percentile values:
         ``{"linear", "median_unbiased"}``
         Default is "median_unbiased", a.k.a type 8 or method 8.
@@ -3569,7 +3749,7 @@ def tn10p(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -3669,6 +3849,7 @@ def tx10p(
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -3679,7 +3860,7 @@ def tx10p(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -3692,13 +3873,13 @@ def tx10p(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -3731,15 +3912,21 @@ def tx10p(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
-        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
-        Default is "first".
-        Ignored for non spell indices.
+    run_index : str | None
+        ``optional`` The index used to attribute a run that crosses an output-period
+        boundary. Since icclim 7.4.0, omitting this argument selects ``"last"`` for
+        ``CDD``, ``CWD``, ``CFD``, ``CSU``, ``PXCDD``, ``PXCWD`` and
+        ``max_consecutive_occurrence``: the whole run is counted in the period where
+        it ends. Pass ``run_index="first"`` for the pre-7.4.0 behavior, or pass
+        ``split_runs_at_period_boundary=True`` to cut runs at every boundary.
+        ``WSDI`` and ``CSDI`` are unchanged. ECA&D ATBD v11, pp. 20--21 specifies
+        end-period attribution for CDD and CWD; the same convention is applied to
+        CFD, CSU, PXCDD, PXCWD and the generic function for consistency.
     only_leap_years : bool
         ``optional`` Option for February 29th (default: False).
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
-    interpolation : str | QuantileInterpolation | None, default="median_unbiased"
+    interpolation : str | QuantileInterpolation | None
         ``optional`` Interpolation method to compute percentile values:
         ``{"linear", "median_unbiased"}``
         Default is "median_unbiased", a.k.a type 8 or method 8.
@@ -3756,7 +3943,7 @@ def tx10p(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -3852,6 +4039,7 @@ def txn(
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -3862,7 +4050,7 @@ def txn(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -3875,13 +4063,13 @@ def txn(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -3900,10 +4088,16 @@ def txn(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
-        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
-        Default is "first".
-        Ignored for non spell indices.
+    run_index : str | None
+        ``optional`` The index used to attribute a run that crosses an output-period
+        boundary. Since icclim 7.4.0, omitting this argument selects ``"last"`` for
+        ``CDD``, ``CWD``, ``CFD``, ``CSU``, ``PXCDD``, ``PXCWD`` and
+        ``max_consecutive_occurrence``: the whole run is counted in the period where
+        it ends. Pass ``run_index="first"`` for the pre-7.4.0 behavior, or pass
+        ``split_runs_at_period_boundary=True`` to cut runs at every boundary.
+        ``WSDI`` and ``CSDI`` are unchanged. ECA&D ATBD v11, pp. 20--21 specifies
+        end-period attribution for CDD and CWD; the same convention is applied to
+        CFD, CSU, PXCDD, PXCWD and the generic function for consistency.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
     netcdf_version : str | NetcdfVersion
@@ -3915,7 +4109,7 @@ def txn(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -4000,6 +4194,7 @@ def tnn(
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -4010,7 +4205,7 @@ def tnn(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -4023,13 +4218,13 @@ def tnn(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -4048,10 +4243,16 @@ def tnn(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
-        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
-        Default is "first".
-        Ignored for non spell indices.
+    run_index : str | None
+        ``optional`` The index used to attribute a run that crosses an output-period
+        boundary. Since icclim 7.4.0, omitting this argument selects ``"last"`` for
+        ``CDD``, ``CWD``, ``CFD``, ``CSU``, ``PXCDD``, ``PXCWD`` and
+        ``max_consecutive_occurrence``: the whole run is counted in the period where
+        it ends. Pass ``run_index="first"`` for the pre-7.4.0 behavior, or pass
+        ``split_runs_at_period_boundary=True`` to cut runs at every boundary.
+        ``WSDI`` and ``CSDI`` are unchanged. ECA&D ATBD v11, pp. 20--21 specifies
+        end-period attribution for CDD and CWD; the same convention is applied to
+        CFD, CSU, PXCDD, PXCWD and the generic function for consistency.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
     netcdf_version : str | NetcdfVersion
@@ -4063,7 +4264,7 @@ def tnn(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -4152,6 +4353,7 @@ def csdi(
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -4162,7 +4364,7 @@ def csdi(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -4175,13 +4377,13 @@ def csdi(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -4214,15 +4416,21 @@ def csdi(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
-        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
-        Default is "first".
-        Ignored for non spell indices.
+    run_index : str | None
+        ``optional`` The index used to attribute a run that crosses an output-period
+        boundary. Since icclim 7.4.0, omitting this argument selects ``"last"`` for
+        ``CDD``, ``CWD``, ``CFD``, ``CSU``, ``PXCDD``, ``PXCWD`` and
+        ``max_consecutive_occurrence``: the whole run is counted in the period where
+        it ends. Pass ``run_index="first"`` for the pre-7.4.0 behavior, or pass
+        ``split_runs_at_period_boundary=True`` to cut runs at every boundary.
+        ``WSDI`` and ``CSDI`` are unchanged. ECA&D ATBD v11, pp. 20--21 specifies
+        end-period attribution for CDD and CWD; the same convention is applied to
+        CFD, CSU, PXCDD, PXCWD and the generic function for consistency.
     only_leap_years : bool
         ``optional`` Option for February 29th (default: False).
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
-    interpolation : str | QuantileInterpolation | None, default="median_unbiased"
+    interpolation : str | QuantileInterpolation | None
         ``optional`` Interpolation method to compute percentile values:
         ``{"linear", "median_unbiased"}``
         Default is "median_unbiased", a.k.a type 8 or method 8.
@@ -4239,7 +4447,7 @@ def csdi(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -4323,7 +4531,7 @@ def cdd(
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
-    run_index: str | None = "first",
+    run_index: str | None = None,
     allow_partial_seasons: bool | Literal["start", "end"] | None = None,
     completeness: CompletenessLike = None,
     allow_missing_periods: bool | None = None,
@@ -4336,6 +4544,20 @@ def cdd(
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
+    .. warning::
+       Since icclim 7.4.0, the default is ``run_index="last"``: a run crossing
+       a period boundary is counted in the period where it ends. A dry spell
+       from December 2000 to January 2001 therefore counts toward 2001. For a
+       dry spell from 2001-10-01 through 2002-04-30, yearly results changed from
+       ``[212, 0]`` to ``[0, 212]``; ``split_runs_at_period_boundary=True`` gives
+       ``[92, 120]``. Use ``run_index="first"`` for the pre-7.4.0 behavior.
+
+       ECA&D ATBD v11, pp. 20--21, the RClimDex manual (Appendix C), and
+       climdex.pcic specify end-period attribution for CDD/CWD. CFD, CSU,
+       PXCDD, PXCWD and this generic operation use the same convention for
+       consistency; the ATBD does not require it for those indices.
+
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -4346,7 +4568,7 @@ def cdd(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -4359,13 +4581,13 @@ def cdd(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -4384,17 +4606,23 @@ def cdd(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
-        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
-        Default is "first".
-        Ignored for non spell indices.
-    split_runs_at_period_boundary : bool, default=is
+    run_index : str | None
+        ``optional`` The index used to attribute a run that crosses an output-period
+        boundary. Since icclim 7.4.0, omitting this argument selects ``"last"`` for
+        ``CDD``, ``CWD``, ``CFD``, ``CSU``, ``PXCDD``, ``PXCWD`` and
+        ``max_consecutive_occurrence``: the whole run is counted in the period where
+        it ends. Pass ``run_index="first"`` for the pre-7.4.0 behavior, or pass
+        ``split_runs_at_period_boundary=True`` to cut runs at every boundary.
+        ``WSDI`` and ``CSDI`` are unchanged. ECA&D ATBD v11, pp. 20--21 specifies
+        end-period attribution for CDD and CWD; the same convention is applied to
+        CFD, CSU, PXCDD, PXCWD and the generic function for consistency.
+    split_runs_at_period_boundary : bool
         ``optional`` Only used by the indices based on ``max_consecutive_occurrence``
         (``CDD``, ``CWD``, ``CFD``, ``CSU``), ignored otherwise.
         When ``False`` (default), a run of consecutive days that crosses the end of
         an output period is counted whole in a single period: the one where the run
-        starts with ``run_index="first"`` (default), or the one where it ends with
-        ``run_index="last"``. The following (or preceding) period then gets no
+        starts with ``run_index="first"``, or the one where it ends with
+        ``run_index="last"`` (the default since 7.4.0). The following (or preceding) period then gets no
         credit for the days of that run, so its value can be 0.
         When ``True``, runs are cut at the boundary of every output period and each
         period gets the longest run found inside it. ``run_index`` then has no
@@ -4411,7 +4639,7 @@ def cdd(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -4500,6 +4728,7 @@ def prcptot(
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -4510,7 +4739,7 @@ def prcptot(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -4523,13 +4752,13 @@ def prcptot(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -4548,10 +4777,16 @@ def prcptot(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
-        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
-        Default is "first".
-        Ignored for non spell indices.
+    run_index : str | None
+        ``optional`` The index used to attribute a run that crosses an output-period
+        boundary. Since icclim 7.4.0, omitting this argument selects ``"last"`` for
+        ``CDD``, ``CWD``, ``CFD``, ``CSU``, ``PXCDD``, ``PXCWD`` and
+        ``max_consecutive_occurrence``: the whole run is counted in the period where
+        it ends. Pass ``run_index="first"`` for the pre-7.4.0 behavior, or pass
+        ``split_runs_at_period_boundary=True`` to cut runs at every boundary.
+        ``WSDI`` and ``CSDI`` are unchanged. ECA&D ATBD v11, pp. 20--21 specifies
+        end-period attribution for CDD and CWD; the same convention is applied to
+        CFD, CSU, PXCDD, PXCWD and the generic function for consistency.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
     netcdf_version : str | NetcdfVersion
@@ -4563,7 +4798,7 @@ def prcptot(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -4651,6 +4886,7 @@ def rr1(
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -4661,7 +4897,7 @@ def rr1(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -4674,13 +4910,13 @@ def rr1(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -4699,10 +4935,16 @@ def rr1(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
-        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
-        Default is "first".
-        Ignored for non spell indices.
+    run_index : str | None
+        ``optional`` The index used to attribute a run that crosses an output-period
+        boundary. Since icclim 7.4.0, omitting this argument selects ``"last"`` for
+        ``CDD``, ``CWD``, ``CFD``, ``CSU``, ``PXCDD``, ``PXCWD`` and
+        ``max_consecutive_occurrence``: the whole run is counted in the period where
+        it ends. Pass ``run_index="first"`` for the pre-7.4.0 behavior, or pass
+        ``split_runs_at_period_boundary=True`` to cut runs at every boundary.
+        ``WSDI`` and ``CSDI`` are unchanged. ECA&D ATBD v11, pp. 20--21 specifies
+        end-period attribution for CDD and CWD; the same convention is applied to
+        CFD, CSU, PXCDD, PXCWD and the generic function for consistency.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
     netcdf_version : str | NetcdfVersion
@@ -4714,7 +4956,7 @@ def rr1(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -4802,6 +5044,7 @@ def sdii(
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -4812,7 +5055,7 @@ def sdii(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -4825,13 +5068,13 @@ def sdii(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -4850,10 +5093,16 @@ def sdii(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
-        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
-        Default is "first".
-        Ignored for non spell indices.
+    run_index : str | None
+        ``optional`` The index used to attribute a run that crosses an output-period
+        boundary. Since icclim 7.4.0, omitting this argument selects ``"last"`` for
+        ``CDD``, ``CWD``, ``CFD``, ``CSU``, ``PXCDD``, ``PXCWD`` and
+        ``max_consecutive_occurrence``: the whole run is counted in the period where
+        it ends. Pass ``run_index="first"`` for the pre-7.4.0 behavior, or pass
+        ``split_runs_at_period_boundary=True`` to cut runs at every boundary.
+        ``WSDI`` and ``CSDI`` are unchanged. ECA&D ATBD v11, pp. 20--21 specifies
+        end-period attribution for CDD and CWD; the same convention is applied to
+        CFD, CSU, PXCDD, PXCWD and the generic function for consistency.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
     netcdf_version : str | NetcdfVersion
@@ -4865,7 +5114,7 @@ def sdii(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -4941,7 +5190,7 @@ def cwd(
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
-    run_index: str | None = "first",
+    run_index: str | None = None,
     allow_partial_seasons: bool | Literal["start", "end"] | None = None,
     completeness: CompletenessLike = None,
     allow_missing_periods: bool | None = None,
@@ -4954,6 +5203,20 @@ def cwd(
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
+    .. warning::
+       Since icclim 7.4.0, the default is ``run_index="last"``: a run crossing
+       a period boundary is counted in the period where it ends. A dry spell
+       from December 2000 to January 2001 therefore counts toward 2001. For a
+       dry spell from 2001-10-01 through 2002-04-30, yearly results changed from
+       ``[212, 0]`` to ``[0, 212]``; ``split_runs_at_period_boundary=True`` gives
+       ``[92, 120]``. Use ``run_index="first"`` for the pre-7.4.0 behavior.
+
+       ECA&D ATBD v11, pp. 20--21, the RClimDex manual (Appendix C), and
+       climdex.pcic specify end-period attribution for CDD/CWD. CFD, CSU,
+       PXCDD, PXCWD and this generic operation use the same convention for
+       consistency; the ATBD does not require it for those indices.
+
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -4964,7 +5227,7 @@ def cwd(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -4977,13 +5240,13 @@ def cwd(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -5002,17 +5265,23 @@ def cwd(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
-        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
-        Default is "first".
-        Ignored for non spell indices.
-    split_runs_at_period_boundary : bool, default=is
+    run_index : str | None
+        ``optional`` The index used to attribute a run that crosses an output-period
+        boundary. Since icclim 7.4.0, omitting this argument selects ``"last"`` for
+        ``CDD``, ``CWD``, ``CFD``, ``CSU``, ``PXCDD``, ``PXCWD`` and
+        ``max_consecutive_occurrence``: the whole run is counted in the period where
+        it ends. Pass ``run_index="first"`` for the pre-7.4.0 behavior, or pass
+        ``split_runs_at_period_boundary=True`` to cut runs at every boundary.
+        ``WSDI`` and ``CSDI`` are unchanged. ECA&D ATBD v11, pp. 20--21 specifies
+        end-period attribution for CDD and CWD; the same convention is applied to
+        CFD, CSU, PXCDD, PXCWD and the generic function for consistency.
+    split_runs_at_period_boundary : bool
         ``optional`` Only used by the indices based on ``max_consecutive_occurrence``
         (``CDD``, ``CWD``, ``CFD``, ``CSU``), ignored otherwise.
         When ``False`` (default), a run of consecutive days that crosses the end of
         an output period is counted whole in a single period: the one where the run
-        starts with ``run_index="first"`` (default), or the one where it ends with
-        ``run_index="last"``. The following (or preceding) period then gets no
+        starts with ``run_index="first"``, or the one where it ends with
+        ``run_index="last"`` (the default since 7.4.0). The following (or preceding) period then gets no
         credit for the days of that run, so its value can be 0.
         When ``True``, runs are cut at the boundary of every output period and each
         period gets the longest run found inside it. ``run_index`` then has no
@@ -5029,7 +5298,7 @@ def cwd(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -5118,6 +5387,7 @@ def rr(
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -5128,7 +5398,7 @@ def rr(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -5141,13 +5411,13 @@ def rr(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -5166,10 +5436,16 @@ def rr(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
-        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
-        Default is "first".
-        Ignored for non spell indices.
+    run_index : str | None
+        ``optional`` The index used to attribute a run that crosses an output-period
+        boundary. Since icclim 7.4.0, omitting this argument selects ``"last"`` for
+        ``CDD``, ``CWD``, ``CFD``, ``CSU``, ``PXCDD``, ``PXCWD`` and
+        ``max_consecutive_occurrence``: the whole run is counted in the period where
+        it ends. Pass ``run_index="first"`` for the pre-7.4.0 behavior, or pass
+        ``split_runs_at_period_boundary=True`` to cut runs at every boundary.
+        ``WSDI`` and ``CSDI`` are unchanged. ECA&D ATBD v11, pp. 20--21 specifies
+        end-period attribution for CDD and CWD; the same convention is applied to
+        CFD, CSU, PXCDD, PXCWD and the generic function for consistency.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
     netcdf_version : str | NetcdfVersion
@@ -5181,7 +5457,7 @@ def rr(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -5266,6 +5542,7 @@ def r10mm(
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -5276,7 +5553,7 @@ def r10mm(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -5289,13 +5566,13 @@ def r10mm(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -5314,10 +5591,16 @@ def r10mm(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
-        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
-        Default is "first".
-        Ignored for non spell indices.
+    run_index : str | None
+        ``optional`` The index used to attribute a run that crosses an output-period
+        boundary. Since icclim 7.4.0, omitting this argument selects ``"last"`` for
+        ``CDD``, ``CWD``, ``CFD``, ``CSU``, ``PXCDD``, ``PXCWD`` and
+        ``max_consecutive_occurrence``: the whole run is counted in the period where
+        it ends. Pass ``run_index="first"`` for the pre-7.4.0 behavior, or pass
+        ``split_runs_at_period_boundary=True`` to cut runs at every boundary.
+        ``WSDI`` and ``CSDI`` are unchanged. ECA&D ATBD v11, pp. 20--21 specifies
+        end-period attribution for CDD and CWD; the same convention is applied to
+        CFD, CSU, PXCDD, PXCWD and the generic function for consistency.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
     netcdf_version : str | NetcdfVersion
@@ -5329,7 +5612,7 @@ def r10mm(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -5417,6 +5700,7 @@ def r20mm(
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -5427,7 +5711,7 @@ def r20mm(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -5440,13 +5724,13 @@ def r20mm(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -5465,10 +5749,16 @@ def r20mm(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
-        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
-        Default is "first".
-        Ignored for non spell indices.
+    run_index : str | None
+        ``optional`` The index used to attribute a run that crosses an output-period
+        boundary. Since icclim 7.4.0, omitting this argument selects ``"last"`` for
+        ``CDD``, ``CWD``, ``CFD``, ``CSU``, ``PXCDD``, ``PXCWD`` and
+        ``max_consecutive_occurrence``: the whole run is counted in the period where
+        it ends. Pass ``run_index="first"`` for the pre-7.4.0 behavior, or pass
+        ``split_runs_at_period_boundary=True`` to cut runs at every boundary.
+        ``WSDI`` and ``CSDI`` are unchanged. ECA&D ATBD v11, pp. 20--21 specifies
+        end-period attribution for CDD and CWD; the same convention is applied to
+        CFD, CSU, PXCDD, PXCWD and the generic function for consistency.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
     netcdf_version : str | NetcdfVersion
@@ -5480,7 +5770,7 @@ def r20mm(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -5568,6 +5858,7 @@ def rx1day(
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -5578,7 +5869,7 @@ def rx1day(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -5591,13 +5882,13 @@ def rx1day(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -5616,10 +5907,16 @@ def rx1day(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
-        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
-        Default is "first".
-        Ignored for non spell indices.
+    run_index : str | None
+        ``optional`` The index used to attribute a run that crosses an output-period
+        boundary. Since icclim 7.4.0, omitting this argument selects ``"last"`` for
+        ``CDD``, ``CWD``, ``CFD``, ``CSU``, ``PXCDD``, ``PXCWD`` and
+        ``max_consecutive_occurrence``: the whole run is counted in the period where
+        it ends. Pass ``run_index="first"`` for the pre-7.4.0 behavior, or pass
+        ``split_runs_at_period_boundary=True`` to cut runs at every boundary.
+        ``WSDI`` and ``CSDI`` are unchanged. ECA&D ATBD v11, pp. 20--21 specifies
+        end-period attribution for CDD and CWD; the same convention is applied to
+        CFD, CSU, PXCDD, PXCWD and the generic function for consistency.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
     netcdf_version : str | NetcdfVersion
@@ -5631,7 +5928,7 @@ def rx1day(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -5716,6 +6013,7 @@ def rx5day(
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -5726,7 +6024,7 @@ def rx5day(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -5739,13 +6037,13 @@ def rx5day(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -5764,10 +6062,16 @@ def rx5day(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
-        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
-        Default is "first".
-        Ignored for non spell indices.
+    run_index : str | None
+        ``optional`` The index used to attribute a run that crosses an output-period
+        boundary. Since icclim 7.4.0, omitting this argument selects ``"last"`` for
+        ``CDD``, ``CWD``, ``CFD``, ``CSU``, ``PXCDD``, ``PXCWD`` and
+        ``max_consecutive_occurrence``: the whole run is counted in the period where
+        it ends. Pass ``run_index="first"`` for the pre-7.4.0 behavior, or pass
+        ``split_runs_at_period_boundary=True`` to cut runs at every boundary.
+        ``WSDI`` and ``CSDI`` are unchanged. ECA&D ATBD v11, pp. 20--21 specifies
+        end-period attribution for CDD and CWD; the same convention is applied to
+        CFD, CSU, PXCDD, PXCWD and the generic function for consistency.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
     netcdf_version : str | NetcdfVersion
@@ -5779,7 +6083,7 @@ def rx5day(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -5868,6 +6172,7 @@ def r75p(
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -5878,7 +6183,7 @@ def r75p(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -5891,13 +6196,13 @@ def r75p(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -5930,15 +6235,21 @@ def r75p(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
-        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
-        Default is "first".
-        Ignored for non spell indices.
+    run_index : str | None
+        ``optional`` The index used to attribute a run that crosses an output-period
+        boundary. Since icclim 7.4.0, omitting this argument selects ``"last"`` for
+        ``CDD``, ``CWD``, ``CFD``, ``CSU``, ``PXCDD``, ``PXCWD`` and
+        ``max_consecutive_occurrence``: the whole run is counted in the period where
+        it ends. Pass ``run_index="first"`` for the pre-7.4.0 behavior, or pass
+        ``split_runs_at_period_boundary=True`` to cut runs at every boundary.
+        ``WSDI`` and ``CSDI`` are unchanged. ECA&D ATBD v11, pp. 20--21 specifies
+        end-period attribution for CDD and CWD; the same convention is applied to
+        CFD, CSU, PXCDD, PXCWD and the generic function for consistency.
     only_leap_years : bool
         ``optional`` Option for February 29th (default: False).
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
-    interpolation : str | QuantileInterpolation | None, default="median_unbiased"
+    interpolation : str | QuantileInterpolation | None
         ``optional`` Interpolation method to compute percentile values:
         ``{"linear", "median_unbiased"}``
         Default is "median_unbiased", a.k.a type 8 or method 8.
@@ -5955,7 +6266,7 @@ def r75p(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -6048,6 +6359,7 @@ def r75ptot(
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -6058,7 +6370,7 @@ def r75ptot(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -6071,13 +6383,13 @@ def r75ptot(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -6110,15 +6422,21 @@ def r75ptot(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
-        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
-        Default is "first".
-        Ignored for non spell indices.
+    run_index : str | None
+        ``optional`` The index used to attribute a run that crosses an output-period
+        boundary. Since icclim 7.4.0, omitting this argument selects ``"last"`` for
+        ``CDD``, ``CWD``, ``CFD``, ``CSU``, ``PXCDD``, ``PXCWD`` and
+        ``max_consecutive_occurrence``: the whole run is counted in the period where
+        it ends. Pass ``run_index="first"`` for the pre-7.4.0 behavior, or pass
+        ``split_runs_at_period_boundary=True`` to cut runs at every boundary.
+        ``WSDI`` and ``CSDI`` are unchanged. ECA&D ATBD v11, pp. 20--21 specifies
+        end-period attribution for CDD and CWD; the same convention is applied to
+        CFD, CSU, PXCDD, PXCWD and the generic function for consistency.
     only_leap_years : bool
         ``optional`` Option for February 29th (default: False).
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
-    interpolation : str | QuantileInterpolation | None, default="median_unbiased"
+    interpolation : str | QuantileInterpolation | None
         ``optional`` Interpolation method to compute percentile values:
         ``{"linear", "median_unbiased"}``
         Default is "median_unbiased", a.k.a type 8 or method 8.
@@ -6135,7 +6453,7 @@ def r75ptot(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -6228,6 +6546,7 @@ def r95p(
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -6238,7 +6557,7 @@ def r95p(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -6251,13 +6570,13 @@ def r95p(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -6290,15 +6609,21 @@ def r95p(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
-        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
-        Default is "first".
-        Ignored for non spell indices.
+    run_index : str | None
+        ``optional`` The index used to attribute a run that crosses an output-period
+        boundary. Since icclim 7.4.0, omitting this argument selects ``"last"`` for
+        ``CDD``, ``CWD``, ``CFD``, ``CSU``, ``PXCDD``, ``PXCWD`` and
+        ``max_consecutive_occurrence``: the whole run is counted in the period where
+        it ends. Pass ``run_index="first"`` for the pre-7.4.0 behavior, or pass
+        ``split_runs_at_period_boundary=True`` to cut runs at every boundary.
+        ``WSDI`` and ``CSDI`` are unchanged. ECA&D ATBD v11, pp. 20--21 specifies
+        end-period attribution for CDD and CWD; the same convention is applied to
+        CFD, CSU, PXCDD, PXCWD and the generic function for consistency.
     only_leap_years : bool
         ``optional`` Option for February 29th (default: False).
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
-    interpolation : str | QuantileInterpolation | None, default="median_unbiased"
+    interpolation : str | QuantileInterpolation | None
         ``optional`` Interpolation method to compute percentile values:
         ``{"linear", "median_unbiased"}``
         Default is "median_unbiased", a.k.a type 8 or method 8.
@@ -6315,7 +6640,7 @@ def r95p(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -6408,6 +6733,7 @@ def r95ptot(
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -6418,7 +6744,7 @@ def r95ptot(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -6431,13 +6757,13 @@ def r95ptot(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -6470,15 +6796,21 @@ def r95ptot(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
-        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
-        Default is "first".
-        Ignored for non spell indices.
+    run_index : str | None
+        ``optional`` The index used to attribute a run that crosses an output-period
+        boundary. Since icclim 7.4.0, omitting this argument selects ``"last"`` for
+        ``CDD``, ``CWD``, ``CFD``, ``CSU``, ``PXCDD``, ``PXCWD`` and
+        ``max_consecutive_occurrence``: the whole run is counted in the period where
+        it ends. Pass ``run_index="first"`` for the pre-7.4.0 behavior, or pass
+        ``split_runs_at_period_boundary=True`` to cut runs at every boundary.
+        ``WSDI`` and ``CSDI`` are unchanged. ECA&D ATBD v11, pp. 20--21 specifies
+        end-period attribution for CDD and CWD; the same convention is applied to
+        CFD, CSU, PXCDD, PXCWD and the generic function for consistency.
     only_leap_years : bool
         ``optional`` Option for February 29th (default: False).
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
-    interpolation : str | QuantileInterpolation | None, default="median_unbiased"
+    interpolation : str | QuantileInterpolation | None
         ``optional`` Interpolation method to compute percentile values:
         ``{"linear", "median_unbiased"}``
         Default is "median_unbiased", a.k.a type 8 or method 8.
@@ -6495,7 +6827,7 @@ def r95ptot(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -6588,6 +6920,7 @@ def r99p(
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -6598,7 +6931,7 @@ def r99p(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -6611,13 +6944,13 @@ def r99p(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -6650,15 +6983,21 @@ def r99p(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
-        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
-        Default is "first".
-        Ignored for non spell indices.
+    run_index : str | None
+        ``optional`` The index used to attribute a run that crosses an output-period
+        boundary. Since icclim 7.4.0, omitting this argument selects ``"last"`` for
+        ``CDD``, ``CWD``, ``CFD``, ``CSU``, ``PXCDD``, ``PXCWD`` and
+        ``max_consecutive_occurrence``: the whole run is counted in the period where
+        it ends. Pass ``run_index="first"`` for the pre-7.4.0 behavior, or pass
+        ``split_runs_at_period_boundary=True`` to cut runs at every boundary.
+        ``WSDI`` and ``CSDI`` are unchanged. ECA&D ATBD v11, pp. 20--21 specifies
+        end-period attribution for CDD and CWD; the same convention is applied to
+        CFD, CSU, PXCDD, PXCWD and the generic function for consistency.
     only_leap_years : bool
         ``optional`` Option for February 29th (default: False).
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
-    interpolation : str | QuantileInterpolation | None, default="median_unbiased"
+    interpolation : str | QuantileInterpolation | None
         ``optional`` Interpolation method to compute percentile values:
         ``{"linear", "median_unbiased"}``
         Default is "median_unbiased", a.k.a type 8 or method 8.
@@ -6675,7 +7014,7 @@ def r99p(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -6768,6 +7107,7 @@ def r99ptot(
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -6778,7 +7118,7 @@ def r99ptot(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -6791,13 +7131,13 @@ def r99ptot(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -6830,15 +7170,21 @@ def r99ptot(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
-        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
-        Default is "first".
-        Ignored for non spell indices.
+    run_index : str | None
+        ``optional`` The index used to attribute a run that crosses an output-period
+        boundary. Since icclim 7.4.0, omitting this argument selects ``"last"`` for
+        ``CDD``, ``CWD``, ``CFD``, ``CSU``, ``PXCDD``, ``PXCWD`` and
+        ``max_consecutive_occurrence``: the whole run is counted in the period where
+        it ends. Pass ``run_index="first"`` for the pre-7.4.0 behavior, or pass
+        ``split_runs_at_period_boundary=True`` to cut runs at every boundary.
+        ``WSDI`` and ``CSDI`` are unchanged. ECA&D ATBD v11, pp. 20--21 specifies
+        end-period attribution for CDD and CWD; the same convention is applied to
+        CFD, CSU, PXCDD, PXCWD and the generic function for consistency.
     only_leap_years : bool
         ``optional`` Option for February 29th (default: False).
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
-    interpolation : str | QuantileInterpolation | None, default="median_unbiased"
+    interpolation : str | QuantileInterpolation | None
         ``optional`` Interpolation method to compute percentile values:
         ``{"linear", "median_unbiased"}``
         Default is "median_unbiased", a.k.a type 8 or method 8.
@@ -6855,7 +7201,7 @@ def r99ptot(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -6944,6 +7290,7 @@ def sd(
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -6954,7 +7301,7 @@ def sd(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -6967,13 +7314,13 @@ def sd(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -6992,10 +7339,16 @@ def sd(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
-        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
-        Default is "first".
-        Ignored for non spell indices.
+    run_index : str | None
+        ``optional`` The index used to attribute a run that crosses an output-period
+        boundary. Since icclim 7.4.0, omitting this argument selects ``"last"`` for
+        ``CDD``, ``CWD``, ``CFD``, ``CSU``, ``PXCDD``, ``PXCWD`` and
+        ``max_consecutive_occurrence``: the whole run is counted in the period where
+        it ends. Pass ``run_index="first"`` for the pre-7.4.0 behavior, or pass
+        ``split_runs_at_period_boundary=True`` to cut runs at every boundary.
+        ``WSDI`` and ``CSDI`` are unchanged. ECA&D ATBD v11, pp. 20--21 specifies
+        end-period attribution for CDD and CWD; the same convention is applied to
+        CFD, CSU, PXCDD, PXCWD and the generic function for consistency.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
     netcdf_version : str | NetcdfVersion
@@ -7007,7 +7360,7 @@ def sd(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -7092,6 +7445,7 @@ def sd1(
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -7102,7 +7456,7 @@ def sd1(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -7115,13 +7469,13 @@ def sd1(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -7140,10 +7494,16 @@ def sd1(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
-        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
-        Default is "first".
-        Ignored for non spell indices.
+    run_index : str | None
+        ``optional`` The index used to attribute a run that crosses an output-period
+        boundary. Since icclim 7.4.0, omitting this argument selects ``"last"`` for
+        ``CDD``, ``CWD``, ``CFD``, ``CSU``, ``PXCDD``, ``PXCWD`` and
+        ``max_consecutive_occurrence``: the whole run is counted in the period where
+        it ends. Pass ``run_index="first"`` for the pre-7.4.0 behavior, or pass
+        ``split_runs_at_period_boundary=True`` to cut runs at every boundary.
+        ``WSDI`` and ``CSDI`` are unchanged. ECA&D ATBD v11, pp. 20--21 specifies
+        end-period attribution for CDD and CWD; the same convention is applied to
+        CFD, CSU, PXCDD, PXCWD and the generic function for consistency.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
     netcdf_version : str | NetcdfVersion
@@ -7155,7 +7515,7 @@ def sd1(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -7243,6 +7603,7 @@ def sd5cm(
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -7253,7 +7614,7 @@ def sd5cm(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -7266,13 +7627,13 @@ def sd5cm(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -7291,10 +7652,16 @@ def sd5cm(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
-        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
-        Default is "first".
-        Ignored for non spell indices.
+    run_index : str | None
+        ``optional`` The index used to attribute a run that crosses an output-period
+        boundary. Since icclim 7.4.0, omitting this argument selects ``"last"`` for
+        ``CDD``, ``CWD``, ``CFD``, ``CSU``, ``PXCDD``, ``PXCWD`` and
+        ``max_consecutive_occurrence``: the whole run is counted in the period where
+        it ends. Pass ``run_index="first"`` for the pre-7.4.0 behavior, or pass
+        ``split_runs_at_period_boundary=True`` to cut runs at every boundary.
+        ``WSDI`` and ``CSDI`` are unchanged. ECA&D ATBD v11, pp. 20--21 specifies
+        end-period attribution for CDD and CWD; the same convention is applied to
+        CFD, CSU, PXCDD, PXCWD and the generic function for consistency.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
     netcdf_version : str | NetcdfVersion
@@ -7306,7 +7673,7 @@ def sd5cm(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -7394,6 +7761,7 @@ def sd50cm(
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -7404,7 +7772,7 @@ def sd50cm(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -7417,13 +7785,13 @@ def sd50cm(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -7442,10 +7810,16 @@ def sd50cm(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
-        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
-        Default is "first".
-        Ignored for non spell indices.
+    run_index : str | None
+        ``optional`` The index used to attribute a run that crosses an output-period
+        boundary. Since icclim 7.4.0, omitting this argument selects ``"last"`` for
+        ``CDD``, ``CWD``, ``CFD``, ``CSU``, ``PXCDD``, ``PXCWD`` and
+        ``max_consecutive_occurrence``: the whole run is counted in the period where
+        it ends. Pass ``run_index="first"`` for the pre-7.4.0 behavior, or pass
+        ``split_runs_at_period_boundary=True`` to cut runs at every boundary.
+        ``WSDI`` and ``CSDI`` are unchanged. ECA&D ATBD v11, pp. 20--21 specifies
+        end-period attribution for CDD and CWD; the same convention is applied to
+        CFD, CSU, PXCDD, PXCWD and the generic function for consistency.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
     netcdf_version : str | NetcdfVersion
@@ -7457,7 +7831,7 @@ def sd50cm(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -7549,6 +7923,7 @@ def cd(
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -7559,7 +7934,7 @@ def cd(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -7572,13 +7947,13 @@ def cd(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -7611,15 +7986,21 @@ def cd(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
-        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
-        Default is "first".
-        Ignored for non spell indices.
+    run_index : str | None
+        ``optional`` The index used to attribute a run that crosses an output-period
+        boundary. Since icclim 7.4.0, omitting this argument selects ``"last"`` for
+        ``CDD``, ``CWD``, ``CFD``, ``CSU``, ``PXCDD``, ``PXCWD`` and
+        ``max_consecutive_occurrence``: the whole run is counted in the period where
+        it ends. Pass ``run_index="first"`` for the pre-7.4.0 behavior, or pass
+        ``split_runs_at_period_boundary=True`` to cut runs at every boundary.
+        ``WSDI`` and ``CSDI`` are unchanged. ECA&D ATBD v11, pp. 20--21 specifies
+        end-period attribution for CDD and CWD; the same convention is applied to
+        CFD, CSU, PXCDD, PXCWD and the generic function for consistency.
     only_leap_years : bool
         ``optional`` Option for February 29th (default: False).
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
-    interpolation : str | QuantileInterpolation | None, default="median_unbiased"
+    interpolation : str | QuantileInterpolation | None
         ``optional`` Interpolation method to compute percentile values:
         ``{"linear", "median_unbiased"}``
         Default is "median_unbiased", a.k.a type 8 or method 8.
@@ -7636,7 +8017,7 @@ def cd(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -7742,6 +8123,7 @@ def cw(
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -7752,7 +8134,7 @@ def cw(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -7765,13 +8147,13 @@ def cw(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -7804,15 +8186,21 @@ def cw(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
-        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
-        Default is "first".
-        Ignored for non spell indices.
+    run_index : str | None
+        ``optional`` The index used to attribute a run that crosses an output-period
+        boundary. Since icclim 7.4.0, omitting this argument selects ``"last"`` for
+        ``CDD``, ``CWD``, ``CFD``, ``CSU``, ``PXCDD``, ``PXCWD`` and
+        ``max_consecutive_occurrence``: the whole run is counted in the period where
+        it ends. Pass ``run_index="first"`` for the pre-7.4.0 behavior, or pass
+        ``split_runs_at_period_boundary=True`` to cut runs at every boundary.
+        ``WSDI`` and ``CSDI`` are unchanged. ECA&D ATBD v11, pp. 20--21 specifies
+        end-period attribution for CDD and CWD; the same convention is applied to
+        CFD, CSU, PXCDD, PXCWD and the generic function for consistency.
     only_leap_years : bool
         ``optional`` Option for February 29th (default: False).
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
-    interpolation : str | QuantileInterpolation | None, default="median_unbiased"
+    interpolation : str | QuantileInterpolation | None
         ``optional`` Interpolation method to compute percentile values:
         ``{"linear", "median_unbiased"}``
         Default is "median_unbiased", a.k.a type 8 or method 8.
@@ -7829,7 +8217,7 @@ def cw(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -7935,6 +8323,7 @@ def wd(
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -7945,7 +8334,7 @@ def wd(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -7958,13 +8347,13 @@ def wd(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -7997,15 +8386,21 @@ def wd(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
-        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
-        Default is "first".
-        Ignored for non spell indices.
+    run_index : str | None
+        ``optional`` The index used to attribute a run that crosses an output-period
+        boundary. Since icclim 7.4.0, omitting this argument selects ``"last"`` for
+        ``CDD``, ``CWD``, ``CFD``, ``CSU``, ``PXCDD``, ``PXCWD`` and
+        ``max_consecutive_occurrence``: the whole run is counted in the period where
+        it ends. Pass ``run_index="first"`` for the pre-7.4.0 behavior, or pass
+        ``split_runs_at_period_boundary=True`` to cut runs at every boundary.
+        ``WSDI`` and ``CSDI`` are unchanged. ECA&D ATBD v11, pp. 20--21 specifies
+        end-period attribution for CDD and CWD; the same convention is applied to
+        CFD, CSU, PXCDD, PXCWD and the generic function for consistency.
     only_leap_years : bool
         ``optional`` Option for February 29th (default: False).
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
-    interpolation : str | QuantileInterpolation | None, default="median_unbiased"
+    interpolation : str | QuantileInterpolation | None
         ``optional`` Interpolation method to compute percentile values:
         ``{"linear", "median_unbiased"}``
         Default is "median_unbiased", a.k.a type 8 or method 8.
@@ -8022,7 +8417,7 @@ def wd(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -8128,6 +8523,7 @@ def ww(
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -8138,7 +8534,7 @@ def ww(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -8151,13 +8547,13 @@ def ww(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -8190,15 +8586,21 @@ def ww(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
-        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
-        Default is "first".
-        Ignored for non spell indices.
+    run_index : str | None
+        ``optional`` The index used to attribute a run that crosses an output-period
+        boundary. Since icclim 7.4.0, omitting this argument selects ``"last"`` for
+        ``CDD``, ``CWD``, ``CFD``, ``CSU``, ``PXCDD``, ``PXCWD`` and
+        ``max_consecutive_occurrence``: the whole run is counted in the period where
+        it ends. Pass ``run_index="first"`` for the pre-7.4.0 behavior, or pass
+        ``split_runs_at_period_boundary=True`` to cut runs at every boundary.
+        ``WSDI`` and ``CSDI`` are unchanged. ECA&D ATBD v11, pp. 20--21 specifies
+        end-period attribution for CDD and CWD; the same convention is applied to
+        CFD, CSU, PXCDD, PXCWD and the generic function for consistency.
     only_leap_years : bool
         ``optional`` Option for February 29th (default: False).
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
-    interpolation : str | QuantileInterpolation | None, default="median_unbiased"
+    interpolation : str | QuantileInterpolation | None
         ``optional`` Interpolation method to compute percentile values:
         ``{"linear", "median_unbiased"}``
         Default is "median_unbiased", a.k.a type 8 or method 8.
@@ -8215,7 +8617,7 @@ def ww(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -8317,6 +8719,7 @@ def fxx(
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -8327,7 +8730,7 @@ def fxx(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -8340,13 +8743,13 @@ def fxx(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -8365,10 +8768,16 @@ def fxx(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
-        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
-        Default is "first".
-        Ignored for non spell indices.
+    run_index : str | None
+        ``optional`` The index used to attribute a run that crosses an output-period
+        boundary. Since icclim 7.4.0, omitting this argument selects ``"last"`` for
+        ``CDD``, ``CWD``, ``CFD``, ``CSU``, ``PXCDD``, ``PXCWD`` and
+        ``max_consecutive_occurrence``: the whole run is counted in the period where
+        it ends. Pass ``run_index="first"`` for the pre-7.4.0 behavior, or pass
+        ``split_runs_at_period_boundary=True`` to cut runs at every boundary.
+        ``WSDI`` and ``CSDI`` are unchanged. ECA&D ATBD v11, pp. 20--21 specifies
+        end-period attribution for CDD and CWD; the same convention is applied to
+        CFD, CSU, PXCDD, PXCWD and the generic function for consistency.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
     netcdf_version : str | NetcdfVersion
@@ -8380,7 +8789,7 @@ def fxx(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -8465,6 +8874,7 @@ def fg6bft(
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -8475,7 +8885,7 @@ def fg6bft(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -8488,13 +8898,13 @@ def fg6bft(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -8513,10 +8923,16 @@ def fg6bft(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
-        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
-        Default is "first".
-        Ignored for non spell indices.
+    run_index : str | None
+        ``optional`` The index used to attribute a run that crosses an output-period
+        boundary. Since icclim 7.4.0, omitting this argument selects ``"last"`` for
+        ``CDD``, ``CWD``, ``CFD``, ``CSU``, ``PXCDD``, ``PXCWD`` and
+        ``max_consecutive_occurrence``: the whole run is counted in the period where
+        it ends. Pass ``run_index="first"`` for the pre-7.4.0 behavior, or pass
+        ``split_runs_at_period_boundary=True`` to cut runs at every boundary.
+        ``WSDI`` and ``CSDI`` are unchanged. ECA&D ATBD v11, pp. 20--21 specifies
+        end-period attribution for CDD and CWD; the same convention is applied to
+        CFD, CSU, PXCDD, PXCWD and the generic function for consistency.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
     netcdf_version : str | NetcdfVersion
@@ -8528,7 +8944,7 @@ def fg6bft(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -8616,6 +9032,7 @@ def fgcalm(
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -8626,7 +9043,7 @@ def fgcalm(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -8639,13 +9056,13 @@ def fgcalm(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -8664,10 +9081,16 @@ def fgcalm(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
-        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
-        Default is "first".
-        Ignored for non spell indices.
+    run_index : str | None
+        ``optional`` The index used to attribute a run that crosses an output-period
+        boundary. Since icclim 7.4.0, omitting this argument selects ``"last"`` for
+        ``CDD``, ``CWD``, ``CFD``, ``CSU``, ``PXCDD``, ``PXCWD`` and
+        ``max_consecutive_occurrence``: the whole run is counted in the period where
+        it ends. Pass ``run_index="first"`` for the pre-7.4.0 behavior, or pass
+        ``split_runs_at_period_boundary=True`` to cut runs at every boundary.
+        ``WSDI`` and ``CSDI`` are unchanged. ECA&D ATBD v11, pp. 20--21 specifies
+        end-period attribution for CDD and CWD; the same convention is applied to
+        CFD, CSU, PXCDD, PXCWD and the generic function for consistency.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
     netcdf_version : str | NetcdfVersion
@@ -8679,7 +9102,7 @@ def fgcalm(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -8767,6 +9190,7 @@ def fg(
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -8777,7 +9201,7 @@ def fg(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -8790,13 +9214,13 @@ def fg(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -8815,10 +9239,16 @@ def fg(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
-        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
-        Default is "first".
-        Ignored for non spell indices.
+    run_index : str | None
+        ``optional`` The index used to attribute a run that crosses an output-period
+        boundary. Since icclim 7.4.0, omitting this argument selects ``"last"`` for
+        ``CDD``, ``CWD``, ``CFD``, ``CSU``, ``PXCDD``, ``PXCWD`` and
+        ``max_consecutive_occurrence``: the whole run is counted in the period where
+        it ends. Pass ``run_index="first"`` for the pre-7.4.0 behavior, or pass
+        ``split_runs_at_period_boundary=True`` to cut runs at every boundary.
+        ``WSDI`` and ``CSDI`` are unchanged. ECA&D ATBD v11, pp. 20--21 specifies
+        end-period attribution for CDD and CWD; the same convention is applied to
+        CFD, CSU, PXCDD, PXCWD and the generic function for consistency.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
     netcdf_version : str | NetcdfVersion
@@ -8830,7 +9260,7 @@ def fg(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -8915,6 +9345,7 @@ def ddnorth(
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -8925,7 +9356,7 @@ def ddnorth(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -8938,13 +9369,13 @@ def ddnorth(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -8963,10 +9394,16 @@ def ddnorth(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
-        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
-        Default is "first".
-        Ignored for non spell indices.
+    run_index : str | None
+        ``optional`` The index used to attribute a run that crosses an output-period
+        boundary. Since icclim 7.4.0, omitting this argument selects ``"last"`` for
+        ``CDD``, ``CWD``, ``CFD``, ``CSU``, ``PXCDD``, ``PXCWD`` and
+        ``max_consecutive_occurrence``: the whole run is counted in the period where
+        it ends. Pass ``run_index="first"`` for the pre-7.4.0 behavior, or pass
+        ``split_runs_at_period_boundary=True`` to cut runs at every boundary.
+        ``WSDI`` and ``CSDI`` are unchanged. ECA&D ATBD v11, pp. 20--21 specifies
+        end-period attribution for CDD and CWD; the same convention is applied to
+        CFD, CSU, PXCDD, PXCWD and the generic function for consistency.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
     netcdf_version : str | NetcdfVersion
@@ -8978,7 +9415,7 @@ def ddnorth(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -9066,6 +9503,7 @@ def ddeast(
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -9076,7 +9514,7 @@ def ddeast(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -9089,13 +9527,13 @@ def ddeast(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -9114,10 +9552,16 @@ def ddeast(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
-        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
-        Default is "first".
-        Ignored for non spell indices.
+    run_index : str | None
+        ``optional`` The index used to attribute a run that crosses an output-period
+        boundary. Since icclim 7.4.0, omitting this argument selects ``"last"`` for
+        ``CDD``, ``CWD``, ``CFD``, ``CSU``, ``PXCDD``, ``PXCWD`` and
+        ``max_consecutive_occurrence``: the whole run is counted in the period where
+        it ends. Pass ``run_index="first"`` for the pre-7.4.0 behavior, or pass
+        ``split_runs_at_period_boundary=True`` to cut runs at every boundary.
+        ``WSDI`` and ``CSDI`` are unchanged. ECA&D ATBD v11, pp. 20--21 specifies
+        end-period attribution for CDD and CWD; the same convention is applied to
+        CFD, CSU, PXCDD, PXCWD and the generic function for consistency.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
     netcdf_version : str | NetcdfVersion
@@ -9129,7 +9573,7 @@ def ddeast(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -9217,6 +9661,7 @@ def ddsouth(
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -9227,7 +9672,7 @@ def ddsouth(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -9240,13 +9685,13 @@ def ddsouth(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -9265,10 +9710,16 @@ def ddsouth(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
-        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
-        Default is "first".
-        Ignored for non spell indices.
+    run_index : str | None
+        ``optional`` The index used to attribute a run that crosses an output-period
+        boundary. Since icclim 7.4.0, omitting this argument selects ``"last"`` for
+        ``CDD``, ``CWD``, ``CFD``, ``CSU``, ``PXCDD``, ``PXCWD`` and
+        ``max_consecutive_occurrence``: the whole run is counted in the period where
+        it ends. Pass ``run_index="first"`` for the pre-7.4.0 behavior, or pass
+        ``split_runs_at_period_boundary=True`` to cut runs at every boundary.
+        ``WSDI`` and ``CSDI`` are unchanged. ECA&D ATBD v11, pp. 20--21 specifies
+        end-period attribution for CDD and CWD; the same convention is applied to
+        CFD, CSU, PXCDD, PXCWD and the generic function for consistency.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
     netcdf_version : str | NetcdfVersion
@@ -9280,7 +9731,7 @@ def ddsouth(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -9368,6 +9819,7 @@ def ddwest(
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -9378,7 +9830,7 @@ def ddwest(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -9391,13 +9843,13 @@ def ddwest(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -9416,10 +9868,16 @@ def ddwest(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
-        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
-        Default is "first".
-        Ignored for non spell indices.
+    run_index : str | None
+        ``optional`` The index used to attribute a run that crosses an output-period
+        boundary. Since icclim 7.4.0, omitting this argument selects ``"last"`` for
+        ``CDD``, ``CWD``, ``CFD``, ``CSU``, ``PXCDD``, ``PXCWD`` and
+        ``max_consecutive_occurrence``: the whole run is counted in the period where
+        it ends. Pass ``run_index="first"`` for the pre-7.4.0 behavior, or pass
+        ``split_runs_at_period_boundary=True`` to cut runs at every boundary.
+        ``WSDI`` and ``CSDI`` are unchanged. ECA&D ATBD v11, pp. 20--21 specifies
+        end-period attribution for CDD and CWD; the same convention is applied to
+        CFD, CSU, PXCDD, PXCWD and the generic function for consistency.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
     netcdf_version : str | NetcdfVersion
@@ -9431,7 +9889,7 @@ def ddwest(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -9519,6 +9977,7 @@ def gsl(
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -9529,7 +9988,7 @@ def gsl(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -9542,13 +10001,13 @@ def gsl(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -9567,10 +10026,16 @@ def gsl(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
-        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
-        Default is "first".
-        Ignored for non spell indices.
+    run_index : str | None
+        ``optional`` The index used to attribute a run that crosses an output-period
+        boundary. Since icclim 7.4.0, omitting this argument selects ``"last"`` for
+        ``CDD``, ``CWD``, ``CFD``, ``CSU``, ``PXCDD``, ``PXCWD`` and
+        ``max_consecutive_occurrence``: the whole run is counted in the period where
+        it ends. Pass ``run_index="first"`` for the pre-7.4.0 behavior, or pass
+        ``split_runs_at_period_boundary=True`` to cut runs at every boundary.
+        ``WSDI`` and ``CSDI`` are unchanged. ECA&D ATBD v11, pp. 20--21 specifies
+        end-period attribution for CDD and CWD; the same convention is applied to
+        CFD, CSU, PXCDD, PXCWD and the generic function for consistency.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
     netcdf_version : str | NetcdfVersion
@@ -9582,7 +10047,7 @@ def gsl(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -9668,6 +10133,7 @@ def spi6(
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -9678,7 +10144,7 @@ def spi6(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -9691,13 +10157,13 @@ def spi6(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -9730,10 +10196,16 @@ def spi6(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
-        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
-        Default is "first".
-        Ignored for non spell indices.
+    run_index : str | None
+        ``optional`` The index used to attribute a run that crosses an output-period
+        boundary. Since icclim 7.4.0, omitting this argument selects ``"last"`` for
+        ``CDD``, ``CWD``, ``CFD``, ``CSU``, ``PXCDD``, ``PXCWD`` and
+        ``max_consecutive_occurrence``: the whole run is counted in the period where
+        it ends. Pass ``run_index="first"`` for the pre-7.4.0 behavior, or pass
+        ``split_runs_at_period_boundary=True`` to cut runs at every boundary.
+        ``WSDI`` and ``CSDI`` are unchanged. ECA&D ATBD v11, pp. 20--21 specifies
+        end-period attribution for CDD and CWD; the same convention is applied to
+        CFD, CSU, PXCDD, PXCWD and the generic function for consistency.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
     netcdf_version : str | NetcdfVersion
@@ -9745,7 +10217,7 @@ def spi6(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -9832,6 +10304,7 @@ def spi3(
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -9842,7 +10315,7 @@ def spi3(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -9855,13 +10328,13 @@ def spi3(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -9894,10 +10367,16 @@ def spi3(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
-        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
-        Default is "first".
-        Ignored for non spell indices.
+    run_index : str | None
+        ``optional`` The index used to attribute a run that crosses an output-period
+        boundary. Since icclim 7.4.0, omitting this argument selects ``"last"`` for
+        ``CDD``, ``CWD``, ``CFD``, ``CSU``, ``PXCDD``, ``PXCWD`` and
+        ``max_consecutive_occurrence``: the whole run is counted in the period where
+        it ends. Pass ``run_index="first"`` for the pre-7.4.0 behavior, or pass
+        ``split_runs_at_period_boundary=True`` to cut runs at every boundary.
+        ``WSDI`` and ``CSDI`` are unchanged. ECA&D ATBD v11, pp. 20--21 specifies
+        end-period attribution for CDD and CWD; the same convention is applied to
+        CFD, CSU, PXCDD, PXCWD and the generic function for consistency.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
     netcdf_version : str | NetcdfVersion
@@ -9909,7 +10388,7 @@ def spi3(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -9995,6 +10474,7 @@ def pp(
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -10005,7 +10485,7 @@ def pp(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -10018,13 +10498,13 @@ def pp(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -10043,10 +10523,16 @@ def pp(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
-        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
-        Default is "first".
-        Ignored for non spell indices.
+    run_index : str | None
+        ``optional`` The index used to attribute a run that crosses an output-period
+        boundary. Since icclim 7.4.0, omitting this argument selects ``"last"`` for
+        ``CDD``, ``CWD``, ``CFD``, ``CSU``, ``PXCDD``, ``PXCWD`` and
+        ``max_consecutive_occurrence``: the whole run is counted in the period where
+        it ends. Pass ``run_index="first"`` for the pre-7.4.0 behavior, or pass
+        ``split_runs_at_period_boundary=True`` to cut runs at every boundary.
+        ``WSDI`` and ``CSDI`` are unchanged. ECA&D ATBD v11, pp. 20--21 specifies
+        end-period attribution for CDD and CWD; the same convention is applied to
+        CFD, CSU, PXCDD, PXCWD and the generic function for consistency.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
     netcdf_version : str | NetcdfVersion
@@ -10058,7 +10544,7 @@ def pp(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -10143,6 +10629,7 @@ def ss(
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -10153,7 +10640,7 @@ def ss(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -10166,13 +10653,13 @@ def ss(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -10191,10 +10678,16 @@ def ss(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
-        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
-        Default is "first".
-        Ignored for non spell indices.
+    run_index : str | None
+        ``optional`` The index used to attribute a run that crosses an output-period
+        boundary. Since icclim 7.4.0, omitting this argument selects ``"last"`` for
+        ``CDD``, ``CWD``, ``CFD``, ``CSU``, ``PXCDD``, ``PXCWD`` and
+        ``max_consecutive_occurrence``: the whole run is counted in the period where
+        it ends. Pass ``run_index="first"`` for the pre-7.4.0 behavior, or pass
+        ``split_runs_at_period_boundary=True`` to cut runs at every boundary.
+        ``WSDI`` and ``CSDI`` are unchanged. ECA&D ATBD v11, pp. 20--21 specifies
+        end-period attribution for CDD and CWD; the same convention is applied to
+        CFD, CSU, PXCDD, PXCWD and the generic function for consistency.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
     netcdf_version : str | NetcdfVersion
@@ -10206,7 +10699,7 @@ def ss(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -10291,6 +10784,7 @@ def rh(
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -10301,7 +10795,7 @@ def rh(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -10314,13 +10808,13 @@ def rh(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -10339,10 +10833,16 @@ def rh(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
-        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
-        Default is "first".
-        Ignored for non spell indices.
+    run_index : str | None
+        ``optional`` The index used to attribute a run that crosses an output-period
+        boundary. Since icclim 7.4.0, omitting this argument selects ``"last"`` for
+        ``CDD``, ``CWD``, ``CFD``, ``CSU``, ``PXCDD``, ``PXCWD`` and
+        ``max_consecutive_occurrence``: the whole run is counted in the period where
+        it ends. Pass ``run_index="first"`` for the pre-7.4.0 behavior, or pass
+        ``split_runs_at_period_boundary=True`` to cut runs at every boundary.
+        ``WSDI`` and ``CSDI`` are unchanged. ECA&D ATBD v11, pp. 20--21 specifies
+        end-period attribution for CDD and CWD; the same convention is applied to
+        CFD, CSU, PXCDD, PXCWD and the generic function for consistency.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
     netcdf_version : str | NetcdfVersion
@@ -10354,7 +10854,7 @@ def rh(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.

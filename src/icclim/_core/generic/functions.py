@@ -345,7 +345,7 @@ def max_consecutive_occurrence(
     source_freq_delta : timedelta
         The time difference between consecutive data points in the source data.
     **kwargs : dict
-        ``run_index`` ("first" by default, or "last") selects the end of a run to
+        ``run_index`` ("last" by default since icclim 7.4.0, or "first") selects the end of a run to
         which its whole length is attributed.
         ``split_runs_at_period_boundary`` (False by default): when True, runs are cut
         at the boundary of every output period instead of being attributed whole to
@@ -374,7 +374,7 @@ def max_consecutive_occurrence(
     ...     attrs={"units": "mm/day"},
     ... )
     >>> result = icclim.max_consecutive_occurrence(
-    ...     in_files=pr, var_name="pr", threshold="< 1 mm/day"
+    ...     in_files=pr, var_name="pr", threshold="< 1 mm/day", run_index="last"
     ... )
     >>> int(result.max_consecutive_occurrence.isel(time=0).values)
     365
@@ -421,7 +421,7 @@ def max_consecutive_occurrence(
             resample_freq,
             logical_link,
         )
-    run_index = kwargs.get("run_index", "first")
+    run_index = kwargs.get("run_index", "last")
     split_runs = bool(kwargs.get("split_runs_at_period_boundary", False))
     if bootstrap_spell_mask is not None:
         spell_run_lengths = _run_length_encoding(

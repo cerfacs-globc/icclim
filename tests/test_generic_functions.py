@@ -266,7 +266,8 @@ def test_max_consecutive_occurrence() -> None:
         date_event=False,
         source_freq_delta="1D",
     )
-    assert int(result.isel(time=0).values) >= 365
+    assert int(result.isel(time=-1).values) >= 365
+    assert np.isnan(result.isel(time=0).values)
 
 
 def test_safe_to_agg_units_drops_unsupported_kwargs(

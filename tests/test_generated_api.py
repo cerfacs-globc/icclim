@@ -137,7 +137,14 @@ def test_generated_api_forwards_split_runs_at_period_boundary(
     index_fun_mock: MagicMock,
 ) -> None:
     """Only the max consecutive occurrence based functions have the option."""
-    for fun in (icclim.cdd, icclim.cwd, icclim.cfd, icclim.csu):
+    for fun in (
+        icclim.cdd,
+        icclim.cwd,
+        icclim.cfd,
+        icclim.csu,
+        icclim.dcsc.pxcdd,
+        icclim.dcsc.pxcwd,
+    ):
         fun(in_files="pouet.nc", split_runs_at_period_boundary=True)
         assert index_fun_mock.call_args.kwargs["split_runs_at_period_boundary"] is True
     icclim.max_consecutive_occurrence(
@@ -146,6 +153,18 @@ def test_generated_api_forwards_split_runs_at_period_boundary(
     assert index_fun_mock.call_args.kwargs["split_runs_at_period_boundary"] is True
     for fun in (icclim.txx, icclim.su, icclim.wsdi, icclim.csdi, icclim.custom_index):
         assert "split_runs_at_period_boundary" not in inspect.signature(fun).parameters
+
+
+def test_generated_api_exposes_conditional_run_index_defaults() -> None:
+    assert inspect.signature(icclim.cdd).parameters["run_index"].default is None
+    assert (
+        inspect.signature(icclim.max_consecutive_occurrence)
+        .parameters["run_index"]
+        .default
+        is None
+    )
+    assert inspect.signature(icclim.csdi).parameters["run_index"].default == "first"
+    assert inspect.signature(icclim.wsdi).parameters["run_index"].default == "first"
 
 
 @patch("icclim.index")

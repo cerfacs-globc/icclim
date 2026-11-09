@@ -6,6 +6,21 @@
 Unreleased
 **********
 
+-  [Behaviour change] Since 7.4.0, ``CDD``, ``CWD``, ``CFD``, ``CSU``,
+   ``PXCDD``, ``PXCWD`` and ``max_consecutive_occurrence`` default to
+   ``run_index="last"``: a run crossing an output-period boundary is counted in
+   the period where it ends (issue #580). This applies to every output frequency,
+   including months and seasons, not only years: a January 25--February 5 run is
+   ``[12, 0]`` with ``run_index="first"``, ``[0, 12]`` by default, and ``[7, 5]``
+   when split. The ECA&D example of a dry spell from
+   December 2000 to January 2001 therefore counts toward 2001. With yearly output,
+   a dry spell from 2001-10-01 through 2002-04-30 changes from ``[212, 0]`` under
+   the old default to ``[0, 212]``. Pass ``run_index="first"`` for the pre-7.4.0
+   result, or ``split_runs_at_period_boundary=True`` to cut the spell at the year
+   boundary and get ``[92, 120]``. ECA&D ATBD v11, pp. 20--21, the RClimDex
+   manual (Appendix C), and climdex.pcic use end-period attribution for CDD/CWD.
+   The same convention is applied to CFD, CSU, PXCDD, PXCWD and the generic
+   function for consistency; the ATBD does not require it for those indices.
 -  [fix] ``CDD``, ``CWD``, ``CFD``, ``CSU`` and ``max_consecutive_occurrence``
    return their dimensions in the order of the input (issue #542, PR #550).
    Behaviour change in the layout only, the values do not change. With
