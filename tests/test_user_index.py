@@ -238,8 +238,9 @@ class TestMaxConsecutiveEventCount:
             slice_mode="year",
         )
         # THEN
-        assert result["max_consecutive_occurrence"].isel(time=0).values[()] == 1795
+        assert result["max_consecutive_occurrence"].isel(time=0).values[()] == 30
         assert result["max_consecutive_occurrence"][1].isnull()
+        assert result["max_consecutive_occurrence"].isel(time=-1).values[()] == 1795
 
 
 class TestAnomaly:

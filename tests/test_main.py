@@ -739,10 +739,9 @@ class TestIntegration:
         ).load()
         # in January there are only 10 days above 25degC
         assert res.CSU.isel(time=0) == 10
-        # There are 30 days of temperature to zero, then only values above 25degC
-        assert res.CSU.isel(time=1) == 1786
-        # Nan because they are counted as the first run taken into account for Februar
-        assert np.isnan(res.CSU.isel(time=3))
+        # The final run crosses month boundaries and is attributed where it ends.
+        assert res.CSU.isel(time=-1) == 1786
+        assert res.CSU.isel(time=1) == 0
 
     def test_index_gd4(self) -> None:
         tas = stub_tas(tas_value=26 + K2C)

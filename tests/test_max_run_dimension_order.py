@@ -67,7 +67,7 @@ def test_results_keep_the_dimension_order_of_the_input(
     )[name.upper()].compute()
     assert result.dims == cube.dims
     # Only the layout is concerned: the values are those of the other tests.
-    expected = [92, 120] if split else [212, 0]
+    expected = [92, 120] if split else [0, 212]
     np.testing.assert_array_equal(result.isel(lat=0, lon=0).values, expected)
 
 

@@ -15,6 +15,7 @@ import datetime as dt
 import json
 import operator
 import os
+import sys
 import time
 from collections.abc import Callable, Sequence
 from functools import reduce
@@ -376,7 +377,7 @@ def index(
     min_spell_length: int | None = 6,
     rolling_window_width: int | None = 5,
     sampling_method: SamplingMethodLike = RESAMPLE_METHOD,
-    run_index: str | None = "first",
+    run_index: str | None = None,
     allow_partial_seasons: bool | Literal["start", "end"] | None = None,
     completeness: CompletenessLike = None,
     allow_missing_periods: bool | None = None,
@@ -491,16 +492,22 @@ def index(
         ``optional`` Window width of the rolling window for indicators such as
         `{max_of_rolling_sum, max_of_rolling_average, min_of_rolling_sum, min_of_rolling_average}`
     run_index: str | None
-        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
-        Default is "first".
-        Ignored for non spell indices.
+        ``optional`` The index used to attribute a run that crosses an output-period
+        boundary. Since icclim 7.4.0, omitting this argument selects ``"last"`` for
+        ``CDD``, ``CWD``, ``CFD``, ``CSU``, ``PXCDD``, ``PXCWD`` and
+        ``max_consecutive_occurrence``: the whole run is counted in the period where
+        it ends. Pass ``run_index="first"`` for the pre-7.4.0 behavior, or pass
+        ``split_runs_at_period_boundary=True`` to cut runs at every boundary.
+        ``WSDI`` and ``CSDI`` are unchanged. ECA&D ATBD v11, pp. 20--21 specifies
+        end-period attribution for CDD and CWD; the same convention is applied to
+        CFD, CSU, PXCDD, PXCWD and the generic function for consistency.
     split_runs_at_period_boundary: bool
         ``optional`` Only used by the indices based on ``max_consecutive_occurrence``
         (``CDD``, ``CWD``, ``CFD``, ``CSU``), ignored otherwise.
         When ``False`` (default), a run of consecutive days that crosses the end of
         an output period is counted whole in a single period: the one where the run
-        starts with ``run_index="first"`` (default), or the one where it ends with
-        ``run_index="last"``. The following (or preceding) period then gets no
+        starts with ``run_index="first"``, or the one where it ends with
+        ``run_index="last"`` (the default since 7.4.0). The following (or preceding) period then gets no
         credit for the days of that run, so its value can be 0.
         When ``True``, runs are cut at the boundary of every output period and each
         period gets the longest run found inside it. ``run_index`` then has no
@@ -684,7 +691,7 @@ def index(
             min_spell_length=min_spell_length,
             rolling_window_width=rolling_window_width,
             sampling_method=sampling_method,
-            run_index=run_index,
+            run_index=run_index or "first",
             split_runs_at_period_boundary=split_runs_at_period_boundary,
             allow_partial_seasons=allow_partial_seasons or False,
             completeness=completeness,
@@ -695,6 +702,7 @@ def index(
             ),
             normalized_request=normalized_request,
         )
+        run_index = _resolve_run_index(config, run_index)
         provenance_user_parameters = _build_index_provenance_user_parameters(
             index_name=index_name,
             var_name=var_name,
@@ -735,6 +743,24 @@ def index(
         log.ending_message(time.process_time())
     _reemit_actionable_warnings(captured_warnings)
     return result_ds
+
+
+def _resolve_run_index(config: IndexConfig, requested: str | None) -> str:
+    """Resolve the longest-run default and emit its unfilterable notice."""
+    if requested is not None:
+        return requested
+    if config.indicator.name != GenericIndicatorRegistry.MaxConsecutiveOccurrence.name:
+        config.run_index = "first"
+        return "first"
+
+    config.run_index = "last"
+    sys.stdout.write(
+        f"icclim 7.4.0 behaviour change: {config.indicator_name} now defaults to "
+        'run_index="last", so a run crossing a period boundary is counted where it '
+        'ends. Use run_index="first" for the pre-7.4.0 result, or '
+        "split_runs_at_period_boundary=True to cut the run at each boundary.\n"
+    )
+    return "last"
 
 
 def _reemit_actionable_warnings(captured_warnings: list[Any]) -> None:

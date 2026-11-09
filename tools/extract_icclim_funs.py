@@ -52,6 +52,21 @@ END_NOTE = """
     This function has been auto-generated.
 """
 
+RUN_ATTRIBUTION_NOTE = """
+    .. warning::
+       Since icclim 7.4.0, the default is ``run_index="last"``: a run crossing
+       a period boundary is counted in the period where it ends. A dry spell
+       from December 2000 to January 2001 therefore counts toward 2001. For a
+       dry spell from 2001-10-01 through 2002-04-30, yearly results changed from
+       ``[212, 0]`` to ``[0, 212]``; ``split_runs_at_period_boundary=True`` gives
+       ``[92, 120]``. Use ``run_index="first"`` for the pre-7.4.0 behavior.
+
+       ECA&D ATBD v11, pp. 20--21, the RClimDex manual (Appendix C), and
+       climdex.pcic specify end-period attribution for CDD/CWD. CFD, CSU,
+       PXCDD, PXCWD and this generic operation use the same convention for
+       consistency; the ATBD does not require it for those indices.
+"""
+
 RELATIVE_ROOT = Path(__file__).parent.parent
 DEFAULT_OUTPUT_PATH = RELATIVE_ROOT / "src/icclim/_generated"
 PATH_TO_DCSC_DOC_FILE = (
@@ -203,6 +218,7 @@ def _get_user_index_declaration() -> str:
     pop_args.append(SPLIT_RUNS_ARG)
     for pop_arg in pop_args:
         icclim_index_args.pop(pop_arg)
+    _set_run_index_default(icclim_index_args, None)
     fun_signature_args = _build_fun_signature_args(icclim_index_args)
     args_docs = _get_params_docstring(
         list(icclim_index_args.keys()), icclim_index.__doc__
@@ -263,6 +279,7 @@ def _get_typical_index_declaration(index: StandardIndex, registry: Registry) -> 
             + QUANTILE_INDEX_FIELDS
             + _split_runs_pop_args(index)
         )
+    _set_run_index_default(index_args, index)
     fun_signature_args = _build_fun_signature_args(index_args)
     doc_string = icclim_index.__doc__ or ""
     args_docs = _get_params_docstring(list(index_args.keys()), doc_string)
@@ -290,6 +307,7 @@ def {index.short_name.lower()}(
     {index.short_name}: {index.definition}
     Source: {index.source}.
 
+    {_get_run_attribution_note(index)}
     {args_docs}
     {END_NOTE}
     \"\"\"  # noqa: D401
@@ -334,6 +352,7 @@ def _get_normal_based_declaration(index: StandardIndex, registry: Registry) -> s
 
     # Build index arguments
     index_args = _get_arguments(NORMAL_INDEX_POP_ARGS + _split_runs_pop_args(index))
+    _set_run_index_default(index_args, index)
     normal_sig = inspect.signature(_normal_index_placeholder)
     passed_to_index_args = [f"{arg}={arg}" for arg in index_args]
     index_args["normal"] = normal_sig.parameters["normal"]
@@ -400,6 +419,31 @@ def _split_runs_pop_args(index: StandardIndex | GenericIndicator) -> list[str]:
     if indicator is GenericIndicatorRegistry.MaxConsecutiveOccurrence:
         return []
     return [SPLIT_RUNS_ARG]
+
+
+def _get_run_attribution_note(index: StandardIndex | GenericIndicator) -> str:
+    from icclim.generic.registry import GenericIndicatorRegistry
+
+    indicator = getattr(index, "indicator", index)
+    return (
+        RUN_ATTRIBUTION_NOTE
+        if indicator is GenericIndicatorRegistry.MaxConsecutiveOccurrence
+        else ""
+    )
+
+
+def _set_run_index_default(
+    arguments: dict[str, inspect.Parameter],
+    index: StandardIndex | GenericIndicator | None,
+) -> None:
+    """Keep first for other APIs while max-consecutive detects omission."""
+    if "run_index" not in arguments:
+        return
+    from icclim.generic.registry import GenericIndicatorRegistry
+
+    indicator = getattr(index, "indicator", index)
+    if indicator is not GenericIndicatorRegistry.MaxConsecutiveOccurrence:
+        arguments["run_index"] = arguments["run_index"].replace(default="first")
 
 
 def _is_compared_to_normal(index: StandardIndex) -> bool:
@@ -472,6 +516,7 @@ def _get_generic_index_declaration(index: GenericIndicator) -> str:
 
     pop_args += _split_runs_pop_args(index)
     index_args = _get_arguments(pop_args)
+    _set_run_index_default(index_args, index)
     fun_signature_args = _build_fun_signature_args(index_args)
     args_docs = _get_params_docstring(list(index_args.keys()), icclim_index.__doc__)
     args = (f"{arg}={arg}" for arg in index_args)
@@ -487,6 +532,7 @@ def {index.name.lower()}(
 
     {index.name}: {index.definition}
 
+    {_get_run_attribution_note(index)}
     {args_docs}
     {END_NOTE}
     \"\"\"

@@ -1,14 +1,15 @@
 """
 Runs of consecutive days that cross the boundary of an output period (issue #543).
 
-By default a run is attributed whole to one period (``run_index``: where it starts
-or where it ends). With ``split_runs_at_period_boundary=True`` the runs are cut at
+By default a run is attributed whole to the period where it ends. With
+``split_runs_at_period_boundary=True`` the runs are cut at
 the boundary of every output period.
 """
 
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
 
 import numpy as np
 import pandas as pd
@@ -18,6 +19,9 @@ import xarray as xr
 import icclim
 from icclim._core.generic.functions import _run_length_encoding
 from icclim.frequency import FrequencyRegistry
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 
 @dataclass(frozen=True)
@@ -86,23 +90,29 @@ def _compute(index: RunIndex, source: xr.DataArray, **kwargs) -> xr.DataArray:
 
 @pytest.mark.parametrize("index", INDICES, ids=INDEX_IDS)
 class TestBoundaryExample:
-    def test_default_attributes_the_run_to_the_period_where_it_starts(
+    def test_default_attributes_the_run_to_the_period_where_it_ends(
         self, index: RunIndex
     ) -> None:
         source = _boundary_example(index)
-        # Same values as before the option existed.
-        np.testing.assert_array_equal(_compute(index, source).values, [212, 0])
+        np.testing.assert_array_equal(_compute(index, source).values, [0, 212])
         np.testing.assert_array_equal(
             _compute(index, source, split_runs_at_period_boundary=False).values,
-            [212, 0],
+            [0, 212],
         )
 
-    def test_run_index_last_attributes_the_run_to_the_period_where_it_ends(
+    def test_explicit_first_preserves_pre_7_4_0_attribution(
         self, index: RunIndex
     ) -> None:
         source = _boundary_example(index)
-        actual = _compute(index, source, run_index="last")
-        np.testing.assert_array_equal(actual.values, [0, 212])
+        actual = _compute(index, source, run_index="first")
+        np.testing.assert_array_equal(actual.values, [212, 0])
+
+    def test_default_equals_explicit_last(self, index: RunIndex) -> None:
+        source = _boundary_example(index)
+        np.testing.assert_array_equal(
+            _compute(index, source).values,
+            _compute(index, source, run_index="last").values,
+        )
 
     @pytest.mark.parametrize("run_index", ["first", "last"])
     def test_option_splits_the_run_whatever_the_run_index(
@@ -123,6 +133,74 @@ class TestBoundaryExample:
         actual = _compute(index, source, split_runs_at_period_boundary=True)
         np.testing.assert_array_equal(actual.values, expected)
         assert not np.isnan(actual.values).any()
+
+
+@pytest.mark.parametrize("name", ["CDD", "CFD", "max_consecutive_occurrence"])
+def test_default_warning_is_on_stdout_and_explicit_run_index_is_quiet(
+    name: str,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """The 7.4.0 default notice is emitted once and cannot be filtered."""
+    index = INDICES[0] if name == "CDD" else INDICES[2]
+    source = _boundary_example(index)
+
+    if name == "max_consecutive_occurrence":
+
+        def compute(**kwargs):
+            return icclim.max_consecutive_occurrence(
+                source,
+                var_name=index.variable,
+                threshold=index.threshold,
+                out_file=None,
+                completeness="none",
+                **kwargs,
+            ).compute()
+    else:
+
+        def compute(**kwargs):
+            return getattr(icclim, name.lower())(
+                source,
+                out_file=None,
+                completeness="none",
+                **kwargs,
+            ).compute()
+
+    compute()
+    notice = capsys.readouterr().out
+    assert notice.count("icclim 7.4.0 behaviour change") == 1
+    assert name in notice
+    assert 'run_index="last"' in notice
+    assert 'run_index="first"' in notice
+    assert "split_runs_at_period_boundary=True" in notice
+
+    for explicit in ("first", "last"):
+        compute(run_index=explicit)
+        assert capsys.readouterr().out == ""
+
+
+@pytest.mark.parametrize(
+    ("function", "index", "variable"),
+    [
+        (icclim.dcsc.pxcdd, INDICES[0], "PXCDD"),
+        (icclim.dcsc.pxcwd, INDICES[1], "PXCWD"),
+    ],
+    ids=["PXCDD", "PXCWD"],
+)
+def test_dcsc_longest_run_indices_use_the_same_default(
+    function: Callable[..., xr.Dataset],
+    index: RunIndex,
+    variable: str,
+) -> None:
+    source = _boundary_example(index)
+    default = function(source, out_file=None, completeness="none")[variable].compute()
+    first = function(
+        source,
+        out_file=None,
+        completeness="none",
+        run_index="first",
+    )[variable].compute()
+    np.testing.assert_array_equal(default.values, [0, 212])
+    np.testing.assert_array_equal(first.values, [212, 0])
 
 
 @pytest.mark.parametrize("chunk", [None, 30])
@@ -204,7 +282,7 @@ def test_generic_function_and_ecad_index_give_the_same_values(
         split_runs_at_period_boundary=split,
     ).max_consecutive_occurrence.compute()
     np.testing.assert_array_equal(generic.values, ecad.values)
-    np.testing.assert_array_equal(ecad.values, [92, 120] if split else [212, 0])
+    np.testing.assert_array_equal(ecad.values, [92, 120] if split else [0, 212])
 
 
 @pytest.mark.parametrize("chunked", [False, True], ids=["eager", "chunked"])
@@ -229,7 +307,7 @@ def test_dimension_order_does_not_depend_on_the_index_or_the_option(
         for split in (False, True):
             result = _compute(index, cube, split_runs_at_period_boundary=split)
             dims_seen[index.name, split] = result.dims
-            expected = [92, 120] if split else [212, 0]
+            expected = [92, 120] if split else [0, 212]
             np.testing.assert_array_equal(result.isel(lat=0, lon=0).values, expected)
     assert len(set(dims_seen.values())) == 1, dims_seen
 
@@ -249,9 +327,9 @@ def test_date_event_with_the_option_dates_the_run_inside_each_period(
     def as_days(da: xr.DataArray) -> list[str]:
         return [str(v)[:10] for v in da.values.astype("datetime64[D]")]
 
-    # Default: the whole run belongs to 2001, 2002 has no run.
-    assert as_days(default.event_date_start)[0] == "2001-10-01"
-    assert as_days(default.event_date_end)[0] == "2002-05-01"
+    # Default: the whole run belongs to 2002, where it ends.
+    assert as_days(default.event_date_start)[1] == "2001-10-01"
+    assert as_days(default.event_date_end)[1] == "2002-05-01"
     # With the option each period dates its own part of the run.
     assert as_days(split.event_date_start) == ["2001-10-01", "2002-01-01"]
     assert as_days(split.event_date_end) == ["2002-01-01", "2002-05-01"]

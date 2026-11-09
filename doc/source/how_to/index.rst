@@ -20,6 +20,7 @@ To grasp the basic usage of icclim, you may consider following
    Compute Generic indices <recipes_generic>
    Scale calculations over many stations <station_workflows>
    Configure period completeness <completeness>
+   Attribute or split longest runs <run_attribution>
    Use icclim through OCGIS (deprecated) <ocgis>
    Parallelize computation with Dask <dask>
    Configure NetCDF output storage <output_storage>
