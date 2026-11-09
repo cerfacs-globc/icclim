@@ -312,3 +312,165 @@ def test_batch2_indices_match_atbd_oracle(
         expected,
         equal_nan=True,
     )
+
+
+@dataclass(frozen=True)
+class Batch3Case:
+    name: str
+    variables: tuple[str, ...]
+    reducer: Literal["max", "min", "etr", "vdtr", "gd4", "hd17", "r10", "rx1"]
+
+
+BATCH3_CASES = (
+    Batch3Case("TNx", ("tasmin",), "max"),
+    Batch3Case("TXn", ("tasmax",), "min"),
+    Batch3Case("ETR", ("tasmax", "tasmin"), "etr"),
+    # boundary difference between periods, issue to follow: #599
+    pytest.param(
+        Batch3Case("vDTR", ("tasmax", "tasmin"), "vdtr"),
+        marks=pytest.mark.xfail(
+            strict=True,
+            reason="boundary difference between periods, issue to follow: #599",
+        ),
+    ),
+    Batch3Case("GD4", ("tas",), "gd4"),
+    Batch3Case("HD17", ("tas",), "hd17"),
+    Batch3Case("R10mm", ("pr",), "r10"),
+    Batch3Case("RX1day", ("pr",), "rx1"),
+)
+
+
+def _batch3_cube() -> xr.Dataset:
+    """Return three deterministic daily years in Kelvin and precipitation flux."""
+    time = pd.date_range("1999-01-01", "2001-12-31", freq="D")
+    rng = np.random.default_rng(20261111)
+    shape = (len(time), 2, 2)
+    seasonal = 10 + 11 * np.sin(2 * np.pi * (time.day_of_year.to_numpy() - 80) / 365.25)
+    tas = seasonal[:, None, None] + rng.normal(0, 1.4, shape)
+    tas += np.array([[-2.0, 0.0], [1.5, 3.0]])[None, :, :]
+    tasmin = tas - 5 - rng.uniform(0, 1.5, shape)
+    tasmax = tas + 5 + rng.uniform(0, 1.5, shape)
+    precipitation = rng.gamma(1.7, 4.0, shape)
+
+    # ATBD v11 sections 5.3.2 and 5.3.5: values at the GD4/HD17 bases
+    # contribute zero; only TG > 4 C contributes to GD4 and only TG < 17 C
+    # contributes to HD17.
+    tas[time == "2000-02-27", 0, 0] = 4
+    tas[time == "2000-02-28", 0, 0] = 5
+    tas[time == "2000-02-29", 0, 0] = 3
+    tas[time == "2000-03-01", 0, 1] = 17
+    tas[time == "2000-03-02", 0, 1] = 18
+    tas[time == "2000-03-03", 0, 1] = 16
+
+    # ATBD v11 section 5.3.8 defines R10mm as RR >= 10 mm, so equality
+    # counts. The second value makes the annual maximum independently visible.
+    precipitation[time == "2000-07-01", 1, 0] = 10
+    precipitation[time == "2000-07-02", 1, 0] = 23
+
+    tas[time == "1999-05-10", 1, 1] = np.nan
+    tasmin[time == "2000-08-20", 0, 0] = np.nan
+    tasmax[time == "2001-09-05", 1, 0] = np.nan
+    precipitation[time == "2001-04-12", 0, 1] = np.nan
+
+    coords = {"time": time, "lat": [45.0, 46.0], "lon": [1.0, 2.0]}
+    return xr.Dataset(
+        {
+            "tas": xr.DataArray(
+                tas + 273.15,
+                dims=("time", "lat", "lon"),
+                attrs={"units": "K"},
+            ),
+            "tasmin": xr.DataArray(
+                tasmin + 273.15,
+                dims=("time", "lat", "lon"),
+                attrs={"units": "K"},
+            ),
+            "tasmax": xr.DataArray(
+                tasmax + 273.15,
+                dims=("time", "lat", "lon"),
+                attrs={"units": "K"},
+            ),
+            "pr": xr.DataArray(
+                precipitation / 86400,
+                dims=("time", "lat", "lon"),
+                attrs={"units": "kg m-2 s-1"},
+            ),
+        },
+        coords=coords,
+    )
+
+
+def _batch3_annual_reduce(
+    selected: np.ndarray,
+    second: np.ndarray | None,
+    reducer: str,
+) -> np.ndarray:
+    if reducer == "max":
+        result = np.nanmax(selected, axis=0)
+    elif reducer == "min":
+        result = np.nanmin(selected, axis=0)
+    elif reducer == "etr":
+        result = np.nanmax(selected, axis=0) - np.nanmin(second, axis=0)
+    elif reducer == "vdtr":
+        daily_range = selected - second
+        result = np.nanmean(np.abs(np.diff(daily_range, axis=0)), axis=0)
+    elif reducer == "gd4":
+        result = np.nansum(np.where(selected > 4, selected - 4, 0), axis=0)
+    elif reducer == "hd17":
+        result = np.nansum(np.where(selected < 17, 17 - selected, 0), axis=0)
+    elif reducer == "r10":
+        result = np.sum(np.isfinite(selected) & (selected >= 10), axis=0)
+    else:
+        result = np.nanmax(selected, axis=0)
+    return result
+
+
+def _batch3_oracle(source: xr.Dataset, case: Batch3Case) -> np.ndarray:
+    """Apply the ATBD v11 sections 5.3.2, 5.3.5, 5.3.8 and 5.3.11."""
+    time = pd.DatetimeIndex(source.time.values)
+    values = source[case.variables[0]].values.copy()
+    if case.variables[0] == "pr":
+        values *= 86400
+    else:
+        values -= 273.15
+    second = None
+    if len(case.variables) == 2:
+        second = source[case.variables[1]].values - 273.15
+
+    results = []
+    for year in np.unique(time.year):
+        annual = time.year == year
+        annual_second = None if second is None else second[annual]
+        results.append(
+            _batch3_annual_reduce(values[annual], annual_second, case.reducer)
+        )
+    return np.stack(results)
+
+
+@pytest.mark.parametrize("chunk_size", [None, 7], ids=["eager", "chunked"])
+@pytest.mark.parametrize("case", BATCH3_CASES, ids=lambda case: case.name)
+def test_batch3_indices_match_atbd_oracle(
+    case: Batch3Case,
+    chunk_size: int | None,
+) -> None:
+    """Compare Batch 3 temperature and precipitation indices with the ATBD."""
+    source = _batch3_cube()
+    expected = _batch3_oracle(source, case)
+    study = source[list(case.variables)]
+    if chunk_size is not None:
+        study = study.chunk({"time": chunk_size})
+
+    actual = icclim.index(
+        in_files=study,
+        var_name=list(case.variables),
+        index_name=case.name,
+        slice_mode="year",
+        out_file=None,
+        completeness="none",
+    )[case.name].compute()
+
+    np.testing.assert_allclose(
+        actual.transpose("time", "lat", "lon").values,
+        expected,
+        equal_nan=True,
+    )
