@@ -4,7 +4,7 @@
  Attribute or split longest runs
 #################################
 
-``CDD``, ``CWD``, ``CFD``, ``CSU``, ``PXCDD`` and ``PXCWD`` (the DCSC maximum
+``CDD``, ``CWD``, ``CFD``, ``CSU``, ``PXCDD`` and ``PXCWD`` (the Météo-France DCSC maximum
 consecutive dry-day and wet-day indices), and the generic
 ``max_consecutive_occurrence`` can contain a run that crosses an output-period
 boundary. Since icclim 7.4.0, their default is ``run_index="last"``: the whole
