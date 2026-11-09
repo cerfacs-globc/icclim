@@ -1637,9 +1637,10 @@ def mean_of_absolute_one_time_step_difference(
     Mean of the absolute one-time-step difference between two climate variables.
 
     This function calculates the mean of the absolute difference between two climate
-    variables
-    for each time step, and then resamples the resulting data based on the specified
-    frequency.
+    variables for each time step within each output period. The first time step of
+    every period contributes no difference. The mean uses the number of valid
+    differences as its denominator; unlike the ECA&D ATBD v11 section 5.3.11 formula,
+    it does not divide by the number of days in the period.
     The resulting data array will have the same units as the study variable.
 
     Parameters
@@ -1664,8 +1665,10 @@ def mean_of_absolute_one_time_step_difference(
         climate_vars,
         "mean_of_absolute_one_time_step_difference",
     )
-    one_time_step_diff = (study - ref).diff(dim="time")
-    res = abs(one_time_step_diff).resample(time=resample_freq.pandas_freq).mean()
+    daily_range = study - ref
+    res = daily_range.resample(time=resample_freq.pandas_freq).map(
+        lambda period: abs(period.diff(dim="time")).mean(dim="time")
+    )
     res.attrs["units"] = study.attrs["units"]
     return res
 

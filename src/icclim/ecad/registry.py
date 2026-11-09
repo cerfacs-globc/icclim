@@ -105,7 +105,9 @@ class EcadIndexRegistry(Registry[StandardIndex]):
         reference=ECAD_REFERENCE,
         indicator=GenericIndicatorRegistry.MeanOfAbsoluteOneTimeStepDifference,
         output_unit="degree_Celsius",
-        definition="Mean day-to-day variation in Diurnal Temperature Range.",
+        definition="Mean day-to-day variation in Diurnal Temperature Range, using"
+        " only differences within each output period and dividing by the number"
+        " of valid differences (not the ATBD's number of days in the period).",
         source=ECAD_ATBD,
         short_name="vDTR",
         group=IndexGroupRegistry.TEMPERATURE,
