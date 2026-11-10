@@ -52,6 +52,25 @@ Unreleased
    Affected: 7.1.10, 7.2.0, 7.3.1 and 7.3.3 (run with xclim 0.60.0), and 7.3.4.
 
 *****
+7.3.5
+*****
+
+date: 2026-11-10
+
+
+-  [fix] Percentile thresholds are now adjusted to the calendar with icclim's exact
+   interpolation (issue #603). With SciPy 1.18.1 (Python 3.12 or later) the previous
+   code, present since 7.0.0, could return different exceedance counts for
+   non-bootstrapped percentile indices and for the legacy bootstrap path: in a test
+   case the monthly ``TX90p`` went from 6 to 9 days, and the legacy bootstrap from 0 to
+   30 days. The default bootstrap path of 7.2 and 7.3 was not affected. The exact
+   interpolation is not used inside xclim's own bootstrap: with the diagnostic setting
+   ``ICCLIM_BOOTSTRAP_MODE=default`` and SciPy 1.18.1, the percentile bootstrap still
+   uses xclim's own interpolation, which is affected. Results with SciPy 1.17.x are
+   unchanged. Users of earlier
+   versions on that stack should upgrade.
+
+*****
 7.3.4
 *****
 
