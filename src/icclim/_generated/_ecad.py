@@ -892,9 +892,9 @@ def vdtr(
     allow_missing_periods: bool | None = None,
     allow_partial_final_period: bool = False,
 ) -> Dataset:
-    """Mean day-to-day variation in Diurnal Temperature Range.
+    """Mean day-to-day variation in Diurnal Temperature Range, using only differences within each output period and dividing by the number of valid differences (not the ATBD's number of days in the period).
 
-    vDTR: Mean day-to-day variation in Diurnal Temperature Range.
+    vDTR: Mean day-to-day variation in Diurnal Temperature Range, using only differences within each output period and dividing by the number of valid differences (not the ATBD's number of days in the period).
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
