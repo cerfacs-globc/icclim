@@ -469,8 +469,6 @@ class PercentileThreshold(Threshold):
     ) -> DataArray:
         from xclim.core.bootstrapping import percentile_bootstrap  # noqa: PLC0415
 
-        _use_exact_doy_adjustment_in_xclim()
-
         @percentile_bootstrap
         def __per_compute(
             da: xr.DataArray,
@@ -723,23 +721,6 @@ def _resample_doy_exact(doy: DataArray, arr: DataArray) -> DataArray:
     out = adjusted.rename(dayofyear="time").reindex(time=arr.time.dt.dayofyear)
     out["time"] = arr.time
     return out
-
-
-def _use_exact_doy_adjustment_in_xclim() -> None:
-    """
-    Make xclim's calendar adjustment exact for the legacy bootstrap path.
-
-    That path runs xclim's ``percentile_bootstrap``, which calls xclim's own
-    ``percentile_doy``, and that function adjusts the 366th day with
-    ``xclim.core.calendar.adjust_doy_calendar``, that is ``DataArray.interp`` and
-    SciPy: not exact between equal neighbours with SciPy 1.18.1. xclim looks the
-    function up in its calendar module at each call, so it is replaced there by
-    `_adjust_doy_calendar_exact`. The replacement is idempotent.
-    """
-    import xclim.core.calendar as xclim_calendar  # noqa: PLC0415
-
-    if xclim_calendar.adjust_doy_calendar is not _adjust_doy_calendar_exact:
-        xclim_calendar.adjust_doy_calendar = _adjust_doy_calendar_exact
 
 
 def _build_per_thresh_from_dataset(
