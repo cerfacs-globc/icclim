@@ -1050,3 +1050,148 @@ def test_batch6_indices_match_atbd_oracle(
         expected,
         equal_nan=True,
     )
+
+
+@dataclass(frozen=True)
+class Batch7Case:
+    name: str
+    variable: str
+    percentile: int
+    operator: Literal["less", "greater"]
+
+
+BATCH7_CASES = (
+    Batch7Case("TG10p", "tas", 10, "less"),
+    Batch7Case("TG90p", "tas", 90, "greater"),
+    Batch7Case("TN10p", "tasmin", 10, "less"),
+    Batch7Case("TN90p", "tasmin", 90, "greater"),
+    Batch7Case("TX10p", "tasmax", 10, "less"),
+    Batch7Case("TX90p", "tasmax", 90, "greater"),
+)
+
+
+def _batch7_doy_threshold(
+    time: xr.DataArray,
+    values: np.ndarray,
+    percentile: int,
+) -> np.ndarray:
+    """Derive ATBD calendar-day thresholds on a 365-day calendar."""
+    years = time.dt.year.values
+    day_of_year = time.dt.dayofyear.values
+    base = (years >= 2001) & (years <= 2003)
+    threshold = np.full_like(values, np.nan, dtype=float)
+    for target_day in range(1, 366):
+        distance = np.minimum(
+            (day_of_year - target_day) % 365,
+            (target_day - day_of_year) % 365,
+        )
+        sample = values[base & (distance <= 2)]
+        threshold[day_of_year == target_day] = np.nanquantile(
+            sample,
+            percentile / 100,
+            axis=0,
+            method="median_unbiased",
+        )
+    return threshold
+
+
+def _batch7_cube() -> xr.Dataset:
+    """Create three base years and two independent noleap study years."""
+    time = xr.date_range(
+        "2001-01-01",
+        "2005-12-31",
+        freq="D",
+        calendar="noleap",
+        use_cftime=True,
+    )
+    day_of_year = np.asarray([value.dayofyr for value in time])
+    years = np.asarray([value.year for value in time])
+    rng = np.random.default_rng(20261110)
+    seasonal = 12 + 11 * np.sin(2 * np.pi * (day_of_year - 80) / 365)
+    core = seasonal[:, None, None] + rng.normal(0, 1.6, (len(time), 2, 2))
+    core += np.array([[-1.5, 0.0], [1.0, 2.5]])[None, :, :]
+    values = {"tas": core, "tasmin": core - 5, "tasmax": core + 5}
+
+    study = years >= 2004
+    values["tas"][study] += 0.8
+    values["tasmin"][study] -= 0.7
+    values["tasmax"][study] += 1.2
+    probes = {
+        "tas": ((2004, 1, 15), 10, (2005, 7, 15), 90),
+        "tasmin": ((2004, 2, 15), 10, (2005, 8, 15), 90),
+        "tasmax": ((2004, 3, 15), 10, (2005, 9, 15), 90),
+    }
+    for variable, (
+        low_date,
+        low_percentile,
+        high_date,
+        high_percentile,
+    ) in probes.items():
+        for date, percentile in (
+            (low_date, low_percentile),
+            (high_date, high_percentile),
+        ):
+            threshold = _batch7_doy_threshold(
+                xr.DataArray(time, dims="time"), values[variable], percentile
+            )
+            selected = np.array(
+                [(value.year, value.month, value.day) == date for value in time]
+            )
+            values[variable][selected, 0, 0] = threshold[selected, 0, 0]
+
+    values["tas"][np.flatnonzero(years == 2004)[100], 1, 0] = np.nan
+    values["tasmin"][np.flatnonzero(years == 2005)[200], 0, 1] = np.nan
+    values["tasmax"][np.flatnonzero(years == 2004)[300], 1, 1] = np.nan
+    coordinates = {"time": time, "lat": [45.0, 46.0], "lon": [1.0, 2.0]}
+    return xr.Dataset(
+        {
+            variable: xr.DataArray(
+                data,
+                dims=("time", "lat", "lon"),
+                attrs={"units": "degC"},
+            )
+            for variable, data in values.items()
+        },
+        coords=coordinates,
+    )
+
+
+def _batch7_oracle(source: xr.DataArray, case: Batch7Case) -> np.ndarray:
+    """Count strict ATBD exceedances outside the percentile base period."""
+    # ATBD v11 sections 5.3.2 and 5.3.5 define each threshold as the calendar-day
+    # percentile "calculated for a 5-day window centred on each calendar day in
+    # the 1961-1990 period" and use strict TG/TN/TX < 10th or > 90th comparisons.
+    # Section 5.2.1 specifies the median-unbiased Hyndman-Fan estimator (type 8).
+    time = source.time
+    values = source.values
+    threshold = _batch7_doy_threshold(time, values, case.percentile)
+    event = values < threshold if case.operator == "less" else values > threshold
+    years = time.dt.year.values
+    return np.stack([np.sum(event[years == year], axis=0) for year in (2004, 2005)])
+
+
+@pytest.mark.parametrize("chunk_size", [None, 7], ids=["eager", "chunked"])
+@pytest.mark.parametrize("case", BATCH7_CASES, ids=lambda case: case.name)
+def test_batch7_noleap_percentile_indices_match_atbd_oracle(
+    case: Batch7Case,
+    chunk_size: int | None,
+) -> None:
+    """Compare out-of-base percentile counts on an unambiguous noleap calendar."""
+    source = _batch7_cube()[case.variable]
+    expected = _batch7_oracle(source, case)
+    study = source if chunk_size is None else source.chunk({"time": chunk_size})
+
+    actual = getattr(icclim, case.name.lower())(
+        study,
+        time_range=["2004-01-01", "2005-12-31"],
+        base_period_time_range=["2001-01-01", "2003-12-31"],
+        bootstrap=False,
+        out_file=None,
+        completeness="none",
+    )[case.name].compute()
+
+    np.testing.assert_allclose(
+        actual.transpose("time", "lat", "lon").values,
+        expected,
+        equal_nan=True,
+    )
