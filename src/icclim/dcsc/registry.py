@@ -250,15 +250,15 @@ class DcscIndexRegistry(Registry[StandardIndex]):
         indicator=GenericIndicatorRegistry.CountOccurrences,
         output_unit="day",
         threshold=build_threshold(
-            operator="<",
+            operator="<=",
             value=None,  # filled when Threshold::prepare is called
             unit="degree_Celsius",
-            offset=" 5 delta_degree_Celsius",
+            offset=" -5 delta_degree_Celsius",
         ),
         source=DCSC_SOURCE,
         short_name="TNND",
         definition="Nombre de jours anormalement froids"
-        " (température minimale inférieure de plus de 5°C à la normale).",
+        " (température minimale inférieure ou égale à la normale - 5°C).",
         group=IndexGroupRegistry.COLD,
         input_variables=[StandardVariableRegistry.TAS_MIN],
         qualifiers=[NEEDS_NORMAL],
@@ -268,16 +268,16 @@ class DcscIndexRegistry(Registry[StandardIndex]):
         indicator=GenericIndicatorRegistry.SumOfSpellLengths,
         output_unit="day",
         threshold=build_threshold(
-            operator="<",
+            operator="<=",
             value=None,  # filled when Threshold::prepare is called
             unit="degree_Celsius",
-            offset=" 5 delta_degree_Celsius",
+            offset=" -5 delta_degree_Celsius",
         ),
         source=DCSC_SOURCE,
         short_name="TNCWD",
         definition="Nombre de jours d'une vague de froid"
-        " (température min < de plus de 5°C à la normale pdt au moins "
-        "5j consécutifs).",
+        " (température min <= normale - 5°C pdt plus de 5 jours "
+        "consécutifs).",
         group=IndexGroupRegistry.COLD,
         input_variables=[StandardVariableRegistry.TAS_MIN],
         qualifiers=[NEEDS_NORMAL],
@@ -287,7 +287,7 @@ class DcscIndexRegistry(Registry[StandardIndex]):
         indicator=GenericIndicatorRegistry.SumOfSpellLengths,
         output_unit="day",
         threshold=build_threshold(
-            operator="<",
+            operator=">=",
             value=None,  # filled when Threshold::prepare is called
             unit="degree_Celsius",
             offset=" 5 delta_degree_Celsius",
@@ -295,8 +295,8 @@ class DcscIndexRegistry(Registry[StandardIndex]):
         source=DCSC_SOURCE,
         short_name="TXHWD",
         definition="Nombre de jours d'une vague de chaleur"
-        " (température max > de plus de 5°C à la normale"
-        " pdt au moins 5j consécutifs).",
+        " (température max >= normale + 5°C"
+        " pdt plus de 5 jours consécutifs).",
         group=IndexGroupRegistry.HEAT,
         input_variables=[StandardVariableRegistry.TAS_MAX],
         qualifiers=[NEEDS_NORMAL],
