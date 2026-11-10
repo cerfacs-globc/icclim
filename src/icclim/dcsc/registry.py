@@ -213,12 +213,12 @@ class DcscIndexRegistry(Registry[StandardIndex]):
         output_unit="day",
         definition=(
             "Nombre de jours anormalement chauds"
-            " (température maximale supérieure de plus de 5°C à la normale)."
+            " (température maximale >= normale + 5°C)."
         ),
         source=DCSC_SOURCE,
         short_name="TXND",
         threshold=build_threshold(
-            operator=">",
+            operator=">=",
             value=None,  # filled when Threshold::prepare is called
             unit="degree_Celsius",
             offset=" 5 delta_degree_Celsius",
@@ -232,7 +232,7 @@ class DcscIndexRegistry(Registry[StandardIndex]):
         indicator=GenericIndicatorRegistry.CountOccurrences,
         output_unit="day",
         threshold=build_threshold(
-            operator=">",
+            operator=">=",
             value=None,  # filled when Threshold::prepare is called
             unit="degree_Celsius",
             offset=" 5 delta_degree_Celsius",
@@ -240,7 +240,7 @@ class DcscIndexRegistry(Registry[StandardIndex]):
         source=DCSC_SOURCE,
         short_name="TNHT",
         definition="Nombre de nuits anormalement chaudes (température minimale "
-        "supérieure de plus de 5°C à la normale).",
+        ">= normale + 5°C).",
         group=IndexGroupRegistry.HEAT,
         input_variables=[StandardVariableRegistry.TAS_MIN],
         qualifiers=[NEEDS_NORMAL],
