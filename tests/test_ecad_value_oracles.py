@@ -768,7 +768,7 @@ def _batch5_spi_cube() -> xr.DataArray:
 
 
 def _spi_gamma_oracle(source: xr.DataArray, window: int) -> np.ndarray:
-    """Fit independent scipy gamma distributions for each ending month."""
+    """Fit xclim's APP gamma parameters independently for each ending month."""
     daily = source.values * 86400
     daily_index = pd.DatetimeIndex(source.time.values)
     monthly_index = daily_index.to_period("M").to_timestamp()
@@ -777,26 +777,32 @@ def _spi_gamma_oracle(source: xr.DataArray, window: int) -> np.ndarray:
     result = np.full((len(months), *daily.shape[1:]), np.nan)
     for cell in np.ndindex(daily.shape[1:]):
         series = pd.Series(daily[(slice(None), *cell)], index=daily_index)
-        # ATBD v11 section 5.3.4 defines SPI3/SPI6 from the previous 3/6-month
-        # period; the rolling accumulation is attributed to its ending month.
-        accumulated = series.resample("MS").sum().rolling(window).sum()
+        # xclim first forms monthly means and then rolling means. The rolling
+        # value is attributed to its ending month.
+        accumulated = series.resample("MS").mean().rolling(window).mean()
         for ending_month in range(1, 13):
             selected = months.month == ending_month
             sample = accumulated[calibration & selected].dropna().to_numpy()
-            shape, _, scale = gamma.fit(sample, floc=0)
+            probability_of_zero = np.count_nonzero(sample == 0) / len(sample)
+            positive = sample[sample > 0]
+            mean = positive.mean()
+            a = np.log(mean) - np.log(positive).mean()
+            shape = (1 + np.sqrt(1 + 4 * a / 3)) / (4 * a)
+            scale = mean / shape
             probability = gamma.cdf(accumulated[selected], shape, loc=0, scale=scale)
+            probability = probability_of_zero + (1 - probability_of_zero) * probability
             result[(selected, *cell)] = norm.ppf(probability)
     return result
 
 
 @pytest.mark.parametrize("chunk_size", [None, 7], ids=["eager", "chunked"])
 @pytest.mark.parametrize(("name", "window"), [("SPI3", 3), ("SPI6", 6)])
-def test_spi_matches_independent_gamma_fit(
+def test_spi_matches_independent_app_gamma_value_oracle(
     name: str,
     window: int,
     chunk_size: int | None,
 ) -> None:
-    """Compare Guttman-style SPI with an independent scipy maximum-likelihood fit."""
+    """Compare SPI values with an independent APP gamma and zero-mass fit."""
     source = _batch5_spi_cube()
     expected = _spi_gamma_oracle(source, window)
     study = source if chunk_size is None else source.chunk({"time": chunk_size})
@@ -809,10 +815,8 @@ def test_spi_matches_independent_gamma_fit(
 
     assert np.isnan(actual.values[: window - 1]).all()
     assert np.isfinite(actual.values[window - 1]).all()
-    # The independent MLE gamma fit and icclim's approximate fit differ most
-    # in the distribution tails; 0.35 SPI units covers the observed maximum.
     np.testing.assert_allclose(
-        actual.values, expected, atol=0.35, rtol=0, equal_nan=True
+        actual.values, expected, atol=1e-10, rtol=0, equal_nan=True
     )
 
 
