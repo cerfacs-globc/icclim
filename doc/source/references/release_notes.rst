@@ -6,6 +6,14 @@
 Unreleased
 **********
 
+-  [fix] The DCSC indices ``TXHWD``, ``TNCWD`` and ``TNND`` returned wrong values
+   (issue #616). They are now defined as in the DRIAS catalogue: ``TXHWD`` counts the
+   days with ``Tx >= normal + 5°C`` and ``TNCWD`` the days with ``Tn <= normal - 5°C``,
+   both in spells of more than 5 consecutive days (at least 6 days), and ``TNND`` the
+   days with ``Tn <= normal - 5°C``. They were declared with the operator ``<`` and the
+   offset +5°C, so ``TXHWD`` counted the days that were not warm and ``TNCWD`` and
+   ``TNND`` counted almost every day. The French definitions were corrected too.
+   Affected: every release since 7.0.0 that has the DCSC indices.
 -  [fix] The DCSC indices ``TXND`` and ``TNHT`` now count the days with
    ``Tx >= normal + 5°C`` and ``Tn >= normal + 5°C`` as in the DRIAS catalogue
    (issue #620). They used a strict ``>``, so days exactly at the threshold were not
