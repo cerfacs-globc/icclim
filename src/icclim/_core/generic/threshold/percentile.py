@@ -487,9 +487,7 @@ class PercentileThreshold(Threshold):
                 thresh = convert_units_to(thresh, per, context="hydro")
                 per = per.where(per > thresh, thresh)
             if is_doy_per_threshold:
-                from xclim.core.calendar import resample_doy  # noqa: PLC0415
-
-                threshold_value = resample_doy(per, da)
+                threshold_value = _resample_doy_exact(per, da)
             else:
                 threshold_value = per
             result = op(da, threshold_value)
@@ -705,6 +703,24 @@ def _adjust_doy_calendar_exact(source: DataArray, target: DataArray) -> DataArra
     result = result.transpose(*source.dims)
     result.attrs = dict(source.attrs)
     return result
+
+
+def _resample_doy_exact(doy: DataArray, arr: DataArray) -> DataArray:
+    """
+    Give each day of `arr` the value of the calendar-day thresholds `doy`.
+
+    Same result as `xclim.core.calendar.resample_doy`, but the calendar adjustment is
+    `_adjust_doy_calendar_exact`: xclim goes through `DataArray.interp`, whose SciPy
+    arithmetic is not exact between equal neighbours (SciPy 1.18.1), so a threshold of
+    10.0 could become 10.000000000000002 and change the exceedance counts.
+    """
+    if "dayofyear" not in doy.coords:
+        msg = "Source should have `dayofyear` coordinates."
+        raise AttributeError(msg)
+    adjusted = _adjust_doy_calendar_exact(doy, arr)
+    out = adjusted.rename(dayofyear="time").reindex(time=arr.time.dt.dayofyear)
+    out["time"] = arr.time
+    return out
 
 
 def _build_per_thresh_from_dataset(

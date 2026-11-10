@@ -1,12 +1,30 @@
 {
+  "contributors": [
+    {
+      "name": "Evaldsson, Martin",
+      "type": "Other"
+    },
+    {
+      "name": "Bärring, Lars",
+      "type": "Other"
+    }
+  ],
   "creators": [
     {
       "affiliation": "CERFACS, Toulouse, France",
-      "name": "Page, Christian",
-      "orcid": "0000-0002-4018-4720"
+      "name": "Pagé, Christian",
+      "orcid": "0000-0001-7743-9570"
     },
     {
+      "affiliation": "Meteo France",
+      "name": "Tatarinova, Natalia"
+    },
+    {
+      "affiliation": "Eumetsat and CERFACS",
       "name": "Aoun, Abel"
+    },
+    {
+      "name": "Pivan, Xavier"
     }
   ],
   "keywords": [
@@ -20,7 +38,7 @@
   "license": {
     "id": "apache-2.0"
   },
-  "publication_date": "2026-11-08",
+  "publication_date": "2026-11-10",
   "title": "icclim: Index Calculation CLIMate",
-  "version": "7.3.4"
+  "version": "7.3.5"
 }

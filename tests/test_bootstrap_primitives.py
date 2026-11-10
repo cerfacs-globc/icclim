@@ -8,6 +8,7 @@ import numpy as np
 import pandas as pd
 import pytest
 import xarray as xr
+import xclim.core.calendar as xclim_calendar
 from xarray.coding.cftimeindex import CFTimeIndex
 
 import icclim
@@ -49,6 +50,7 @@ from icclim._core.generic.bootstrap_primitives import (
     build_bootstrap_temporal_indexing,
     substitute_indices_aligned_to_target,
 )
+from icclim._core.generic.threshold.percentile import _adjust_doy_calendar_exact
 from icclim.threshold.factory import build_threshold
 from tests.testing_utils import stub_pr, stub_tas
 
@@ -156,6 +158,21 @@ def _build_non_gregorian_overlap_case(calendar: str) -> xr.DataArray:
         attrs={"units": "K"},
         name="tas",
     ).chunk({"time": days_per_year, "lat": 1, "lon": 1})
+
+
+@pytest.fixture(autouse=True)
+def _exact_doy_adjustment_in_xclim_reference_path(monkeypatch) -> None:
+    """
+    Make the reference (xclim) bootstrap path comparable with the exact one.
+
+    The reference path, only reachable with ICCLIM_BOOTSTRAP_MODE=default, adjusts
+    the percentiles with xclim's interpolation, which differs on SciPy 1.18.1
+    (issue #603). It is replaced here, for the tests only, by icclim's exact one.
+    TODO: remove once xclim no longer depends on scipy's interp1d tie behaviour.
+    """
+    monkeypatch.setattr(
+        xclim_calendar, "adjust_doy_calendar", _adjust_doy_calendar_exact
+    )
 
 
 def test_build_bootstrap_reference_sample_applies_threshold_floor() -> None:

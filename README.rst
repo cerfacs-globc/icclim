@@ -63,6 +63,8 @@ Who made icclim
 icclim has always been an open source project and was successfully made thanks to the joint effort of all its contributors.
 The lead development is made at `CERFACS <https://cerfacs.fr/en/>`_, a research institution located in Toulouse, France.
 
+The controlled vocabulary for the climate indices was contributed by M. Evaldsson and L. Bärring (SMHI).
+
 Grants
 ~~~~~~
 This open-source project has been possible thanks to funding by the European Commission projects:
