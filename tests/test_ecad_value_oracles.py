@@ -925,3 +925,128 @@ def test_batch5_basic_indices_match_atbd_oracle(
         expected,
         equal_nan=True,
     )
+
+
+@dataclass(frozen=True)
+class Batch6Case:
+    name: str
+    variable: str
+    reducer: Literal["mean_pressure", "mean_humidity", "north", "east", "south", "west"]
+
+
+BATCH6_CASES = (
+    Batch6Case("PP", "psl", "mean_pressure"),
+    Batch6Case("DDnorth", "dd", "north"),
+    Batch6Case("DDeast", "dd", "east"),
+    Batch6Case("DDsouth", "dd", "south"),
+    Batch6Case("DDwest", "dd", "west"),
+    Batch6Case("RH", "hurs", "mean_humidity"),
+)
+
+
+def _batch6_cube() -> xr.Dataset:
+    """Return pressure, humidity, and wind direction with boundary probes."""
+    time = pd.date_range("1999-01-01", "2001-12-31", freq="D")
+    rng = np.random.default_rng(20261110)
+    shape = (len(time), 2, 2)
+    pressure_hpa = rng.uniform(970, 1040, shape)
+    humidity_percent = rng.uniform(15, 100, shape)
+    direction = rng.uniform(0, 360, shape)
+
+    # ATBD v11 section 5.3.12 assigns each shared edge to the clockwise
+    # sector: north is -45 < DD <= 45, east 45 < DD <= 135, south
+    # 135 < DD <= 225, and west 225 < DD <= 315. For 0..360 degree input,
+    # north therefore wraps around as DD > 315 or DD <= 45.
+    probes = np.array([0, 45, 45.01, 135, 135.01, 225, 225.01, 315, 315.01, 360])
+    direction[: len(probes), 0, 0] = probes
+
+    pressure_hpa[time == "2000-02-29", 0, 1] = 1000
+    humidity_percent[time == "2000-02-29", 1, 0] = 100
+    pressure_hpa[time == "2001-05-04", 1, 1] = np.nan
+    humidity_percent[time == "1999-08-12", 0, 1] = np.nan
+    direction[time == "2000-09-23", 1, 0] = np.nan
+
+    coords = {"time": time, "lat": [45.0, 46.0], "lon": [1.0, 2.0]}
+    return xr.Dataset(
+        {
+            "psl": xr.DataArray(
+                pressure_hpa * 100,
+                dims=("time", "lat", "lon"),
+                attrs={"units": "Pa"},
+            ),
+            "hurs": xr.DataArray(
+                humidity_percent / 100,
+                dims=("time", "lat", "lon"),
+                attrs={"units": "1"},
+            ),
+            "dd": xr.DataArray(
+                direction,
+                dims=("time", "lat", "lon"),
+                attrs={"units": "degree"},
+            ),
+        },
+        coords=coords,
+    )
+
+
+def _batch6_oracle(source: xr.Dataset, case: Batch6Case) -> np.ndarray:
+    """Apply ATBD v11 sections 5.3.6, 5.3.7, and 5.3.12 directly."""
+    time = pd.DatetimeIndex(source.time.values)
+    values = source[case.variable].values
+    results = []
+    for year in np.unique(time.year):
+        selected = values[time.year == year]
+        if case.reducer == "mean_pressure":
+            result = np.nanmean(selected / 100, axis=0)
+        elif case.reducer == "mean_humidity":
+            result = np.nanmean(selected * 100, axis=0)
+        elif case.reducer == "north":
+            result = np.sum(
+                np.isfinite(selected) & ((selected > 315) | (selected <= 45)),
+                axis=0,
+            )
+        elif case.reducer == "east":
+            result = np.sum(
+                np.isfinite(selected) & (selected > 45) & (selected <= 135), axis=0
+            )
+        elif case.reducer == "south":
+            result = np.sum(
+                np.isfinite(selected) & (selected > 135) & (selected <= 225),
+                axis=0,
+            )
+        else:
+            result = np.sum(
+                np.isfinite(selected) & (selected > 225) & (selected <= 315),
+                axis=0,
+            )
+        results.append(result)
+    return np.stack(results)
+
+
+@pytest.mark.parametrize("chunk_size", [None, 7], ids=["eager", "chunked"])
+@pytest.mark.parametrize("case", BATCH6_CASES, ids=lambda case: case.name)
+def test_batch6_indices_match_atbd_oracle(
+    case: Batch6Case,
+    chunk_size: int | None,
+) -> None:
+    """Compare pressure, humidity, and wind sectors with ATBD reductions."""
+    source = _batch6_cube()
+    expected = _batch6_oracle(source, case)
+    study = source[[case.variable]]
+    if chunk_size is not None:
+        study = study.chunk({"time": chunk_size})
+
+    actual = icclim.index(
+        in_files=study,
+        var_name=case.variable,
+        index_name=case.name,
+        slice_mode="year",
+        out_file=None,
+        completeness="none",
+    )[case.name].compute()
+
+    np.testing.assert_allclose(
+        actual.transpose("time", "lat", "lon").values,
+        expected,
+        equal_nan=True,
+    )
