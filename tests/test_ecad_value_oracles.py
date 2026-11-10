@@ -9,6 +9,7 @@ import numpy as np
 import pandas as pd
 import pytest
 import xarray as xr
+from scipy.stats import gamma, norm
 
 import icclim
 
@@ -666,11 +667,273 @@ def test_batch4_indices_match_atbd_oracle(
     )
 
 
+def _first_six_day_run(mask: np.ndarray) -> int | None:
+    run = 0
+    for index, value in enumerate(mask):
+        run = run + 1 if value else 0
+        if run == 6:
+            return index - 5
+    return None
+
+
+def _batch5_gsl_cube() -> xr.DataArray:
+    """Create GSL seasons probing strict thresholds and the July 1 split."""
+    time = pd.date_range("1999-01-01", "2001-12-31", freq="D")
+    values = np.zeros((len(time), 2, 2), dtype=float)
+    month, day = time.month.to_numpy(), time.day.to_numpy()
+    march_to_october = ((month > 3) | ((month == 3) & (day >= 1))) & (
+        (month < 10) | ((month == 10) & (day < 1))
+    )
+    values[march_to_october, 0, 0] = 10
+
+    january_to_october = ((month > 1) | ((month == 1) & (day >= 10))) & (
+        (month < 10) | ((month == 10) & (day < 1))
+    )
+    values[january_to_october, 0, 1] = 10
+    values[(month == 7) & (day <= 6), 0, 1] = 0
+
+    january_to_july = ((month > 1) | ((month == 1) & (day >= 10))) & (
+        (month < 7) | ((month == 7) & (day <= 1))
+    )
+    values[january_to_july, 1, 0] = 10
+    values[:, 1, 1] = np.nan
+    values[(month == 1) & (day <= 6), 0, 0] = 5
+    values[(time.year == 2000) & (month == 6) & (day == 15), 0, 0] = np.nan
+    return xr.DataArray(
+        values + 273.15,
+        dims=("time", "lat", "lon"),
+        coords={"time": time, "lat": [45.0, 46.0], "lon": [1.0, 2.0]},
+        name="tas",
+        attrs={"units": "K"},
+    )
+
+
+def _gsl_oracle(source: xr.DataArray) -> np.ndarray:
+    """Implement the ATBD v11 section 5.3.2 GSL definition directly."""
+    time = pd.DatetimeIndex(source.time.values)
+    values = source.values - 273.15
+    years = np.unique(time.year)
+    result = np.full((len(years), *values.shape[1:]), np.nan)
+    for year_index, year in enumerate(years):
+        annual = time.year == year
+        # ATBD v11 says "after 1 July", which is ambiguous. climdex.pcic's
+        # growing.season.length searches temp.data[ts.mid:ts.len], with ts.mid
+        # equal to July 1, so the established convention is inclusive.
+        on_or_after_july_1 = (time.month > 7) | ((time.month == 7) & (time.day >= 1))
+        for cell in np.ndindex(values.shape[1:]):
+            series = values[(annual, *cell)]
+            start = _first_six_day_run(np.isfinite(series) & (series > 5))
+            end = _first_six_day_run(
+                np.isfinite(series) & (series < 5) & on_or_after_july_1[annual]
+            )
+            if start is not None and end is not None and end >= start:
+                result[(year_index, *cell)] = end - start
+    return result
+
+
+@pytest.mark.parametrize("chunk_size", [None, 7], ids=["eager", "chunked"])
+def test_gsl_matches_atbd_start_end_and_july_split(
+    chunk_size: int | None,
+) -> None:
+    """GSL starts above 5 C and ends below 5 C from July 1 inclusively."""
+    source = _batch5_gsl_cube()
+    expected = _gsl_oracle(source)
+    study = source if chunk_size is None else source.chunk({"time": chunk_size})
+
+    actual = icclim.gsl(
+        study,
+        out_file=None,
+        completeness="none",
+    ).GSL.compute()
+
+    np.testing.assert_allclose(actual.values, expected, equal_nan=True)
+
+
+def _batch5_spi_cube() -> xr.DataArray:
+    """Create 40 deterministic years for stable month-wise gamma fits."""
+    time = pd.date_range("1981-01-01", "2020-12-31", freq="D")
+    rng = np.random.default_rng(20261113)
+    values = rng.gamma(shape=2.5, scale=1.7, size=(len(time), 2, 2))
+    day_of_year = time.strftime("%j").astype(int).to_numpy()
+    seasonal = 1 + 0.35 * np.sin(2 * np.pi * (day_of_year - 20) / 365.25)
+    values *= seasonal[:, None, None]
+    values *= np.array([[0.7, 1.0], [1.3, 1.8]])[None, :, :]
+    return xr.DataArray(
+        values / 86400,
+        dims=("time", "lat", "lon"),
+        coords={"time": time, "lat": [45.0, 46.0], "lon": [1.0, 2.0]},
+        name="pr",
+        attrs={"units": "kg m-2 s-1"},
+    )
+
+
+def _spi_gamma_oracle(source: xr.DataArray, window: int) -> np.ndarray:
+    """Fit xclim's APP gamma parameters independently for each ending month."""
+    daily = source.values * 86400
+    daily_index = pd.DatetimeIndex(source.time.values)
+    monthly_index = daily_index.to_period("M").to_timestamp()
+    months = monthly_index.unique()
+    calibration = (months >= "1981-01-01") & (months <= "2010-12-01")
+    result = np.full((len(months), *daily.shape[1:]), np.nan)
+    for cell in np.ndindex(daily.shape[1:]):
+        series = pd.Series(daily[(slice(None), *cell)], index=daily_index)
+        # xclim first forms monthly means and then rolling means. The rolling
+        # value is attributed to its ending month.
+        accumulated = series.resample("MS").mean().rolling(window).mean()
+        for ending_month in range(1, 13):
+            selected = months.month == ending_month
+            sample = accumulated[calibration & selected].dropna().to_numpy()
+            probability_of_zero = np.count_nonzero(sample == 0) / len(sample)
+            positive = sample[sample > 0]
+            mean = positive.mean()
+            a = np.log(mean) - np.log(positive).mean()
+            shape = (1 + np.sqrt(1 + 4 * a / 3)) / (4 * a)
+            scale = mean / shape
+            probability = gamma.cdf(accumulated[selected], shape, loc=0, scale=scale)
+            probability = probability_of_zero + (1 - probability_of_zero) * probability
+            result[(selected, *cell)] = norm.ppf(probability)
+    return result
+
+
+@pytest.mark.parametrize("chunk_size", [None, 7], ids=["eager", "chunked"])
+@pytest.mark.parametrize(("name", "window"), [("SPI3", 3), ("SPI6", 6)])
+def test_spi_matches_independent_app_gamma_value_oracle(
+    name: str,
+    window: int,
+    chunk_size: int | None,
+) -> None:
+    """Compare SPI values with an independent APP gamma and zero-mass fit."""
+    source = _batch5_spi_cube()
+    expected = _spi_gamma_oracle(source, window)
+    study = source if chunk_size is None else source.chunk({"time": chunk_size})
+
+    actual = getattr(icclim, name.lower())(
+        study,
+        base_period_time_range=["1981-01-01", "2010-12-31"],
+        out_file=None,
+    )[name].compute()
+
+    assert np.isnan(actual.values[: window - 1]).all()
+    assert np.isfinite(actual.values[window - 1]).all()
+    np.testing.assert_allclose(
+        actual.values, expected, atol=1e-10, rtol=0, equal_nan=True
+    )
+
+
+@dataclass(frozen=True)
+class Batch5BasicCase:
+    name: str
+    variable: str
+    reducer: Literal["max", "mean", "sum", "ge", "le"]
+    threshold: float | None = None
+
+
+BATCH5_BASIC_CASES = (
+    Batch5BasicCase("FXx", "wind_gust", "max"),
+    Batch5BasicCase("FG6Bft", "wind", "ge", 10.8),
+    Batch5BasicCase("FGcalm", "wind", "le", 2),
+    Batch5BasicCase("FG", "wind", "mean"),
+    Batch5BasicCase("SS", "sunshine", "sum"),
+)
+
+
+def _batch5_basic_cube() -> xr.Dataset:
+    """Create wind and sunshine inputs with conversion and equality probes."""
+    time = pd.date_range("1999-01-01", "2001-12-31", freq="D")
+    rng = np.random.default_rng(20261114)
+    shape = (len(time), 2, 2)
+    wind = rng.uniform(0, 15, shape)
+    gust = wind + rng.uniform(2, 10, shape)
+    sunshine = rng.uniform(0, 12, shape)
+    wind[time == "2000-02-28", 0, 0] = 10.8
+    wind[time == "2000-02-29", 0, 1] = 2
+    wind[time == "2001-04-12", 1, 0] = np.nan
+    sunshine[time == "1999-08-03", 1, 1] = np.nan
+    coords = {"time": time, "lat": [45.0, 46.0], "lon": [1.0, 2.0]}
+    return xr.Dataset(
+        {
+            "wind": xr.DataArray(
+                wind * 3.6,
+                dims=("time", "lat", "lon"),
+                attrs={"units": "km h-1"},
+            ),
+            "wind_gust": xr.DataArray(
+                gust * 3.6,
+                dims=("time", "lat", "lon"),
+                attrs={"units": "km h-1"},
+            ),
+            "sunshine": xr.DataArray(
+                sunshine * 3600,
+                dims=("time", "lat", "lon"),
+                attrs={"units": "s"},
+            ),
+        },
+        coords=coords,
+    )
+
+
+def _batch5_basic_oracle(source: xr.Dataset, case: Batch5BasicCase) -> np.ndarray:
+    """Apply ATBD v11 sections 5.3.10 and 5.3.12 reductions."""
+    time = pd.DatetimeIndex(source.time.values)
+    values = source[case.variable].values.copy()
+    values /= 3600 if case.variable == "sunshine" else 3.6
+    results = []
+    for year in np.unique(time.year):
+        selected = values[time.year == year]
+        if case.reducer == "max":
+            result = np.nanmax(selected, axis=0)
+        elif case.reducer == "mean":
+            result = np.nanmean(selected, axis=0)
+        elif case.reducer == "sum":
+            result = np.nansum(selected, axis=0)
+        elif case.reducer == "ge":
+            result = np.sum(
+                np.isfinite(selected) & (selected >= case.threshold), axis=0
+            )
+        else:
+            result = np.sum(
+                np.isfinite(selected) & (selected <= case.threshold), axis=0
+            )
+        results.append(result)
+    return np.stack(results)
+
+
+@pytest.mark.parametrize("chunk_size", [None, 7], ids=["eager", "chunked"])
+@pytest.mark.parametrize("case", BATCH5_BASIC_CASES, ids=lambda case: case.name)
+def test_batch5_basic_indices_match_atbd_oracle(
+    case: Batch5BasicCase,
+    chunk_size: int | None,
+) -> None:
+    """Compare wind and sunshine indices with direct ATBD reductions."""
+    source = _batch5_basic_cube()
+    expected = _batch5_basic_oracle(source, case)
+    study = source[[case.variable]]
+    if chunk_size is not None:
+        study = study.chunk({"time": chunk_size})
+
+    actual = icclim.index(
+        in_files=study,
+        var_name=case.variable,
+        index_name=case.name,
+        slice_mode="year",
+        out_file=None,
+        completeness="none",
+    )[case.name].compute()
+
+    np.testing.assert_allclose(
+        actual.transpose("time", "lat", "lon").values,
+        expected,
+        equal_nan=True,
+    )
+
+
 @dataclass(frozen=True)
 class Batch6Case:
     name: str
     variable: str
-    reducer: Literal["mean_pressure", "mean_humidity", "north", "east", "south", "west"]
+    reducer: Literal[
+        "mean_pressure", "mean_humidity", "north", "east", "south", "west"
+    ]
 
 
 BATCH6_CASES = (
