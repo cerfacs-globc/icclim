@@ -6,6 +6,15 @@
 Unreleased
 **********
 
+-  [fix] Percentile thresholds are now adjusted to the calendar with icclim's exact
+   interpolation (issue #603). With SciPy 1.18.1 (Python 3.12 or later) the previous
+   code, present since 7.0.0, could return different exceedance counts for
+   non-bootstrapped percentile indices and for the legacy bootstrap path: in a test
+   case the monthly ``TX90p`` went from 6 to 9 days, and the legacy bootstrap from 0 to
+   30 days. The default bootstrap path of 7.2 and 7.3 was not affected. The exact
+   interpolation is also used inside xclim's ``percentile_doy`` when icclim runs the
+   legacy bootstrap path. Results with SciPy 1.17.x are unchanged. Users of earlier
+   versions on that stack should upgrade.
 -  [fix] ``vDTR`` now excludes the difference between the last day of one output
    period and the first day of the next, as required by ECA&D ATBD v11 section
    5.3.11 (issue #599). This causes a small value change for every period after
