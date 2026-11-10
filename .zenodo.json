@@ -1,12 +1,30 @@
 {
+  "contributors": [
+    {
+      "name": "Evaldsson, Martin",
+      "type": "Other"
+    },
+    {
+      "name": "Bärring, Lars",
+      "type": "Other"
+    }
+  ],
   "creators": [
     {
       "affiliation": "CERFACS, Toulouse, France",
-      "name": "Page, Christian",
-      "orcid": "0000-0002-4018-4720"
+      "name": "Pagé, Christian",
+      "orcid": "0000-0001-7743-9570"
     },
     {
+      "affiliation": "Meteo France",
+      "name": "Tatarinova, Natalia"
+    },
+    {
+      "affiliation": "Eumetsat and CERFACS",
       "name": "Aoun, Abel"
+    },
+    {
+      "name": "Pivan, Xavier"
     }
   ],
   "keywords": [
