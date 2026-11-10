@@ -931,9 +931,7 @@ def test_batch5_basic_indices_match_atbd_oracle(
 class Batch6Case:
     name: str
     variable: str
-    reducer: Literal[
-        "mean_pressure", "mean_humidity", "north", "east", "south", "west"
-    ]
+    reducer: Literal["mean_pressure", "mean_humidity", "north", "east", "south", "west"]
 
 
 BATCH6_CASES = (
