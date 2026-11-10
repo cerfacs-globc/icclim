@@ -498,12 +498,13 @@ def index(
         ``max_consecutive_occurrence``: the whole run is counted in the period where
         it ends. Pass ``run_index="first"`` for the pre-7.4.0 behavior, or pass
         ``split_runs_at_period_boundary=True`` to cut runs at every boundary.
-        ``WSDI`` and ``CSDI`` are unchanged. ECA&D ATBD v11, pp. 20--21 specifies
+        The default attribution of ``WSDI`` and ``CSDI`` is unchanged. ECA&D ATBD v11, pp. 20--21 specifies
         end-period attribution for CDD and CWD; the same convention is applied to
         CFD, CSU, PXCDD, PXCWD and the generic function for consistency.
     split_runs_at_period_boundary: bool
         ``optional`` Only used by the indices based on ``max_consecutive_occurrence``
-        (``CDD``, ``CWD``, ``CFD``, ``CSU``), ignored otherwise.
+        (``CDD``, ``CWD``, ``CFD``, ``CSU``) and on ``sum_of_spell_lengths``
+        (``WSDI``, ``CSDI``), ignored otherwise.
         When ``False`` (default), a run of consecutive days that crosses the end of
         an output period is counted whole in a single period: the one where the run
         starts with ``run_index="first"``, or the one where it ends with
@@ -512,6 +513,8 @@ def index(
         When ``True``, runs are cut at the boundary of every output period and each
         period gets the longest run found inside it. ``run_index`` then has no
         effect on the values.
+        For ``WSDI`` and ``CSDI`` the runs are cut first and only the pieces of at
+        least 6 days are summed (the pieces, not the whole spell, must reach 6 days).
         Default is ``False``.
     only_leap_years: bool
         ``optional`` Option for February 29th (default: False).

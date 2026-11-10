@@ -121,7 +121,8 @@ GENERIC_POP_ARGS = (
     ]
 )
 
-# Only the indices based on ``max_consecutive_occurrence`` use this argument.
+# Only the indices based on ``max_consecutive_occurrence`` or ``sum_of_spell_lengths``
+# (the run based ones) use this argument.
 SPLIT_RUNS_ARG = "split_runs_at_period_boundary"
 
 NORMAL_INDEX_POP_ARGS = (
@@ -416,7 +417,10 @@ def _split_runs_pop_args(index: StandardIndex | GenericIndicator) -> list[str]:
     from icclim.generic.registry import GenericIndicatorRegistry
 
     indicator = getattr(index, "indicator", index)
-    if indicator is GenericIndicatorRegistry.MaxConsecutiveOccurrence:
+    if indicator in (
+        GenericIndicatorRegistry.MaxConsecutiveOccurrence,
+        GenericIndicatorRegistry.SumOfSpellLengths,
+    ):
         return []
     return [SPLIT_RUNS_ARG]
 

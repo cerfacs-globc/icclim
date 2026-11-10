@@ -494,13 +494,17 @@ def sum_of_spell_lengths(
     min_spell_length : int
         The minimum length of a spell to consider.
     **kwargs : dict
-        Ignored keyword arguments (for compatibility).
+        ``run_index`` ("first" by default) selects the end of a run where it is
+        counted. ``split_runs_at_period_boundary`` (False by default): when True,
+        runs are cut at every output period boundary first, and only the pieces of at
+        least ``min_spell_length`` days are kept.
 
     Returns
     -------
     DataArray
         The sum of the lengths of all spells in the data.
     """
+    split_runs = bool(kwargs.get("split_runs_at_period_boundary", False))
     bootstrap_capability = _note_generic_bootstrap_capability(
         indicator_name="sum_of_spell_lengths",
         climate_vars=climate_vars,
@@ -535,10 +539,11 @@ def sum_of_spell_lengths(
             logical_link,
         )
     if bootstrap_spell_mask is not None:
-        spell_run_lengths = get_xclim_compute().run_length.rle(
+        spell_run_lengths = _run_length_encoding(
             bootstrap_spell_mask,
-            dim="time",
-            index=kwargs.get("run_index", "first"),
+            resample_freq,
+            kwargs.get("run_index", "first"),
+            split_at_period_boundary=split_runs,
         )
         cropped_run_lengths = spell_run_lengths.where(
             spell_run_lengths >= min_spell_length,
@@ -561,13 +566,16 @@ def sum_of_spell_lengths(
         logical_link,
         force_reference_bootstrap=_force_reference_cftime_spell_masks(climate_vars),
     )
-    rle = get_xclim_compute().run_length.rle(
+    rle = _run_length_encoding(
         combined_exceedance_mask,
-        dim="time",
-        index=kwargs.get("run_index", "first"),
+        resample_freq,
+        kwargs.get("run_index", "first"),
+        split_at_period_boundary=split_runs,
     )
     cropped_rle = rle.where(rle >= min_spell_length, other=0)
     result = cropped_rle.resample(time=resample_freq.pandas_freq).sum(dim="time")
+    if split_runs:
+        result = _transpose_like_study(result, climate_vars[0].studied_data)
     freq = check_freq(climate_vars[0].studied_data, dim="time")
     return _safe_to_agg_units(
         result, climate_vars[0].studied_data, "count", deffreq=freq
