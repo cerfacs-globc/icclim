@@ -2,9 +2,12 @@
  Release history
 #################
 
-**********
-Unreleased
-**********
+*****
+7.3.6
+*****
+
+date: 2026-11-10
+
 
 -  [fix] The DCSC indices ``TXHWD``, ``TNCWD`` and ``TNND`` returned wrong values
    (issue #616). They are now defined as in the DRIAS catalogue: ``TXHWD`` counts the
