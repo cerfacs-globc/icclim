@@ -3019,9 +3019,9 @@ def mean_of_absolute_one_time_step_difference(
     allow_missing_periods: bool | None = None,
     allow_partial_final_period: bool = False,
 ) -> Dataset:
-    """Average of the absolute one time step by one time step difference between two variables, or one variable and it's reference period values (e.g. vDTR: `mean((tasmax[i] - tasmin[i]) - (tasmax[i-1] - tasmin[i-1])` ; where i is the day of measure).
+    """Average of the absolute one time step by one time step difference between two variables, or one variable and it's reference period values (e.g. vDTR: `mean((tasmax[i] - tasmin[i]) - (tasmax[i-1] - tasmin[i-1])` ; where i is a time step within the output period). The first time step of each period contributes no difference, and the mean divides by the number of valid differences, not by the period's number of time steps.
 
-    mean_of_absolute_one_time_step_difference: Average of the absolute one time step by one time step difference between two variables, or one variable and it's reference period values (e.g. vDTR: `mean((tasmax[i] - tasmin[i]) - (tasmax[i-1] - tasmin[i-1])` ; where i is the day of measure).
+    mean_of_absolute_one_time_step_difference: Average of the absolute one time step by one time step difference between two variables, or one variable and it's reference period values (e.g. vDTR: `mean((tasmax[i] - tasmin[i]) - (tasmax[i-1] - tasmin[i-1])` ; where i is a time step within the output period). The first time step of each period contributes no difference, and the mean divides by the number of valid differences, not by the period's number of time steps.
 
 
 
