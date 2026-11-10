@@ -6,6 +6,11 @@
 Unreleased
 **********
 
+-  [fix] The DCSC indices ``TXND`` and ``TNHT`` now count the days with
+   ``Tx >= normal + 5°C`` and ``Tn >= normal + 5°C`` as in the DRIAS catalogue
+   (issue #620). They used a strict ``>``, so days exactly at the threshold were not
+   counted. The French definitions were corrected too.
+   Affected: every release since 7.0.0 that has the DCSC indices.
 -  [fix] ``split_runs_at_period_boundary`` is now applied by ``WSDI``, ``CSDI``,
    ``TXHWD``, ``TNCWD`` and ``sum_of_spell_lengths`` (issue #614). It was accepted by
    ``icclim.index`` and ignored. With the option, runs are cut at every output period
