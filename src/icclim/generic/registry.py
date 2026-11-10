@@ -206,7 +206,9 @@ class GenericIndicatorRegistry(Registry[GenericIndicator]):
         " or one variable and it's reference period values"
         " (e.g. vDTR:"
         " `mean((tasmax[i] - tasmin[i]) - (tasmax[i-1] - tasmin[i-1])` ;"
-        " where i is the day of measure).",
+        " where i is a time step within the output period). The first time step"
+        " of each period contributes no difference, and the mean divides by the"
+        " number of valid differences, not by the period's number of time steps.",
         qualifiers=("compute_diff",),
         wmo_aggregation="mean",
     )

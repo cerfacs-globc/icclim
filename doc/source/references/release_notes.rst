@@ -6,6 +6,12 @@
 Unreleased
 **********
 
+-  [fix] ``vDTR`` now excludes the difference between the last day of one output
+   period and the first day of the next, as required by ECA&D ATBD v11 section
+   5.3.11 (issue #599). This causes a small value change for every period after
+   the first. icclim continues to average over the number of valid within-period
+   differences; it does not use the ATBD formula's denominator of all days in
+   the period.
 -  [Behaviour change] Since 7.4.0, ``CDD``, ``CWD``, ``CFD``, ``CSU``,
    ``PXCDD``, ``PXCWD`` and ``max_consecutive_occurrence`` default to
    ``run_index="last"``: a run crossing an output-period boundary is counted in

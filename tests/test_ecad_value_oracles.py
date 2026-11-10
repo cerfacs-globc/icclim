@@ -325,14 +325,7 @@ BATCH3_CASES = (
     Batch3Case("TNx", ("tasmin",), "max"),
     Batch3Case("TXn", ("tasmax",), "min"),
     Batch3Case("ETR", ("tasmax", "tasmin"), "etr"),
-    # boundary difference between periods, issue to follow: #599
-    pytest.param(
-        Batch3Case("vDTR", ("tasmax", "tasmin"), "vdtr"),
-        marks=pytest.mark.xfail(
-            strict=True,
-            reason="boundary difference between periods, issue to follow: #599",
-        ),
-    ),
+    Batch3Case("vDTR", ("tasmax", "tasmin"), "vdtr"),
     Batch3Case("GD4", ("tas",), "gd4"),
     Batch3Case("HD17", ("tas",), "hd17"),
     Batch3Case("R10mm", ("pr",), "r10"),
@@ -474,3 +467,70 @@ def test_batch3_indices_match_atbd_oracle(
         expected,
         equal_nan=True,
     )
+
+
+def _vdtr_period_oracle(source: xr.Dataset, period: str) -> np.ndarray:
+    """Average valid DTR differences within each requested period."""
+    time = pd.DatetimeIndex(source.time.values)
+    daily_range = source.tasmax.values - source.tasmin.values
+    if period == "month":
+        labels = time.to_period("M")
+        groups = [labels == label for label in labels.unique()]
+    else:
+        autumn = np.isin(time.month, [9, 10, 11])
+        groups = [autumn & (time.year == year) for year in np.unique(time.year)]
+    return np.stack(
+        [
+            np.nanmean(np.abs(np.diff(daily_range[group], axis=0)), axis=0)
+            for group in groups
+        ]
+    )
+
+
+@pytest.mark.parametrize("chunk_size", [None, 7], ids=["eager", "chunked"])
+@pytest.mark.parametrize("slice_mode", ["month", "SON"])
+def test_vdtr_excludes_monthly_and_seasonal_boundary_differences(
+    slice_mode: str,
+    chunk_size: int | None,
+) -> None:
+    """ATBD v11 section 5.3.11 starts each period's differences at i=2."""
+    source = _batch3_cube()[["tasmax", "tasmin"]]
+    expected = _vdtr_period_oracle(source, slice_mode.lower())
+    study = source if chunk_size is None else source.chunk({"time": chunk_size})
+
+    actual = icclim.vdtr(
+        study,
+        slice_mode=slice_mode,
+        out_file=None,
+        completeness="none",
+    ).vDTR.compute()
+
+    np.testing.assert_allclose(
+        actual.transpose("time", "lat", "lon").values,
+        expected,
+        equal_nan=True,
+    )
+
+
+@pytest.mark.parametrize("chunk_size", [None, 7], ids=["eager", "chunked"])
+def test_vdtr_keeps_minimum_valid_fraction_handling(
+    chunk_size: int | None,
+) -> None:
+    """The existing minimum-valid-days mask still applies after reduction."""
+    source = _batch3_cube()[["tasmax", "tasmin"]].sel(
+        time=slice("2001-01-01", "2001-02-28")
+    )
+    source["tasmax"].loc[
+        {"time": slice("2001-01-01", "2001-01-05"), "lat": 45.0, "lon": 1.0}
+    ] = np.nan
+    study = source if chunk_size is None else source.chunk({"time": chunk_size})
+
+    actual = icclim.vdtr(
+        study,
+        slice_mode="month",
+        out_file=None,
+        completeness=0.9,
+    ).vDTR.compute()
+
+    assert np.isnan(actual.isel(time=0).sel(lat=45.0, lon=1.0))
+    assert np.isfinite(actual.isel(time=1).sel(lat=45.0, lon=1.0))
