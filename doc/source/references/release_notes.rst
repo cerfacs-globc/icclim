@@ -2,6 +2,16 @@
  Release history
 #################
 
+**********
+Unreleased
+**********
+
+-  [fix] The DCSC indices ``TXND`` and ``TNHT`` now count the days with
+   ``Tx >= normal + 5°C`` and ``Tn >= normal + 5°C`` as in the DRIAS catalogue
+   (issue #620). They used a strict ``>``, so days exactly at the threshold were not
+   counted. The French definitions were corrected too.
+   Affected: every release since 7.0.0 that has the DCSC indices.
+
 *****
 7.3.5
 *****
