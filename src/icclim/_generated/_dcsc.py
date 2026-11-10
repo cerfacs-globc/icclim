@@ -140,14 +140,14 @@ def tav(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None
+    run_index : str | None, default=attribution
         ``optional`` The index used to attribute a run that crosses an output-period
         boundary. Since icclim 7.4.0, omitting this argument selects ``"last"`` for
         ``CDD``, ``CWD``, ``CFD``, ``CSU``, ``PXCDD``, ``PXCWD`` and
         ``max_consecutive_occurrence``: the whole run is counted in the period where
         it ends. Pass ``run_index="first"`` for the pre-7.4.0 behavior, or pass
         ``split_runs_at_period_boundary=True`` to cut runs at every boundary.
-        ``WSDI`` and ``CSDI`` are unchanged. ECA&D ATBD v11, pp. 20--21 specifies
+        The default attribution of ``WSDI`` and ``CSDI`` is unchanged. ECA&D ATBD v11, pp. 20--21 specifies
         end-period attribution for CDD and CWD; the same convention is applied to
         CFD, CSU, PXCDD, PXCWD and the generic function for consistency.
     ignore_Feb29th : bool
@@ -295,14 +295,14 @@ def txav(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None
+    run_index : str | None, default=attribution
         ``optional`` The index used to attribute a run that crosses an output-period
         boundary. Since icclim 7.4.0, omitting this argument selects ``"last"`` for
         ``CDD``, ``CWD``, ``CFD``, ``CSU``, ``PXCDD``, ``PXCWD`` and
         ``max_consecutive_occurrence``: the whole run is counted in the period where
         it ends. Pass ``run_index="first"`` for the pre-7.4.0 behavior, or pass
         ``split_runs_at_period_boundary=True`` to cut runs at every boundary.
-        ``WSDI`` and ``CSDI`` are unchanged. ECA&D ATBD v11, pp. 20--21 specifies
+        The default attribution of ``WSDI`` and ``CSDI`` is unchanged. ECA&D ATBD v11, pp. 20--21 specifies
         end-period attribution for CDD and CWD; the same convention is applied to
         CFD, CSU, PXCDD, PXCWD and the generic function for consistency.
     ignore_Feb29th : bool
@@ -450,14 +450,14 @@ def trav(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None
+    run_index : str | None, default=attribution
         ``optional`` The index used to attribute a run that crosses an output-period
         boundary. Since icclim 7.4.0, omitting this argument selects ``"last"`` for
         ``CDD``, ``CWD``, ``CFD``, ``CSU``, ``PXCDD``, ``PXCWD`` and
         ``max_consecutive_occurrence``: the whole run is counted in the period where
         it ends. Pass ``run_index="first"`` for the pre-7.4.0 behavior, or pass
         ``split_runs_at_period_boundary=True`` to cut runs at every boundary.
-        ``WSDI`` and ``CSDI`` are unchanged. ECA&D ATBD v11, pp. 20--21 specifies
+        The default attribution of ``WSDI`` and ``CSDI`` is unchanged. ECA&D ATBD v11, pp. 20--21 specifies
         end-period attribution for CDD and CWD; the same convention is applied to
         CFD, CSU, PXCDD, PXCWD and the generic function for consistency.
     ignore_Feb29th : bool
@@ -623,14 +623,14 @@ def tx10(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None
+    run_index : str | None, default=attribution
         ``optional`` The index used to attribute a run that crosses an output-period
         boundary. Since icclim 7.4.0, omitting this argument selects ``"last"`` for
         ``CDD``, ``CWD``, ``CFD``, ``CSU``, ``PXCDD``, ``PXCWD`` and
         ``max_consecutive_occurrence``: the whole run is counted in the period where
         it ends. Pass ``run_index="first"`` for the pre-7.4.0 behavior, or pass
         ``split_runs_at_period_boundary=True`` to cut runs at every boundary.
-        ``WSDI`` and ``CSDI`` are unchanged. ECA&D ATBD v11, pp. 20--21 specifies
+        The default attribution of ``WSDI`` and ``CSDI`` is unchanged. ECA&D ATBD v11, pp. 20--21 specifies
         end-period attribution for CDD and CWD; the same convention is applied to
         CFD, CSU, PXCDD, PXCWD and the generic function for consistency.
     only_leap_years : bool
@@ -817,14 +817,14 @@ def tx90(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None
+    run_index : str | None, default=attribution
         ``optional`` The index used to attribute a run that crosses an output-period
         boundary. Since icclim 7.4.0, omitting this argument selects ``"last"`` for
         ``CDD``, ``CWD``, ``CFD``, ``CSU``, ``PXCDD``, ``PXCWD`` and
         ``max_consecutive_occurrence``: the whole run is counted in the period where
         it ends. Pass ``run_index="first"`` for the pre-7.4.0 behavior, or pass
         ``split_runs_at_period_boundary=True`` to cut runs at every boundary.
-        ``WSDI`` and ``CSDI`` are unchanged. ECA&D ATBD v11, pp. 20--21 specifies
+        The default attribution of ``WSDI`` and ``CSDI`` is unchanged. ECA&D ATBD v11, pp. 20--21 specifies
         end-period attribution for CDD and CWD; the same convention is applied to
         CFD, CSU, PXCDD, PXCWD and the generic function for consistency.
     only_leap_years : bool
@@ -1011,14 +1011,14 @@ def tn10(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None
+    run_index : str | None, default=attribution
         ``optional`` The index used to attribute a run that crosses an output-period
         boundary. Since icclim 7.4.0, omitting this argument selects ``"last"`` for
         ``CDD``, ``CWD``, ``CFD``, ``CSU``, ``PXCDD``, ``PXCWD`` and
         ``max_consecutive_occurrence``: the whole run is counted in the period where
         it ends. Pass ``run_index="first"`` for the pre-7.4.0 behavior, or pass
         ``split_runs_at_period_boundary=True`` to cut runs at every boundary.
-        ``WSDI`` and ``CSDI`` are unchanged. ECA&D ATBD v11, pp. 20--21 specifies
+        The default attribution of ``WSDI`` and ``CSDI`` is unchanged. ECA&D ATBD v11, pp. 20--21 specifies
         end-period attribution for CDD and CWD; the same convention is applied to
         CFD, CSU, PXCDD, PXCWD and the generic function for consistency.
     only_leap_years : bool
@@ -1205,14 +1205,14 @@ def tn90(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None
+    run_index : str | None, default=attribution
         ``optional`` The index used to attribute a run that crosses an output-period
         boundary. Since icclim 7.4.0, omitting this argument selects ``"last"`` for
         ``CDD``, ``CWD``, ``CFD``, ``CSU``, ``PXCDD``, ``PXCWD`` and
         ``max_consecutive_occurrence``: the whole run is counted in the period where
         it ends. Pass ``run_index="first"`` for the pre-7.4.0 behavior, or pass
         ``split_runs_at_period_boundary=True`` to cut runs at every boundary.
-        ``WSDI`` and ``CSDI`` are unchanged. ECA&D ATBD v11, pp. 20--21 specifies
+        The default attribution of ``WSDI`` and ``CSDI`` is unchanged. ECA&D ATBD v11, pp. 20--21 specifies
         end-period attribution for CDD and CWD; the same convention is applied to
         CFD, CSU, PXCDD, PXCWD and the generic function for consistency.
     only_leap_years : bool
@@ -1381,14 +1381,14 @@ def tnfd(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None
+    run_index : str | None, default=attribution
         ``optional`` The index used to attribute a run that crosses an output-period
         boundary. Since icclim 7.4.0, omitting this argument selects ``"last"`` for
         ``CDD``, ``CWD``, ``CFD``, ``CSU``, ``PXCDD``, ``PXCWD`` and
         ``max_consecutive_occurrence``: the whole run is counted in the period where
         it ends. Pass ``run_index="first"`` for the pre-7.4.0 behavior, or pass
         ``split_runs_at_period_boundary=True`` to cut runs at every boundary.
-        ``WSDI`` and ``CSDI`` are unchanged. ECA&D ATBD v11, pp. 20--21 specifies
+        The default attribution of ``WSDI`` and ``CSDI`` is unchanged. ECA&D ATBD v11, pp. 20--21 specifies
         end-period attribution for CDD and CWD; the same convention is applied to
         CFD, CSU, PXCDD, PXCWD and the generic function for consistency.
     ignore_Feb29th : bool
@@ -1539,14 +1539,14 @@ def txfd(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None
+    run_index : str | None, default=attribution
         ``optional`` The index used to attribute a run that crosses an output-period
         boundary. Since icclim 7.4.0, omitting this argument selects ``"last"`` for
         ``CDD``, ``CWD``, ``CFD``, ``CSU``, ``PXCDD``, ``PXCWD`` and
         ``max_consecutive_occurrence``: the whole run is counted in the period where
         it ends. Pass ``run_index="first"`` for the pre-7.4.0 behavior, or pass
         ``split_runs_at_period_boundary=True`` to cut runs at every boundary.
-        ``WSDI`` and ``CSDI`` are unchanged. ECA&D ATBD v11, pp. 20--21 specifies
+        The default attribution of ``WSDI`` and ``CSDI`` is unchanged. ECA&D ATBD v11, pp. 20--21 specifies
         end-period attribution for CDD and CWD; the same convention is applied to
         CFD, CSU, PXCDD, PXCWD and the generic function for consistency.
     ignore_Feb29th : bool
@@ -1697,14 +1697,14 @@ def sd(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None
+    run_index : str | None, default=attribution
         ``optional`` The index used to attribute a run that crosses an output-period
         boundary. Since icclim 7.4.0, omitting this argument selects ``"last"`` for
         ``CDD``, ``CWD``, ``CFD``, ``CSU``, ``PXCDD``, ``PXCWD`` and
         ``max_consecutive_occurrence``: the whole run is counted in the period where
         it ends. Pass ``run_index="first"`` for the pre-7.4.0 behavior, or pass
         ``split_runs_at_period_boundary=True`` to cut runs at every boundary.
-        ``WSDI`` and ``CSDI`` are unchanged. ECA&D ATBD v11, pp. 20--21 specifies
+        The default attribution of ``WSDI`` and ``CSDI`` is unchanged. ECA&D ATBD v11, pp. 20--21 specifies
         end-period attribution for CDD and CWD; the same convention is applied to
         CFD, CSU, PXCDD, PXCWD and the generic function for consistency.
     ignore_Feb29th : bool
@@ -1855,14 +1855,14 @@ def tx35(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None
+    run_index : str | None, default=attribution
         ``optional`` The index used to attribute a run that crosses an output-period
         boundary. Since icclim 7.4.0, omitting this argument selects ``"last"`` for
         ``CDD``, ``CWD``, ``CFD``, ``CSU``, ``PXCDD``, ``PXCWD`` and
         ``max_consecutive_occurrence``: the whole run is counted in the period where
         it ends. Pass ``run_index="first"`` for the pre-7.4.0 behavior, or pass
         ``split_runs_at_period_boundary=True`` to cut runs at every boundary.
-        ``WSDI`` and ``CSDI`` are unchanged. ECA&D ATBD v11, pp. 20--21 specifies
+        The default attribution of ``WSDI`` and ``CSDI`` is unchanged. ECA&D ATBD v11, pp. 20--21 specifies
         end-period attribution for CDD and CWD; the same convention is applied to
         CFD, CSU, PXCDD, PXCWD and the generic function for consistency.
     ignore_Feb29th : bool
@@ -2013,14 +2013,14 @@ def tr(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None
+    run_index : str | None, default=attribution
         ``optional`` The index used to attribute a run that crosses an output-period
         boundary. Since icclim 7.4.0, omitting this argument selects ``"last"`` for
         ``CDD``, ``CWD``, ``CFD``, ``CSU``, ``PXCDD``, ``PXCWD`` and
         ``max_consecutive_occurrence``: the whole run is counted in the period where
         it ends. Pass ``run_index="first"`` for the pre-7.4.0 behavior, or pass
         ``split_runs_at_period_boundary=True`` to cut runs at every boundary.
-        ``WSDI`` and ``CSDI`` are unchanged. ECA&D ATBD v11, pp. 20--21 specifies
+        The default attribution of ``WSDI`` and ``CSDI`` is unchanged. ECA&D ATBD v11, pp. 20--21 specifies
         end-period attribution for CDD and CWD; the same convention is applied to
         CFD, CSU, PXCDD, PXCWD and the generic function for consistency.
     ignore_Feb29th : bool
@@ -2172,14 +2172,14 @@ def txnd(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None
+    run_index : str | None, default=attribution
         ``optional`` The index used to attribute a run that crosses an output-period
         boundary. Since icclim 7.4.0, omitting this argument selects ``"last"`` for
         ``CDD``, ``CWD``, ``CFD``, ``CSU``, ``PXCDD``, ``PXCWD`` and
         ``max_consecutive_occurrence``: the whole run is counted in the period where
         it ends. Pass ``run_index="first"`` for the pre-7.4.0 behavior, or pass
         ``split_runs_at_period_boundary=True`` to cut runs at every boundary.
-        ``WSDI`` and ``CSDI`` are unchanged. ECA&D ATBD v11, pp. 20--21 specifies
+        The default attribution of ``WSDI`` and ``CSDI`` is unchanged. ECA&D ATBD v11, pp. 20--21 specifies
         end-period attribution for CDD and CWD; the same convention is applied to
         CFD, CSU, PXCDD, PXCWD and the generic function for consistency.
     ignore_Feb29th : bool
@@ -2341,14 +2341,14 @@ def tnht(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None
+    run_index : str | None, default=attribution
         ``optional`` The index used to attribute a run that crosses an output-period
         boundary. Since icclim 7.4.0, omitting this argument selects ``"last"`` for
         ``CDD``, ``CWD``, ``CFD``, ``CSU``, ``PXCDD``, ``PXCWD`` and
         ``max_consecutive_occurrence``: the whole run is counted in the period where
         it ends. Pass ``run_index="first"`` for the pre-7.4.0 behavior, or pass
         ``split_runs_at_period_boundary=True`` to cut runs at every boundary.
-        ``WSDI`` and ``CSDI`` are unchanged. ECA&D ATBD v11, pp. 20--21 specifies
+        The default attribution of ``WSDI`` and ``CSDI`` is unchanged. ECA&D ATBD v11, pp. 20--21 specifies
         end-period attribution for CDD and CWD; the same convention is applied to
         CFD, CSU, PXCDD, PXCWD and the generic function for consistency.
     ignore_Feb29th : bool
@@ -2510,14 +2510,14 @@ def tnnd(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None
+    run_index : str | None, default=attribution
         ``optional`` The index used to attribute a run that crosses an output-period
         boundary. Since icclim 7.4.0, omitting this argument selects ``"last"`` for
         ``CDD``, ``CWD``, ``CFD``, ``CSU``, ``PXCDD``, ``PXCWD`` and
         ``max_consecutive_occurrence``: the whole run is counted in the period where
         it ends. Pass ``run_index="first"`` for the pre-7.4.0 behavior, or pass
         ``split_runs_at_period_boundary=True`` to cut runs at every boundary.
-        ``WSDI`` and ``CSDI`` are unchanged. ECA&D ATBD v11, pp. 20--21 specifies
+        The default attribution of ``WSDI`` and ``CSDI`` is unchanged. ECA&D ATBD v11, pp. 20--21 specifies
         end-period attribution for CDD and CWD; the same convention is applied to
         CFD, CSU, PXCDD, PXCWD and the generic function for consistency.
     ignore_Feb29th : bool
@@ -2623,6 +2623,7 @@ def tncwd(
     completeness: CompletenessLike = None,
     allow_missing_periods: bool | None = None,
     allow_partial_final_period: bool = False,
+    split_runs_at_period_boundary: bool = False,
     normal_var_name: str | None = None,
 ) -> Dataset:
     """Nombre de jours d'une vague de froid (température min < de plus de 5°C à la normale pdt au moins 5j consécutifs).
@@ -2679,16 +2680,31 @@ def tncwd(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None
+    run_index : str | None, default=attribution
         ``optional`` The index used to attribute a run that crosses an output-period
         boundary. Since icclim 7.4.0, omitting this argument selects ``"last"`` for
         ``CDD``, ``CWD``, ``CFD``, ``CSU``, ``PXCDD``, ``PXCWD`` and
         ``max_consecutive_occurrence``: the whole run is counted in the period where
         it ends. Pass ``run_index="first"`` for the pre-7.4.0 behavior, or pass
         ``split_runs_at_period_boundary=True`` to cut runs at every boundary.
-        ``WSDI`` and ``CSDI`` are unchanged. ECA&D ATBD v11, pp. 20--21 specifies
+        The default attribution of ``WSDI`` and ``CSDI`` is unchanged. ECA&D ATBD v11, pp. 20--21 specifies
         end-period attribution for CDD and CWD; the same convention is applied to
         CFD, CSU, PXCDD, PXCWD and the generic function for consistency.
+    split_runs_at_period_boundary : bool, default=since
+        ``optional`` Only used by the indices based on ``max_consecutive_occurrence``
+        (``CDD``, ``CWD``, ``CFD``, ``CSU``) and on ``sum_of_spell_lengths``
+        (``WSDI``, ``CSDI``), ignored otherwise.
+        When ``False`` (default), a run of consecutive days that crosses the end of
+        an output period is counted whole in a single period: the one where the run
+        starts with ``run_index="first"``, or the one where it ends with
+        ``run_index="last"`` (the default since 7.4.0). The following (or preceding) period then gets no
+        credit for the days of that run, so its value can be 0.
+        When ``True``, runs are cut at the boundary of every output period and each
+        period gets the longest run found inside it. ``run_index`` then has no
+        effect on the values.
+        For ``WSDI`` and ``CSDI`` the runs are cut first and only the pieces of at
+        least 6 days are summed (the pieces, not the whole spell, must reach 6 days).
+        Default is ``False``.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
     netcdf_version : str | NetcdfVersion
@@ -2771,6 +2787,7 @@ def tncwd(
         completeness=completeness,
         allow_missing_periods=allow_missing_periods,
         allow_partial_final_period=allow_partial_final_period,
+        split_runs_at_period_boundary=split_runs_at_period_boundary,
         out_unit="day",
     )
 
@@ -2792,6 +2809,7 @@ def txhwd(
     completeness: CompletenessLike = None,
     allow_missing_periods: bool | None = None,
     allow_partial_final_period: bool = False,
+    split_runs_at_period_boundary: bool = False,
     normal_var_name: str | None = None,
 ) -> Dataset:
     """Nombre de jours d'une vague de chaleur (température max > de plus de 5°C à la normale pdt au moins 5j consécutifs).
@@ -2848,16 +2866,31 @@ def txhwd(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None
+    run_index : str | None, default=attribution
         ``optional`` The index used to attribute a run that crosses an output-period
         boundary. Since icclim 7.4.0, omitting this argument selects ``"last"`` for
         ``CDD``, ``CWD``, ``CFD``, ``CSU``, ``PXCDD``, ``PXCWD`` and
         ``max_consecutive_occurrence``: the whole run is counted in the period where
         it ends. Pass ``run_index="first"`` for the pre-7.4.0 behavior, or pass
         ``split_runs_at_period_boundary=True`` to cut runs at every boundary.
-        ``WSDI`` and ``CSDI`` are unchanged. ECA&D ATBD v11, pp. 20--21 specifies
+        The default attribution of ``WSDI`` and ``CSDI`` is unchanged. ECA&D ATBD v11, pp. 20--21 specifies
         end-period attribution for CDD and CWD; the same convention is applied to
         CFD, CSU, PXCDD, PXCWD and the generic function for consistency.
+    split_runs_at_period_boundary : bool, default=since
+        ``optional`` Only used by the indices based on ``max_consecutive_occurrence``
+        (``CDD``, ``CWD``, ``CFD``, ``CSU``) and on ``sum_of_spell_lengths``
+        (``WSDI``, ``CSDI``), ignored otherwise.
+        When ``False`` (default), a run of consecutive days that crosses the end of
+        an output period is counted whole in a single period: the one where the run
+        starts with ``run_index="first"``, or the one where it ends with
+        ``run_index="last"`` (the default since 7.4.0). The following (or preceding) period then gets no
+        credit for the days of that run, so its value can be 0.
+        When ``True``, runs are cut at the boundary of every output period and each
+        period gets the longest run found inside it. ``run_index`` then has no
+        effect on the values.
+        For ``WSDI`` and ``CSDI`` the runs are cut first and only the pieces of at
+        least 6 days are summed (the pieces, not the whole spell, must reach 6 days).
+        Default is ``False``.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
     netcdf_version : str | NetcdfVersion
@@ -2940,6 +2973,7 @@ def txhwd(
         completeness=completeness,
         allow_missing_periods=allow_missing_periods,
         allow_partial_final_period=allow_partial_final_period,
+        split_runs_at_period_boundary=split_runs_at_period_boundary,
         out_unit="day",
     )
 
@@ -3016,14 +3050,14 @@ def hdd(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None
+    run_index : str | None, default=attribution
         ``optional`` The index used to attribute a run that crosses an output-period
         boundary. Since icclim 7.4.0, omitting this argument selects ``"last"`` for
         ``CDD``, ``CWD``, ``CFD``, ``CSU``, ``PXCDD``, ``PXCWD`` and
         ``max_consecutive_occurrence``: the whole run is counted in the period where
         it ends. Pass ``run_index="first"`` for the pre-7.4.0 behavior, or pass
         ``split_runs_at_period_boundary=True`` to cut runs at every boundary.
-        ``WSDI`` and ``CSDI`` are unchanged. ECA&D ATBD v11, pp. 20--21 specifies
+        The default attribution of ``WSDI`` and ``CSDI`` is unchanged. ECA&D ATBD v11, pp. 20--21 specifies
         end-period attribution for CDD and CWD; the same convention is applied to
         CFD, CSU, PXCDD, PXCWD and the generic function for consistency.
     ignore_Feb29th : bool
@@ -3174,14 +3208,14 @@ def cdd(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None
+    run_index : str | None, default=attribution
         ``optional`` The index used to attribute a run that crosses an output-period
         boundary. Since icclim 7.4.0, omitting this argument selects ``"last"`` for
         ``CDD``, ``CWD``, ``CFD``, ``CSU``, ``PXCDD``, ``PXCWD`` and
         ``max_consecutive_occurrence``: the whole run is counted in the period where
         it ends. Pass ``run_index="first"`` for the pre-7.4.0 behavior, or pass
         ``split_runs_at_period_boundary=True`` to cut runs at every boundary.
-        ``WSDI`` and ``CSDI`` are unchanged. ECA&D ATBD v11, pp. 20--21 specifies
+        The default attribution of ``WSDI`` and ``CSDI`` is unchanged. ECA&D ATBD v11, pp. 20--21 specifies
         end-period attribution for CDD and CWD; the same convention is applied to
         CFD, CSU, PXCDD, PXCWD and the generic function for consistency.
     ignore_Feb29th : bool
@@ -3332,14 +3366,14 @@ def pav(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None
+    run_index : str | None, default=attribution
         ``optional`` The index used to attribute a run that crosses an output-period
         boundary. Since icclim 7.4.0, omitting this argument selects ``"last"`` for
         ``CDD``, ``CWD``, ``CFD``, ``CSU``, ``PXCDD``, ``PXCWD`` and
         ``max_consecutive_occurrence``: the whole run is counted in the period where
         it ends. Pass ``run_index="first"`` for the pre-7.4.0 behavior, or pass
         ``split_runs_at_period_boundary=True`` to cut runs at every boundary.
-        ``WSDI`` and ``CSDI`` are unchanged. ECA&D ATBD v11, pp. 20--21 specifies
+        The default attribution of ``WSDI`` and ``CSDI`` is unchanged. ECA&D ATBD v11, pp. 20--21 specifies
         end-period attribution for CDD and CWD; the same convention is applied to
         CFD, CSU, PXCDD, PXCWD and the generic function for consistency.
     ignore_Feb29th : bool
@@ -3487,14 +3521,14 @@ def pint(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None
+    run_index : str | None, default=attribution
         ``optional`` The index used to attribute a run that crosses an output-period
         boundary. Since icclim 7.4.0, omitting this argument selects ``"last"`` for
         ``CDD``, ``CWD``, ``CFD``, ``CSU``, ``PXCDD``, ``PXCWD`` and
         ``max_consecutive_occurrence``: the whole run is counted in the period where
         it ends. Pass ``run_index="first"`` for the pre-7.4.0 behavior, or pass
         ``split_runs_at_period_boundary=True`` to cut runs at every boundary.
-        ``WSDI`` and ``CSDI`` are unchanged. ECA&D ATBD v11, pp. 20--21 specifies
+        The default attribution of ``WSDI`` and ``CSDI`` is unchanged. ECA&D ATBD v11, pp. 20--21 specifies
         end-period attribution for CDD and CWD; the same convention is applied to
         CFD, CSU, PXCDD, PXCWD and the generic function for consistency.
     ignore_Feb29th : bool
@@ -3645,14 +3679,14 @@ def rr(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None
+    run_index : str | None, default=attribution
         ``optional`` The index used to attribute a run that crosses an output-period
         boundary. Since icclim 7.4.0, omitting this argument selects ``"last"`` for
         ``CDD``, ``CWD``, ``CFD``, ``CSU``, ``PXCDD``, ``PXCWD`` and
         ``max_consecutive_occurrence``: the whole run is counted in the period where
         it ends. Pass ``run_index="first"`` for the pre-7.4.0 behavior, or pass
         ``split_runs_at_period_boundary=True`` to cut runs at every boundary.
-        ``WSDI`` and ``CSDI`` are unchanged. ECA&D ATBD v11, pp. 20--21 specifies
+        The default attribution of ``WSDI`` and ``CSDI`` is unchanged. ECA&D ATBD v11, pp. 20--21 specifies
         end-period attribution for CDD and CWD; the same convention is applied to
         CFD, CSU, PXCDD, PXCWD and the generic function for consistency.
     ignore_Feb29th : bool
@@ -3800,14 +3834,14 @@ def rr1mm(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None
+    run_index : str | None, default=attribution
         ``optional`` The index used to attribute a run that crosses an output-period
         boundary. Since icclim 7.4.0, omitting this argument selects ``"last"`` for
         ``CDD``, ``CWD``, ``CFD``, ``CSU``, ``PXCDD``, ``PXCWD`` and
         ``max_consecutive_occurrence``: the whole run is counted in the period where
         it ends. Pass ``run_index="first"`` for the pre-7.4.0 behavior, or pass
         ``split_runs_at_period_boundary=True`` to cut runs at every boundary.
-        ``WSDI`` and ``CSDI`` are unchanged. ECA&D ATBD v11, pp. 20--21 specifies
+        The default attribution of ``WSDI`` and ``CSDI`` is unchanged. ECA&D ATBD v11, pp. 20--21 specifies
         end-period attribution for CDD and CWD; the same convention is applied to
         CFD, CSU, PXCDD, PXCWD and the generic function for consistency.
     ignore_Feb29th : bool
@@ -3958,14 +3992,14 @@ def pn20mm(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None
+    run_index : str | None, default=attribution
         ``optional`` The index used to attribute a run that crosses an output-period
         boundary. Since icclim 7.4.0, omitting this argument selects ``"last"`` for
         ``CDD``, ``CWD``, ``CFD``, ``CSU``, ``PXCDD``, ``PXCWD`` and
         ``max_consecutive_occurrence``: the whole run is counted in the period where
         it ends. Pass ``run_index="first"`` for the pre-7.4.0 behavior, or pass
         ``split_runs_at_period_boundary=True`` to cut runs at every boundary.
-        ``WSDI`` and ``CSDI`` are unchanged. ECA&D ATBD v11, pp. 20--21 specifies
+        The default attribution of ``WSDI`` and ``CSDI`` is unchanged. ECA&D ATBD v11, pp. 20--21 specifies
         end-period attribution for CDD and CWD; the same convention is applied to
         CFD, CSU, PXCDD, PXCWD and the generic function for consistency.
     ignore_Feb29th : bool
@@ -4130,19 +4164,20 @@ def pxcdd(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None
+    run_index : str | None, default=attribution
         ``optional`` The index used to attribute a run that crosses an output-period
         boundary. Since icclim 7.4.0, omitting this argument selects ``"last"`` for
         ``CDD``, ``CWD``, ``CFD``, ``CSU``, ``PXCDD``, ``PXCWD`` and
         ``max_consecutive_occurrence``: the whole run is counted in the period where
         it ends. Pass ``run_index="first"`` for the pre-7.4.0 behavior, or pass
         ``split_runs_at_period_boundary=True`` to cut runs at every boundary.
-        ``WSDI`` and ``CSDI`` are unchanged. ECA&D ATBD v11, pp. 20--21 specifies
+        The default attribution of ``WSDI`` and ``CSDI`` is unchanged. ECA&D ATBD v11, pp. 20--21 specifies
         end-period attribution for CDD and CWD; the same convention is applied to
         CFD, CSU, PXCDD, PXCWD and the generic function for consistency.
     split_runs_at_period_boundary : bool, default=since
         ``optional`` Only used by the indices based on ``max_consecutive_occurrence``
-        (``CDD``, ``CWD``, ``CFD``, ``CSU``), ignored otherwise.
+        (``CDD``, ``CWD``, ``CFD``, ``CSU``) and on ``sum_of_spell_lengths``
+        (``WSDI``, ``CSDI``), ignored otherwise.
         When ``False`` (default), a run of consecutive days that crosses the end of
         an output period is counted whole in a single period: the one where the run
         starts with ``run_index="first"``, or the one where it ends with
@@ -4151,6 +4186,8 @@ def pxcdd(
         When ``True``, runs are cut at the boundary of every output period and each
         period gets the longest run found inside it. ``run_index`` then has no
         effect on the values.
+        For ``WSDI`` and ``CSDI`` the runs are cut first and only the pieces of at
+        least 6 days are summed (the pieces, not the whole spell, must reach 6 days).
         Default is ``False``.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
@@ -4315,19 +4352,20 @@ def pxcwd(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None
+    run_index : str | None, default=attribution
         ``optional`` The index used to attribute a run that crosses an output-period
         boundary. Since icclim 7.4.0, omitting this argument selects ``"last"`` for
         ``CDD``, ``CWD``, ``CFD``, ``CSU``, ``PXCDD``, ``PXCWD`` and
         ``max_consecutive_occurrence``: the whole run is counted in the period where
         it ends. Pass ``run_index="first"`` for the pre-7.4.0 behavior, or pass
         ``split_runs_at_period_boundary=True`` to cut runs at every boundary.
-        ``WSDI`` and ``CSDI`` are unchanged. ECA&D ATBD v11, pp. 20--21 specifies
+        The default attribution of ``WSDI`` and ``CSDI`` is unchanged. ECA&D ATBD v11, pp. 20--21 specifies
         end-period attribution for CDD and CWD; the same convention is applied to
         CFD, CSU, PXCDD, PXCWD and the generic function for consistency.
     split_runs_at_period_boundary : bool, default=since
         ``optional`` Only used by the indices based on ``max_consecutive_occurrence``
-        (``CDD``, ``CWD``, ``CFD``, ``CSU``), ignored otherwise.
+        (``CDD``, ``CWD``, ``CFD``, ``CSU``) and on ``sum_of_spell_lengths``
+        (``WSDI``, ``CSDI``), ignored otherwise.
         When ``False`` (default), a run of consecutive days that crosses the end of
         an output period is counted whole in a single period: the one where the run
         starts with ``run_index="first"``, or the one where it ends with
@@ -4336,6 +4374,8 @@ def pxcwd(
         When ``True``, runs are cut at the boundary of every output period and each
         period gets the longest run found inside it. ``run_index`` then has no
         effect on the values.
+        For ``WSDI`` and ``CSDI`` the runs are cut first and only the pieces of at
+        least 6 days are summed (the pieces, not the whole spell, must reach 6 days).
         Default is ``False``.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
@@ -4504,14 +4544,14 @@ def r99(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None
+    run_index : str | None, default=attribution
         ``optional`` The index used to attribute a run that crosses an output-period
         boundary. Since icclim 7.4.0, omitting this argument selects ``"last"`` for
         ``CDD``, ``CWD``, ``CFD``, ``CSU``, ``PXCDD``, ``PXCWD`` and
         ``max_consecutive_occurrence``: the whole run is counted in the period where
         it ends. Pass ``run_index="first"`` for the pre-7.4.0 behavior, or pass
         ``split_runs_at_period_boundary=True`` to cut runs at every boundary.
-        ``WSDI`` and ``CSDI`` are unchanged. ECA&D ATBD v11, pp. 20--21 specifies
+        The default attribution of ``WSDI`` and ``CSDI`` is unchanged. ECA&D ATBD v11, pp. 20--21 specifies
         end-period attribution for CDD and CWD; the same convention is applied to
         CFD, CSU, PXCDD, PXCWD and the generic function for consistency.
     only_leap_years : bool
@@ -4699,14 +4739,14 @@ def pfl90(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None
+    run_index : str | None, default=attribution
         ``optional`` The index used to attribute a run that crosses an output-period
         boundary. Since icclim 7.4.0, omitting this argument selects ``"last"`` for
         ``CDD``, ``CWD``, ``CFD``, ``CSU``, ``PXCDD``, ``PXCWD`` and
         ``max_consecutive_occurrence``: the whole run is counted in the period where
         it ends. Pass ``run_index="first"`` for the pre-7.4.0 behavior, or pass
         ``split_runs_at_period_boundary=True`` to cut runs at every boundary.
-        ``WSDI`` and ``CSDI`` are unchanged. ECA&D ATBD v11, pp. 20--21 specifies
+        The default attribution of ``WSDI`` and ``CSDI`` is unchanged. ECA&D ATBD v11, pp. 20--21 specifies
         end-period attribution for CDD and CWD; the same convention is applied to
         CFD, CSU, PXCDD, PXCWD and the generic function for consistency.
     only_leap_years : bool
@@ -4894,14 +4934,14 @@ def pq90(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None
+    run_index : str | None, default=attribution
         ``optional`` The index used to attribute a run that crosses an output-period
         boundary. Since icclim 7.4.0, omitting this argument selects ``"last"`` for
         ``CDD``, ``CWD``, ``CFD``, ``CSU``, ``PXCDD``, ``PXCWD`` and
         ``max_consecutive_occurrence``: the whole run is counted in the period where
         it ends. Pass ``run_index="first"`` for the pre-7.4.0 behavior, or pass
         ``split_runs_at_period_boundary=True`` to cut runs at every boundary.
-        ``WSDI`` and ``CSDI`` are unchanged. ECA&D ATBD v11, pp. 20--21 specifies
+        The default attribution of ``WSDI`` and ``CSDI`` is unchanged. ECA&D ATBD v11, pp. 20--21 specifies
         end-period attribution for CDD and CWD; the same convention is applied to
         CFD, CSU, PXCDD, PXCWD and the generic function for consistency.
     only_leap_years : bool
@@ -5089,14 +5129,14 @@ def pq99(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None
+    run_index : str | None, default=attribution
         ``optional`` The index used to attribute a run that crosses an output-period
         boundary. Since icclim 7.4.0, omitting this argument selects ``"last"`` for
         ``CDD``, ``CWD``, ``CFD``, ``CSU``, ``PXCDD``, ``PXCWD`` and
         ``max_consecutive_occurrence``: the whole run is counted in the period where
         it ends. Pass ``run_index="first"`` for the pre-7.4.0 behavior, or pass
         ``split_runs_at_period_boundary=True`` to cut runs at every boundary.
-        ``WSDI`` and ``CSDI`` are unchanged. ECA&D ATBD v11, pp. 20--21 specifies
+        The default attribution of ``WSDI`` and ``CSDI`` is unchanged. ECA&D ATBD v11, pp. 20--21 specifies
         end-period attribution for CDD and CWD; the same convention is applied to
         CFD, CSU, PXCDD, PXCWD and the generic function for consistency.
     only_leap_years : bool
@@ -5281,14 +5321,14 @@ def ffav(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None
+    run_index : str | None, default=attribution
         ``optional`` The index used to attribute a run that crosses an output-period
         boundary. Since icclim 7.4.0, omitting this argument selects ``"last"`` for
         ``CDD``, ``CWD``, ``CFD``, ``CSU``, ``PXCDD``, ``PXCWD`` and
         ``max_consecutive_occurrence``: the whole run is counted in the period where
         it ends. Pass ``run_index="first"`` for the pre-7.4.0 behavior, or pass
         ``split_runs_at_period_boundary=True`` to cut runs at every boundary.
-        ``WSDI`` and ``CSDI`` are unchanged. ECA&D ATBD v11, pp. 20--21 specifies
+        The default attribution of ``WSDI`` and ``CSDI`` is unchanged. ECA&D ATBD v11, pp. 20--21 specifies
         end-period attribution for CDD and CWD; the same convention is applied to
         CFD, CSU, PXCDD, PXCWD and the generic function for consistency.
     ignore_Feb29th : bool
@@ -5455,14 +5495,14 @@ def ff98(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None
+    run_index : str | None, default=attribution
         ``optional`` The index used to attribute a run that crosses an output-period
         boundary. Since icclim 7.4.0, omitting this argument selects ``"last"`` for
         ``CDD``, ``CWD``, ``CFD``, ``CSU``, ``PXCDD``, ``PXCWD`` and
         ``max_consecutive_occurrence``: the whole run is counted in the period where
         it ends. Pass ``run_index="first"`` for the pre-7.4.0 behavior, or pass
         ``split_runs_at_period_boundary=True`` to cut runs at every boundary.
-        ``WSDI`` and ``CSDI`` are unchanged. ECA&D ATBD v11, pp. 20--21 specifies
+        The default attribution of ``WSDI`` and ``CSDI`` is unchanged. ECA&D ATBD v11, pp. 20--21 specifies
         end-period attribution for CDD and CWD; the same convention is applied to
         CFD, CSU, PXCDD, PXCWD and the generic function for consistency.
     only_leap_years : bool

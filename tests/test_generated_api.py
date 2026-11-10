@@ -103,7 +103,10 @@ def build_expected_args(  # noqa: C901
             t = _build_t(index.threshold)
             expected_call_args.update({"threshold": t})
     expected_call_args.update({"out_unit": index.output_unit})
-    if index.indicator is GenericIndicatorRegistry.MaxConsecutiveOccurrence:
+    if index.indicator in (
+        GenericIndicatorRegistry.MaxConsecutiveOccurrence,
+        GenericIndicatorRegistry.SumOfSpellLengths,
+    ):
         expected_call_args["split_runs_at_period_boundary"] = False
     return expected_call_args
 
@@ -136,7 +139,7 @@ def test_generated_api(generic_index_fun_mock: MagicMock) -> None:
 def test_generated_api_forwards_split_runs_at_period_boundary(
     index_fun_mock: MagicMock,
 ) -> None:
-    """Only the max consecutive occurrence based functions have the option."""
+    """Only the run based functions have the option."""
     for fun in (
         icclim.cdd,
         icclim.cwd,
@@ -144,14 +147,25 @@ def test_generated_api_forwards_split_runs_at_period_boundary(
         icclim.csu,
         icclim.dcsc.pxcdd,
         icclim.dcsc.pxcwd,
+        icclim.wsdi,
+        icclim.csdi,
     ):
         fun(in_files="pouet.nc", split_runs_at_period_boundary=True)
         assert index_fun_mock.call_args.kwargs["split_runs_at_period_boundary"] is True
+    for fun in (icclim.dcsc.txhwd, icclim.dcsc.tncwd):
+        assert "split_runs_at_period_boundary" in inspect.signature(fun).parameters
+    icclim.sum_of_spell_lengths(
+        in_files="pouet.nc",
+        threshold="> 0 degC",
+        min_spell_length=6,
+        split_runs_at_period_boundary=True,
+    )
+    assert index_fun_mock.call_args.kwargs["split_runs_at_period_boundary"] is True
     icclim.max_consecutive_occurrence(
         in_files="pouet.nc", threshold="> 0 degC", split_runs_at_period_boundary=True
     )
     assert index_fun_mock.call_args.kwargs["split_runs_at_period_boundary"] is True
-    for fun in (icclim.txx, icclim.su, icclim.wsdi, icclim.csdi, icclim.custom_index):
+    for fun in (icclim.txx, icclim.su, icclim.custom_index):
         assert "split_runs_at_period_boundary" not in inspect.signature(fun).parameters
 
 

@@ -6,6 +6,15 @@
 Unreleased
 **********
 
+-  [fix] ``split_runs_at_period_boundary`` is now applied by ``WSDI``, ``CSDI``,
+   ``TXHWD``, ``TNCWD`` and ``sum_of_spell_lengths`` (issue #614). It was accepted by
+   ``icclim.index`` and ignored. With the option, runs are cut at every output period
+   boundary first, then only the pieces of at least the minimum spell length (6 days
+   for ``WSDI`` and ``CSDI``) are kept: a 10-day spell from 28 December to 6 January
+   gives ``[0, 6]`` with yearly output instead of ``[10, 0]``. The option is now an
+   argument of ``icclim.wsdi``, ``icclim.csdi``, ``icclim.sum_of_spell_lengths``,
+   ``icclim.dcsc.txhwd`` and ``icclim.dcsc.tncwd``. The default behaviour is
+   unchanged.
 -  [fix] Percentile thresholds are now adjusted to the calendar with icclim's exact
    interpolation (issue #603). With SciPy 1.18.1 (Python 3.12 or later) the previous
    code, present since 7.0.0, could return different exceedance counts for
