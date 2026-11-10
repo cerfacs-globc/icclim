@@ -1195,3 +1195,237 @@ def test_batch7_noleap_percentile_indices_match_atbd_oracle(
         expected,
         equal_nan=True,
     )
+
+
+@dataclass(frozen=True)
+class Batch8RainCase:
+    name: str
+    percentile: int
+    fraction: bool
+
+
+BATCH8_RAIN_CASES = (
+    Batch8RainCase("R75p", 75, False),
+    Batch8RainCase("R95p", 95, False),
+    Batch8RainCase("R99p", 99, False),
+    Batch8RainCase("R75pTOT", 75, True),
+    Batch8RainCase("R95pTOT", 95, True),
+    Batch8RainCase("R99pTOT", 99, True),
+)
+
+
+@dataclass(frozen=True)
+class Batch8CompoundCase:
+    name: str
+    temperature_percentile: int
+    temperature_operator: Literal["less", "greater"]
+    precipitation_percentile: int
+    precipitation_operator: Literal["less", "greater"]
+
+
+BATCH8_COMPOUND_CASES = (
+    Batch8CompoundCase("CD", 25, "less", 25, "less"),
+    Batch8CompoundCase("CW", 25, "less", 75, "greater"),
+    Batch8CompoundCase("WD", 75, "greater", 25, "less"),
+    Batch8CompoundCase("WW", 75, "greater", 75, "greater"),
+)
+
+
+def _batch8_period_percentile(
+    values: np.ndarray,
+    years: np.ndarray,
+    percentile: int,
+) -> np.ndarray:
+    """Compute a type-8 percentile independently over base-period wet days."""
+    result = np.full(values.shape[1:], np.nan)
+    base = (years >= 2001) & (years <= 2003)
+    for cell in np.ndindex(values.shape[1:]):
+        sample = values[(base, *cell)]
+        wet = sample[np.isfinite(sample) & (sample >= 1)]
+        result[cell] = np.quantile(
+            wet,
+            percentile / 100,
+            method="median_unbiased",
+        )
+    return result
+
+
+def _batch8_cube() -> xr.Dataset:
+    """Create noleap temperature and precipitation base/study periods."""
+    time = xr.date_range(
+        "2001-01-01",
+        "2005-12-31",
+        freq="D",
+        calendar="noleap",
+        use_cftime=True,
+    )
+    day_of_year = np.asarray([value.dayofyr for value in time])
+    years = np.asarray([value.year for value in time])
+    rng = np.random.default_rng(20261111)
+    shape = (len(time), 2, 2)
+    seasonal = 11 + 10 * np.sin(2 * np.pi * (day_of_year - 80) / 365)
+    temperature = seasonal[:, None, None] + rng.normal(0, 1.8, shape)
+    temperature += np.array([[-1.0, 0.0], [1.5, 2.5]])[None, :, :]
+    precipitation = rng.gamma(1.8, 4.0, shape)
+    precipitation[rng.random(shape) < 0.22] = 0
+    precipitation[(precipitation > 0) & (precipitation < 1)] = 0
+    precipitation[::17] = 1
+    precipitation[::29] = 0
+
+    study_indices = np.flatnonzero(years >= 2004)
+    precipitation_thresholds = {
+        percentile: _batch8_period_percentile(precipitation, years, percentile)
+        for percentile in (25, 75, 95, 99)
+    }
+    for offset, percentile in enumerate((25, 75, 95, 99), start=40):
+        precipitation[study_indices[offset], 0, 0] = precipitation_thresholds[
+            percentile
+        ][0, 0]
+
+    time_coord = xr.DataArray(time, dims="time")
+    for offset, percentile in ((80, 25), (90, 75)):
+        threshold = _batch7_doy_threshold(
+            time_coord,
+            temperature,
+            percentile,
+        )
+        temperature[study_indices[offset], 0, 0] = threshold[
+            study_indices[offset], 0, 0
+        ]
+
+    temperature[study_indices[130], 1, 0] = np.nan
+    precipitation[study_indices[210], 0, 1] = np.nan
+    coordinates = {"time": time, "lat": [45.0, 46.0], "lon": [1.0, 2.0]}
+    return xr.Dataset(
+        {
+            "tas": xr.DataArray(
+                temperature,
+                dims=("time", "lat", "lon"),
+                attrs={"units": "degC"},
+            ),
+            "pr": xr.DataArray(
+                precipitation / 86400,
+                dims=("time", "lat", "lon"),
+                attrs={"units": "kg m-2 s-1"},
+            ),
+        },
+        coords=coordinates,
+    )
+
+
+def _batch8_rain_oracle(source: xr.Dataset, case: Batch8RainCase) -> np.ndarray:
+    """Apply ATBD v11 section 5.3.8 wet-day percentile definitions."""
+    # The ATBD defines RRwn as the percentile "of precipitation at wet days in
+    # the 1961-1990 period"; unlike temperature percentiles, no five-day window
+    # is used. Wet days are RR >= 1.0 mm and exceedance is strictly RR > RRwn.
+    years = source.time.dt.year.values
+    values = source.pr.values * 86400
+    threshold = _batch8_period_percentile(values, years, case.percentile)
+    results = []
+    for year in (2004, 2005):
+        selected = values[years == year]
+        event = np.isfinite(selected) & (selected >= 1) & (selected > threshold)
+        if case.fraction:
+            numerator = np.nansum(np.where(event, selected, 0), axis=0)
+            result = 100 * numerator / np.nansum(selected, axis=0)
+        else:
+            result = np.sum(event, axis=0)
+        results.append(result)
+    return np.stack(results)
+
+
+def _batch8_compound_oracle(
+    source: xr.Dataset,
+    case: Batch8CompoundCase,
+) -> np.ndarray:
+    """Apply ATBD v11 section 5.3.3 compound-index definitions."""
+    # TG uses a five-day calendar window and RR uses all base-period wet days.
+    # The ATBD comparisons are strict for both variables; RR == 1 mm is wet.
+    years = source.time.dt.year.values
+    temperature = source.tas.values
+    precipitation = source.pr.values * 86400
+    temperature_threshold = _batch7_doy_threshold(
+        source.time,
+        temperature,
+        case.temperature_percentile,
+    )
+    precipitation_threshold = _batch8_period_percentile(
+        precipitation,
+        years,
+        case.precipitation_percentile,
+    )
+    temperature_event = (
+        temperature < temperature_threshold
+        if case.temperature_operator == "less"
+        else temperature > temperature_threshold
+    )
+    precipitation_event = (
+        precipitation < precipitation_threshold
+        if case.precipitation_operator == "less"
+        else precipitation > precipitation_threshold
+    )
+    event = (
+        np.isfinite(temperature)
+        & np.isfinite(precipitation)
+        & (precipitation >= 1)
+        & temperature_event
+        & precipitation_event
+    )
+    return np.stack([np.sum(event[years == year], axis=0) for year in (2004, 2005)])
+
+
+@pytest.mark.parametrize("chunk_size", [None, 7], ids=["eager", "chunked"])
+@pytest.mark.parametrize("case", BATCH8_RAIN_CASES, ids=lambda case: case.name)
+def test_batch8_rain_percentile_indices_match_atbd_oracle(
+    case: Batch8RainCase,
+    chunk_size: int | None,
+) -> None:
+    """Compare out-of-base rain percentiles with ATBD wet-day reductions."""
+    source = _batch8_cube()
+    expected = _batch8_rain_oracle(source, case)
+    study = source.pr if chunk_size is None else source.pr.chunk({"time": chunk_size})
+
+    actual = getattr(icclim, case.name.lower())(
+        study,
+        time_range=["2004-01-01", "2005-12-31"],
+        base_period_time_range=["2001-01-01", "2003-12-31"],
+        bootstrap=False,
+        out_file=None,
+        completeness="none",
+    )[case.name].compute()
+
+    np.testing.assert_allclose(
+        actual.transpose("time", "lat", "lon").values,
+        expected,
+        rtol=1e-12,
+        equal_nan=True,
+    )
+
+
+@pytest.mark.parametrize("chunk_size", [None, 7], ids=["eager", "chunked"])
+@pytest.mark.parametrize("case", BATCH8_COMPOUND_CASES, ids=lambda case: case.name)
+def test_batch8_compound_indices_match_atbd_oracle(
+    case: Batch8CompoundCase,
+    chunk_size: int | None,
+) -> None:
+    """Compare compound percentiles with independent ATBD reductions."""
+    source = _batch8_cube()
+    expected = _batch8_compound_oracle(source, case)
+    study = source if chunk_size is None else source.chunk({"time": chunk_size})
+
+    actual = icclim.index(
+        in_files=study,
+        var_name=["tas", "pr"],
+        index_name=case.name,
+        time_range=["2004-01-01", "2005-12-31"],
+        base_period_time_range=["2001-01-01", "2003-12-31"],
+        bootstrap=False,
+        out_file=None,
+        completeness="none",
+    )[case.name].compute()
+
+    np.testing.assert_allclose(
+        actual.transpose("time", "lat", "lon").values,
+        expected,
+        equal_nan=True,
+    )
