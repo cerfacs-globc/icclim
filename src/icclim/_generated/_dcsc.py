@@ -2118,9 +2118,9 @@ def txnd(
     allow_partial_final_period: bool = False,
     normal_var_name: str | None = None,
 ) -> Dataset:
-    """Nombre de jours anormalement chauds (température maximale supérieure de plus de 5°C à la normale).
+    """Nombre de jours anormalement chauds (température maximale >= normale + 5°C).
 
-    TXND: Nombre de jours anormalement chauds (température maximale supérieure de plus de 5°C à la normale).
+    TXND: Nombre de jours anormalement chauds (température maximale >= normale + 5°C).
     Source: Portail DRIAS, DCSC, MeteoFrance.
 
 
@@ -2287,9 +2287,9 @@ def tnht(
     allow_partial_final_period: bool = False,
     normal_var_name: str | None = None,
 ) -> Dataset:
-    """Nombre de nuits anormalement chaudes (température minimale supérieure de plus de 5°C à la normale).
+    """Nombre de nuits anormalement chaudes (température minimale >= normale + 5°C).
 
-    TNHT: Nombre de nuits anormalement chaudes (température minimale supérieure de plus de 5°C à la normale).
+    TNHT: Nombre de nuits anormalement chaudes (température minimale >= normale + 5°C).
     Source: Portail DRIAS, DCSC, MeteoFrance.
 
 
@@ -2456,9 +2456,9 @@ def tnnd(
     allow_partial_final_period: bool = False,
     normal_var_name: str | None = None,
 ) -> Dataset:
-    """Nombre de jours anormalement froids (température minimale inférieure de plus de 5°C à la normale).
+    """Nombre de jours anormalement froids (température minimale inférieure ou égale à la normale - 5°C).
 
-    TNND: Nombre de jours anormalement froids (température minimale inférieure de plus de 5°C à la normale).
+    TNND: Nombre de jours anormalement froids (température minimale inférieure ou égale à la normale - 5°C).
     Source: Portail DRIAS, DCSC, MeteoFrance.
 
 
@@ -2626,9 +2626,9 @@ def tncwd(
     split_runs_at_period_boundary: bool = False,
     normal_var_name: str | None = None,
 ) -> Dataset:
-    """Nombre de jours d'une vague de froid (température min < de plus de 5°C à la normale pdt au moins 5j consécutifs).
+    """Nombre de jours d'une vague de froid (température min <= normale - 5°C pdt plus de 5 jours consécutifs).
 
-    TNCWD: Nombre de jours d'une vague de froid (température min < de plus de 5°C à la normale pdt au moins 5j consécutifs).
+    TNCWD: Nombre de jours d'une vague de froid (température min <= normale - 5°C pdt plus de 5 jours consécutifs).
     Source: Portail DRIAS, DCSC, MeteoFrance.
 
 
@@ -2812,9 +2812,9 @@ def txhwd(
     split_runs_at_period_boundary: bool = False,
     normal_var_name: str | None = None,
 ) -> Dataset:
-    """Nombre de jours d'une vague de chaleur (température max > de plus de 5°C à la normale pdt au moins 5j consécutifs).
+    """Nombre de jours d'une vague de chaleur (température max >= normale + 5°C pdt plus de 5 jours consécutifs).
 
-    TXHWD: Nombre de jours d'une vague de chaleur (température max > de plus de 5°C à la normale pdt au moins 5j consécutifs).
+    TXHWD: Nombre de jours d'une vague de chaleur (température max >= normale + 5°C pdt plus de 5 jours consécutifs).
     Source: Portail DRIAS, DCSC, MeteoFrance.
 
 
