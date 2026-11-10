@@ -659,10 +659,10 @@ def compute_doy_percentile_bootstrap_union_mask_eager(
         _get_year_label,
         build_bootstrap_year_da,
     )
-    from xclim.core.calendar import resample_doy  # noqa: PLC0415
 
     from icclim._core.generic.threshold.percentile import (  # noqa: PLC0415
         _circular_percentile_doy,
+        _resample_doy_exact,
     )
 
     reference_sample = build_bootstrap_reference_sample(study, threshold)
@@ -694,7 +694,7 @@ def compute_doy_percentile_bootstrap_union_mask_eager(
         if _get_year_label(year_key) not in overlap_years:
             nominal_mask = threshold.operator.compute(
                 target,
-                resample_doy(comparison_percentile, target),
+                _resample_doy_exact(comparison_percentile, target),
             )
             if "percentiles" in nominal_mask.dims:
                 nominal_mask = nominal_mask.squeeze("percentiles", drop=True)
@@ -722,7 +722,7 @@ def compute_doy_percentile_bootstrap_union_mask_eager(
                 substitute_percentiles > floor,
                 floor,
             )
-        aligned_thresholds = resample_doy(substitute_percentiles, target)
+        aligned_thresholds = _resample_doy_exact(substitute_percentiles, target)
         masks.append(
             threshold.operator.compute(target, aligned_thresholds)
             .fillna(False)

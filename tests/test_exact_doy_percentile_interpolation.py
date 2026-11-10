@@ -8,6 +8,7 @@ import pytest
 import xarray as xr
 from xclim.core.calendar import adjust_doy_calendar
 
+import icclim
 from icclim._core.generic.threshold.percentile import _adjust_doy_calendar_exact
 
 
@@ -63,3 +64,29 @@ def test_calendar_with_same_length_is_unchanged() -> None:
     result = _adjust_doy_calendar_exact(source, target)
 
     np.testing.assert_array_equal(result.values, source.values)
+
+
+def test_constant_series_never_exceeds_its_percentile_in_a_leap_year() -> None:
+    # A constant series ties with every calendar-day percentile, so no day can be
+    # strictly above it. With SciPy 1.18.1 the 365-day thresholds became 300.15 plus
+    # or minus rounding noise for the leap year (xclim's resample_doy), which created
+    # spurious exceedance days (up to 6 per month).
+    time = pd.date_range("2042-01-01", periods=365 * 5 + 1, freq="D")
+    tas = xr.DataArray(
+        np.full((len(time), 1, 1), 300.15),
+        dims=["time", "lat", "lon"],
+        coords={"time": time, "lat": [0], "lon": [0]},
+        attrs={"units": "K"},
+    )
+
+    result = icclim.index(
+        index_name="tx90p",
+        in_files=tas,
+        doy_window_width=1,
+        base_period_time_range=("2042-01-01", "2042-12-31"),
+        time_range=("2043-01-01", "2045-12-31"),  # 2044 is a leap year
+        slice_mode="month",
+        out_file=None,
+    )
+
+    assert (result.TX90p.compute().values == 0).all()
