@@ -20,7 +20,7 @@
   "license": {
     "id": "apache-2.0"
   },
-  "publication_date": "2026-11-08",
+  "publication_date": "2026-11-10",
   "title": "icclim: Index Calculation CLIMate",
-  "version": "7.3.4"
+  "version": "7.3.5"
 }
