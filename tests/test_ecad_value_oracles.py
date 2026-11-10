@@ -534,3 +534,133 @@ def test_vdtr_keeps_minimum_valid_fraction_handling(
 
     assert np.isnan(actual.isel(time=0).sel(lat=45.0, lon=1.0))
     assert np.isfinite(actual.isel(time=1).sel(lat=45.0, lon=1.0))
+
+
+@dataclass(frozen=True)
+class Batch4Case:
+    name: str
+    variable: str
+    reducer: Literal["rolling5", "wet_sum", "count", "mean", "sum"]
+    threshold: float | None = None
+
+
+BATCH4_CASES = (
+    Batch4Case("RX5day", "pr", "rolling5"),
+    Batch4Case("PRCPTOT", "pr", "wet_sum", 1),
+    Batch4Case("R20mm", "pr", "count", 20),
+    Batch4Case("SD", "snd", "mean"),
+    Batch4Case("SD1", "snd", "count", 1),
+    Batch4Case("SD5cm", "snd", "count", 5),
+    Batch4Case("SD50cm", "snd", "count", 50),
+    Batch4Case("RR", "pr", "sum"),
+)
+
+
+def _batch4_cube() -> xr.Dataset:
+    """Return precipitation flux and snow depth with ATBD boundary probes."""
+    time = pd.date_range("1999-01-01", "2001-12-31", freq="D")
+    rng = np.random.default_rng(20261112)
+    shape = (len(time), 2, 2)
+    precipitation = rng.uniform(0.0, 2.0, shape)
+    snow_depth = rng.uniform(0.0, 60.0, shape)
+
+    # ATBD v11 section 5.3.8 defines a five-day interval's period by its
+    # final day. This 50 mm window ends on 2000-01-03 and belongs to 2000.
+    crossing = (time >= "1999-12-30") & (time <= "2000-01-03")
+    precipitation[crossing, 0, 0] = 10
+    precipitation[time == "2000-06-10", 0, 1] = 1
+    precipitation[time == "2000-06-11", 0, 1] = 20
+
+    # ATBD v11 section 5.3.9 uses non-strict snow thresholds.
+    snow_depth[time == "2000-02-27", 1, 0] = 1
+    snow_depth[time == "2000-02-28", 1, 0] = 5
+    snow_depth[time == "2000-02-29", 1, 0] = 50
+
+    precipitation[time == "2001-04-12", 1, 1] = np.nan
+    snow_depth[time == "1999-11-08", 0, 1] = np.nan
+    coords = {"time": time, "lat": [45.0, 46.0], "lon": [1.0, 2.0]}
+    return xr.Dataset(
+        {
+            "pr": xr.DataArray(
+                precipitation / 86400,
+                dims=("time", "lat", "lon"),
+                attrs={"units": "kg m-2 s-1"},
+            ),
+            "snd": xr.DataArray(
+                snow_depth / 100,
+                dims=("time", "lat", "lon"),
+                attrs={"units": "m"},
+            ),
+        },
+        coords=coords,
+    )
+
+
+def _rolling_five_day_sum(values: np.ndarray) -> np.ndarray:
+    rolling = np.full(values.shape, np.nan)
+    for end in range(4, len(values)):
+        window = values[end - 4 : end + 1]
+        rolling[end] = np.where(
+            np.all(np.isfinite(window), axis=0),
+            np.sum(window, axis=0),
+            np.nan,
+        )
+    return rolling
+
+
+def _batch4_oracle(source: xr.Dataset, case: Batch4Case) -> np.ndarray:
+    """Apply ATBD v11 sections 5.3.8 and 5.3.9 using numpy and pandas."""
+    time = pd.DatetimeIndex(source.time.values)
+    values = source[case.variable].values.copy()
+    values *= 86400 if case.variable == "pr" else 100
+    if case.reducer == "rolling5":
+        values = _rolling_five_day_sum(values)
+
+    results = []
+    for year in np.unique(time.year):
+        selected = values[time.year == year]
+        if case.reducer == "mean":
+            result = np.nanmean(selected, axis=0)
+        elif case.reducer == "count":
+            result = np.sum(
+                np.isfinite(selected) & (selected >= case.threshold), axis=0
+            )
+        elif case.reducer == "wet_sum":
+            result = np.nansum(np.where(selected >= 1, selected, 0), axis=0)
+        elif case.reducer == "sum":
+            result = np.nansum(selected, axis=0)
+        else:
+            result = np.nanmax(selected, axis=0)
+        results.append(result)
+    return np.stack(results)
+
+
+@pytest.mark.parametrize("chunk_size", [None, 7], ids=["eager", "chunked"])
+@pytest.mark.parametrize("case", BATCH4_CASES, ids=lambda case: case.name)
+def test_batch4_indices_match_atbd_oracle(
+    case: Batch4Case,
+    chunk_size: int | None,
+) -> None:
+    """Compare precipitation and snow indices with direct ATBD reductions."""
+    source = _batch4_cube()
+    expected = _batch4_oracle(source, case)
+    if case.name == "RX5day":
+        assert expected[1, 0, 0] == 50
+    study = source[[case.variable]]
+    if chunk_size is not None:
+        study = study.chunk({"time": chunk_size})
+
+    actual = icclim.index(
+        in_files=study,
+        var_name=case.variable,
+        index_name=case.name,
+        slice_mode="year",
+        out_file=None,
+        completeness="none",
+    )[case.name].compute()
+
+    np.testing.assert_allclose(
+        actual.transpose("time", "lat", "lon").values,
+        expected,
+        equal_nan=True,
+    )
