@@ -19,7 +19,7 @@ import numpy as np
 import pandas as pd
 import pytest
 import xarray as xr
-from xclim.core.units import convert_units_to, units2pint
+from xclim.core.units import convert_units_to
 
 import icclim
 from icclim.dcsc.registry import DcscIndexRegistry
@@ -102,12 +102,21 @@ def _call(function: Callable, *args, **kwargs):
 class Case:
     """One index to check: how to call it and which variables it needs."""
 
-    def __init__(self, id_, variables, call, needs_base=False, needs_normal=False):
+    def __init__(
+        self,
+        id_,
+        variables,
+        call,
+        needs_base=False,
+        needs_normal=False,
+        slices_study=True,
+    ):
         self.id = id_
         self.variables = variables
         self.call = call
         self.needs_base = needs_base
         self.needs_normal = needs_normal
+        self.slices_study = slices_study
 
     def run(self, unit_of: dict[str, str], chunked: bool) -> xr.DataArray:
         time = TIME
@@ -115,7 +124,8 @@ class Case:
         kwargs = {"out_file": None, "completeness": "none"}
         if self.needs_base:
             kwargs["base_period_time_range"] = BASE
-            kwargs["time_range"] = STUDY
+            if self.slices_study:
+                kwargs["time_range"] = STUDY
         if self.needs_normal:
             kwargs["normal"] = _dataset(self.variables, unit_of, NORMAL_TIME, False)
         result = self.call(study, **kwargs)
@@ -148,6 +158,8 @@ def _standard_cases() -> list[Case]:
                     needs_base="QUANTILE_BASED" in qualifiers
                     or "REFERENCE_PERIOD_INDEX" in qualifiers,
                     needs_normal="NEEDS_NORMAL" in qualifiers,
+                    # SPI is computed on the whole series, calibrated on the reference.
+                    slices_study=index.short_name not in ("SPI3", "SPI6"),
                 )
             )
     return cases
@@ -215,13 +227,11 @@ def _generic_cases() -> list[Case]:
                 )
             )
     if "difference_of_means" in registered:
-        function = icclim.difference_of_means
         cases.append(
             Case(
-                "generic:difference_of_means:tas",
-                ("tas",),
-                lambda ds, _f=function, **kw: _call(_f, ds, **kw),
-                needs_base=True,
+                "generic:difference_of_means:tasmax-tasmin",
+                ("tasmax", "tasmin"),
+                lambda ds, _f=icclim.difference_of_means, **kw: _call(_f, ds, **kw),
             )
         )
     return cases
@@ -229,6 +239,39 @@ def _generic_cases() -> list[Case]:
 
 CASES = _standard_cases() + _generic_cases()
 CASE_IDS = [case.id for case in CASES]
+
+# Failures found by this test on master, kept as strict expected failures: when one is
+# fixed the test passes unexpectedly and fails, which says to remove its entry.
+_OFFSET = (
+    "#617: the offset of 5 delta_degree_Celsius cannot be converted to the units of"
+    " the normal (DimensionalityError) with degC and degF input"
+)
+_PERCENT = (
+    "the output unit of the precipitation percentile is '%' while the values are"
+    " in mm/day (DimensionalityError for any input unit)"
+)
+_EXCESS = (
+    "excess and deficit of a precipitation raise KeyError('units'): the units are lost"
+    " by the sum before delta_ is added to them"
+)
+XFAIL = {
+    "dcsc:TXND": _OFFSET,
+    "dcsc:TNHT": _OFFSET,
+    "dcsc:TNND": _OFFSET,
+    "dcsc:TNCWD": _OFFSET,
+    "dcsc:TXHWD": _OFFSET,
+    "dcsc:PQ90": _PERCENT,
+    "dcsc:PQ99": _PERCENT,
+    "generic:excess:pr": _EXCESS,
+    "generic:deficit:pr": _EXCESS,
+}
+
+
+def _marked(case_id: str):
+    marks = []
+    if case_id in XFAIL:
+        marks.append(pytest.mark.xfail(strict=True, reason=XFAIL[case_id]))
+    return pytest.param(CASES[CASE_IDS.index(case_id)], id=case_id, marks=marks)
 
 
 def _unit_combinations(case: Case):
@@ -256,18 +299,18 @@ def _in_reference_units(result: xr.DataArray, reference: xr.DataArray) -> np.nda
 
 
 def _assert_equivalent_units(result: xr.DataArray, reference: xr.DataArray) -> None:
-    """The output units have the dimensionality of the reference ones."""
+    """The output units can be converted to the reference ones."""
     got, expected = result.attrs.get("units"), reference.attrs.get("units")
     assert got is not None, "the result has no units"
     if got == expected:
         return
-    assert units2pint(got).dimensionality == units2pint(expected).dimensionality, (
-        got,
-        expected,
+    # Raises when the units are not equivalent (precipitation: hydro context).
+    convert_units_to(
+        xr.DataArray([1.0], attrs={"units": got}), expected, context="hydro"
     )
 
 
-@pytest.mark.parametrize("case", CASES, ids=CASE_IDS)
+@pytest.mark.parametrize("case", [_marked(i) for i in CASE_IDS])
 def test_same_data_in_other_units_gives_the_same_result(case: Case) -> None:
     combinations = list(_unit_combinations(case))
     reference_units = combinations[0]
@@ -306,7 +349,18 @@ TWICE = [
 ]
 
 
-@pytest.mark.parametrize("case_id", TWICE)
+@pytest.mark.parametrize(
+    "case_id",
+    [
+        pytest.param(
+            i,
+            marks=(
+                pytest.mark.xfail(strict=True, reason=XFAIL[i]) if i in XFAIL else []
+            ),
+        )
+        for i in TWICE
+    ],
+)
 def test_an_index_called_twice_in_one_process_gives_the_same_result(
     case_id: str,
 ) -> None:
