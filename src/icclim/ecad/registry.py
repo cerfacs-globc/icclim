@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 from icclim._core.constants import ECAD_ATBD, QUANTILE_BASED, REFERENCE_PERIOD_INDEX
+from icclim._core.generic.functions import biologically_effective_degree_days
+from icclim._core.generic.indicator import GenericIndicator
 from icclim._core.model.index_group import IndexGroupRegistry
 from icclim._core.model.registry import Registry
 from icclim._core.model.standard_index import StandardIndex
@@ -12,11 +14,21 @@ from icclim.ecad.binding import (
     StandardizedPrecipitationIndex3,
     StandardizedPrecipitationIndex6,
 )
-from icclim.generic.registry import GenericIndicatorRegistry
+from icclim.generic.registry import GenericIndicatorRegistry, _check_couple_of_vars
 
 ECAD_REFERENCE = (
     "ATBD of the ECA&D indices calculation"
     " (https://knmi-ecad-assets-prd.s3.amazonaws.com/documents/atbd.pdf)"
+)
+
+
+BiologicallyEffectiveDegreeDays = GenericIndicator(
+    "biologically_effective_degree_days",
+    biologically_effective_degree_days,
+    check_vars=_check_couple_of_vars,
+    definition="Biologically Effective Degree Days, ECA&D ATBD v11: sum from 1 April"
+    " to 30 September of min(max((TX + TN) / 2 - 10, 0), 9).",
+    wmo_aggregation="sum",
 )
 
 
@@ -812,4 +824,19 @@ class EcadIndexRegistry(Registry[StandardIndex]):
         input_variables=[StandardVariableRegistry.HURS],
         qualifiers=[],
         output_unit="%",
+    )
+    BEDD = StandardIndex(
+        reference=ECAD_REFERENCE,
+        indicator=BiologicallyEffectiveDegreeDays,
+        definition="Biologically Effective Degree Days (degree_Celsius day): sum "
+        "from 1 April to 30 September of min(max((TX + TN) / 2 - 10, 0), 9).",
+        source=ECAD_ATBD,
+        short_name="BEDD",
+        group=IndexGroupRegistry.DROUGHT,
+        input_variables=[
+            StandardVariableRegistry.TAS_MIN,
+            StandardVariableRegistry.TAS_MAX,
+        ],
+        qualifiers=[],
+        output_unit="degree_Celsius day",
     )
