@@ -14,6 +14,7 @@ import numpy as np
 import pandas as pd
 import pytest
 import xarray as xr
+from xclim.core.units import units2pint
 
 import icclim
 from icclim._core.xclim_compat import get_xclim_compute
@@ -89,7 +90,11 @@ def test_bedd_matches_the_atbd_oracle(unit: str, chunked: bool) -> None:
     tn, tx = _data()
     actual = _bedd(_dataset(tn, tx, unit, chunked))
     np.testing.assert_allclose(actual.values, _oracle(tn, tx, TIME), rtol=1e-9)
-    assert actual.attrs["units"] in ("degree_Celsius day", "d °C", "°C d")
+    # The text of the units depends on the pint format: compare the dimensions.
+    assert (
+        units2pint(actual.attrs["units"]).dimensionality
+        == units2pint("K d").dimensionality
+    )
 
 
 def test_bedd_floor_and_cap_are_both_reached() -> None:
