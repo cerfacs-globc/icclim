@@ -113,6 +113,50 @@ jobs:
           body: "Automated coverage update in README.rst."
           add-paths: README.rst
 
+  # Same tests as the `test` job, with other dependency sets, as separate jobs so that
+  # a failure points to its cause (issue #626).
+  test-python-3-12-newest:
+    name: test (Python 3.12, newest packages)
+    runs-on: ubuntu-24.04
+    env:
+      FLIT_ROOT_INSTALL: 1
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+    steps:
+      - uses: actions/checkout@v6
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Install build tools
+        run: pip install --upgrade pip "flit==3.12.0" "flit_core==3.12.0"
+      - name: Install icclim and dev requirements (newest compatible releases)
+        run: flit install --deps develop
+      - name: Show the installed versions
+        run: pip list
+      - name: Run the tests
+        run: pytest tests/
+
+  test-lowest-direct:
+    name: test (Python 3.10, lowest declared versions)
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.10'
+      - name: Install the lowest versions allowed by pyproject.toml
+        run: |
+          pip install --upgrade pip uv
+          uv pip compile pyproject.toml --python-version 3.10 --resolution lowest-direct --only-binary :all: -o lowest.txt
+          uv pip install --system -r lowest.txt
+          pip install --no-deps .
+          pip install pytest pytest-cov docstring_parser
+      - name: Show the installed versions
+        run: pip list
+      - name: Run the tests
+        run: python -m pytest tests/
+
   logo-update:
     runs-on: ubuntu-24.04
     env:
