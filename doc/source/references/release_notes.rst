@@ -6,6 +6,18 @@
 Unreleased
 **********
 
+-  [maint] **Minimum versions of the dependencies raised** to the versions the test suite
+   works with (issue #586). The previous minimums could not be installed together or did
+   not work: ``numpy>=1.24`` (was 1.21), ``pandas>=2.2.0`` (was 1.3.0),
+   ``xarray>=2024.11.0`` (was 2022.6.0), ``xclim>=0.56.0`` (was 0.45.0),
+   ``dask[array]>=2024.11.1`` (was 2022.2.0), ``zarr>=2.15.0`` (was 2.11.0),
+   ``cftime>=1.6.4`` (was 1.5.0), ``dateparser>=1.1.4`` (was 1.1.0) and
+   ``typing-extensions>=4.5.0`` (was 4.0). Python 3.10 is still supported. With
+   ``pint`` older than 0.25 (the last ``pint`` on Python 3.10 is 0.24.4), a daily value
+   exactly equal to a threshold converted between units (for example 1 mm/day of
+   ``kg m-2 s-1`` data) can be lost, because ``pint`` converts it with an error of one
+   ulp.
+   Affected: installations that pin a dependency below the new minimums.
 -  [fix] The DCSC indices ``TXHWD``, ``TNCWD`` and ``TNND`` returned wrong values
    (issue #616). They are now defined as in the DRIAS catalogue: ``TXHWD`` counts the
    days with ``Tx >= normal + 5°C`` and ``TNCWD`` the days with ``Tn <= normal - 5°C``,

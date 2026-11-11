@@ -29,21 +29,21 @@ dynamic = ["version", "description"]
 requires-python = ">=3.10"
 keywords = ["netcdf", "climate", "climate-indices", "climate-indicators", "xarray"]
 dependencies = [
-  "numpy>=1.21",
-  "xarray>=2022.6.0",
-  "xclim>=0.45.0",
+  "numpy>=1.24",
+  "xarray>=2024.11.0",
+  "xclim>=0.56.0",
   "cf_xarray>=0.7.4",
-  "cftime>=1.5.0",
-  "dask[array]>=2022.2.0",
+  "cftime>=1.6.4",
+  "dask[array]>=2024.11.1",
   "netCDF4>=1.5.7",
-  "zarr>=2.11.0",
+  "zarr>=2.15.0",
   "numcodecs>=0.10.0",
   "fsspec",
-  "pandas>=1.3.0",
-  "dateparser>=1.1.0",
+  "pandas>=2.2.0",
+  "dateparser>=1.1.4",
   "pint>=0.20",
   "jinja2>=3.0",
-  "typing-extensions>=4.0"
+  "typing-extensions>=4.5.0"
 ]
 
 [project.optional-dependencies]
