@@ -6,6 +6,11 @@
 Unreleased
 **********
 
+-  [fix] ``date_event=True`` now works with ``max_consecutive_occurrence`` and the indices
+   built on it (``CDD``, ``CWD``, ``CFD``, ``CSU``) on non-standard calendars such as
+   ``noleap``, ``360_day`` or ``all_leap`` (issue #574). It raised ``TypeError: operand
+   type(s) all returned NotImplemented from __array_ufunc__``.
+   Affected: 7.2.0 and later, for input with a cftime calendar.
 -  [fix] The DCSC indices ``TXHWD``, ``TNCWD`` and ``TNND`` returned wrong values
    (issue #616). They are now defined as in the DRIAS catalogue: ``TXHWD`` counts the
    days with ``Tx >= normal + 5°C`` and ``TNCWD`` the days with ``Tn <= normal - 5°C``,
