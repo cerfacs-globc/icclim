@@ -6,6 +6,12 @@
 Unreleased
 **********
 
+-  [enh] The notice about the new default ``run_index="last"`` (``CDD``, ``CWD``, ``CFD``,
+   ``CSU``, ``PXCDD``, ``PXCWD`` and ``max_consecutive_occurrence``) is now printed
+   once per process for each index, on stdout, instead of at every call, and starts
+   with "Since icclim 7.4.0, <index> defaults to run_index="last"". Passing
+   ``run_index`` explicitly prints nothing.
+   Affected: scripts that read the standard output of these indices.
 -  [fix] ``date_event=True`` now works with ``max_consecutive_occurrence`` and the indices
    built on it (``CDD``, ``CWD``, ``CFD``, ``CSU``) on non-standard calendars such as
    ``noleap``, ``360_day`` or ``all_leap`` (issue #574). It raised ``TypeError: operand

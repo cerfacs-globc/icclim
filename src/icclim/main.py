@@ -748,8 +748,18 @@ def index(
     return result_ds
 
 
+# Names of the indices whose run_index default notice was already printed in this
+# process (the notice is printed once per index).
+_RUN_INDEX_NOTICE_SHOWN: set[str] = set()
+
+
+def _reset_run_index_notices() -> None:
+    """Forget which indices already printed the run_index notice (for tests)."""
+    _RUN_INDEX_NOTICE_SHOWN.clear()
+
+
 def _resolve_run_index(config: IndexConfig, requested: str | None) -> str:
-    """Resolve the longest-run default and emit its unfilterable notice."""
+    """Resolve the longest-run default and emit its unfilterable notice once."""
     if requested is not None:
         return requested
     if config.indicator.name != GenericIndicatorRegistry.MaxConsecutiveOccurrence.name:
@@ -757,12 +767,15 @@ def _resolve_run_index(config: IndexConfig, requested: str | None) -> str:
         return "first"
 
     config.run_index = "last"
-    sys.stdout.write(
-        f"icclim 7.4.0 behaviour change: {config.indicator_name} now defaults to "
-        'run_index="last", so a run crossing a period boundary is counted where it '
-        'ends. Use run_index="first" for the pre-7.4.0 result, or '
-        "split_runs_at_period_boundary=True to cut the run at each boundary.\n"
-    )
+    index_name = config.indicator_name
+    if index_name not in _RUN_INDEX_NOTICE_SHOWN:
+        _RUN_INDEX_NOTICE_SHOWN.add(index_name)
+        sys.stdout.write(
+            f"Since icclim 7.4.0, {index_name} defaults to "
+            'run_index="last", so a run crossing a period boundary is counted where '
+            'it ends. Use run_index="first" for the pre-7.4.0 result, or '
+            "split_runs_at_period_boundary=True to cut the run at each boundary.\n"
+        )
     return "last"
 
 

@@ -19,6 +19,7 @@ import xarray as xr
 import icclim
 from icclim._core.generic.functions import _run_length_encoding
 from icclim.frequency import FrequencyRegistry
+from icclim.main import _reset_run_index_notices
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -135,15 +136,19 @@ class TestBoundaryExample:
         assert not np.isnan(actual.values).any()
 
 
-@pytest.mark.parametrize("name", ["CDD", "CFD", "max_consecutive_occurrence"])
-def test_default_warning_is_on_stdout_and_explicit_run_index_is_quiet(
-    name: str,
-    capsys: pytest.CaptureFixture[str],
-) -> None:
-    """The 7.4.0 default notice is emitted once and cannot be filtered."""
+NOTICE_START = "Since icclim 7.4.0, "
+
+
+@pytest.fixture(autouse=True)
+def _forget_the_run_index_notices() -> None:
+    """The notice is printed once per index and process: start every test afresh."""
+    _reset_run_index_notices()
+
+
+def _longest_run_compute(name: str):
+    """Return ``compute(**kwargs)`` for one of the indices with the default notice."""
     index = INDICES[0] if name == "CDD" else INDICES[2]
     source = _boundary_example(index)
-
     if name == "max_consecutive_occurrence":
 
         def compute(**kwargs):
@@ -165,17 +170,69 @@ def test_default_warning_is_on_stdout_and_explicit_run_index_is_quiet(
                 **kwargs,
             ).compute()
 
+    return compute
+
+
+@pytest.mark.parametrize("name", ["CDD", "CFD", "max_consecutive_occurrence"])
+def test_default_notice_is_on_stdout_and_printed_once_per_index(
+    name: str,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """The 7.4.0 default notice is on stdout, cannot be filtered, once per index."""
+    compute = _longest_run_compute(name)
+
     compute()
     notice = capsys.readouterr().out
-    assert notice.count("icclim 7.4.0 behaviour change") == 1
-    assert name in notice
-    assert 'run_index="last"' in notice
+    assert notice.startswith(NOTICE_START + name + ' defaults to run_index="last"')
+    assert notice.count("Since icclim 7.4.0") == 1
     assert 'run_index="first"' in notice
     assert "split_runs_at_period_boundary=True" in notice
+    assert notice.endswith("to cut the run at each boundary.\n")
 
-    for explicit in ("first", "last"):
-        compute(run_index=explicit)
-        assert capsys.readouterr().out == ""
+    compute()
+    assert capsys.readouterr().out == ""
+
+
+def test_each_index_prints_its_own_notice_once(
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    cdd = _longest_run_compute("CDD")
+    cfd = _longest_run_compute("CFD")
+    cdd()
+    assert capsys.readouterr().out.startswith(NOTICE_START + "CDD ")
+    cfd()
+    assert capsys.readouterr().out.startswith(NOTICE_START + "CFD ")
+    cdd()
+    cfd()
+    assert capsys.readouterr().out == ""
+
+
+def test_resetting_the_state_prints_the_notice_again(
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    compute = _longest_run_compute("CDD")
+    compute()
+    assert capsys.readouterr().out != ""
+    compute()
+    assert capsys.readouterr().out == ""
+    _reset_run_index_notices()
+    compute()
+    assert capsys.readouterr().out.startswith(NOTICE_START + "CDD ")
+
+
+@pytest.mark.parametrize("name", ["CDD", "CFD", "max_consecutive_occurrence"])
+@pytest.mark.parametrize("explicit", ["first", "last"])
+def test_explicit_run_index_prints_no_notice_and_keeps_the_state(
+    name: str,
+    explicit: str,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    compute = _longest_run_compute(name)
+    compute(run_index=explicit)
+    assert capsys.readouterr().out == ""
+    # Passing run_index does not use up the notice of the default.
+    compute()
+    assert capsys.readouterr().out.startswith(NOTICE_START + name + " ")
 
 
 @pytest.mark.parametrize(

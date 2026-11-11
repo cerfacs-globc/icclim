@@ -36,11 +36,13 @@ the pieces then contribute independently to their respective periods.
 Default-change notice
 =====================
 
-When ``run_index`` is not given, icclim prints the default-change notice once on
-stdout. Passing ``run_index`` explicitly, as either ``"first"`` or ``"last"``,
-removes the notice. For ``CDD``, the exact text is::
+When ``run_index`` is not given, icclim prints the default-change notice on stdout,
+once per process for each index: the second call of ``CDD`` prints nothing, and
+``CFD`` prints its own notice the first time it is called. Passing ``run_index``
+explicitly, as either ``"first"`` or ``"last"``, prints no notice. For ``CDD``, the
+exact text is::
 
-   icclim 7.4.0 behaviour change: CDD now defaults to run_index="last", so a run crossing a period boundary is counted where it ends. Use run_index="first" for the pre-7.4.0 result, or split_runs_at_period_boundary=True to cut the run at each boundary.
+   Since icclim 7.4.0, CDD defaults to run_index="last", so a run crossing a period boundary is counted where it ends. Use run_index="first" for the pre-7.4.0 result, or split_runs_at_period_boundary=True to cut the run at each boundary.
 
 The end-period rule for CDD and CWD follows the *ECA&D Algorithm Theoretical
 Basis Document*, version 11, pp. 20--21, which says that a crossing spell is
