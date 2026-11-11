@@ -1993,7 +1993,7 @@ def _compute_safe_tiled_count_occurrences(  # noqa: C901
                 max_cells,
                 safe_start,
             )
-        except Exception as err:  # noqa: PERF203
+        except Exception as err:
             if not _is_memory_like_bootstrap_error(err):
                 raise
             if max_cells <= 1:

@@ -133,7 +133,7 @@ def finalize_written_output_provenance(
 
 def collect_run_context(entrypoint: str) -> dict[str, Any]:
     return {
-        "utc_timestamp": dt.datetime.now(tz=dt.timezone.utc).isoformat(),
+        "utc_timestamp": dt.datetime.now(tz=dt.UTC).isoformat(),
         "entrypoint": entrypoint,
         "command": shlex.join(sys.argv) if sys.argv else "",
         "cwd": str(Path.cwd()),
@@ -446,7 +446,7 @@ def describe_file_artifact(file_path: str | Path | None) -> dict[str, Any] | Non
             "size_bytes": stat.st_size,
             "mtime_utc": dt.datetime.fromtimestamp(
                 stat.st_mtime,
-                tz=dt.timezone.utc,
+                tz=dt.UTC,
             ).isoformat(),
         }
     )

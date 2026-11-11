@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, NotRequired
 
 # for Python <3.11 with (Not)Required
-from typing_extensions import NotRequired, TypedDict
+from typing_extensions import TypedDict
 
 if TYPE_CHECKING:
     from icclim._core.model.icclim_types import InFileBaseType

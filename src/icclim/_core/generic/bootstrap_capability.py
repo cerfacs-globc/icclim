@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import os
 from dataclasses import dataclass, replace
-from enum import Enum
+from enum import StrEnum
 from typing import TYPE_CHECKING
 
 import pandas as pd
@@ -29,13 +29,6 @@ if TYPE_CHECKING:
     from icclim._core.model.logical_link import LogicalLink
     from icclim._core.model.threshold import Threshold
     from icclim.frequency import Frequency
-
-try:
-    from enum import StrEnum
-except ImportError:  # pragma: no cover - Python 3.10 compatibility
-
-    class StrEnum(str, Enum):
-        """Fallback ``StrEnum`` for Python versions older than 3.11."""
 
 
 class BootstrapThresholdKind(StrEnum):
