@@ -17,8 +17,10 @@ import pytest
 import xarray as xr
 
 import icclim
+from icclim._core.generic import functions
 from icclim._core.generic.functions import _run_length_encoding
 from icclim.frequency import FrequencyRegistry
+from icclim.threshold.factory import build_threshold
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -372,8 +374,6 @@ def test_split_encoding_has_the_dimension_order_of_the_default_encoding(
 
 def _bootstrap_boundary_case() -> tuple[xr.DataArray, object]:
     """Random series with one 10-day warm spell from 2044-12-28 to 2045-01-06."""
-    from icclim.threshold.factory import build_threshold
-
     time = pd.date_range("2042-01-01", periods=365 * 5 + 1)
     values = np.random.default_rng(3).normal(0, 1, time.size)
     values[(time >= "2044-12-28") & (time <= "2045-01-06")] = 10.0
@@ -405,8 +405,6 @@ def test_split_option_on_the_bootstrap_spell_mask_path(
     The three bootstrap modes (optimized, reference, exact tiled) give the same values
     with and without the option, and the option cuts the spell at 2044-12-31.
     """
-    from icclim._core.generic import functions
-
     source, threshold = _bootstrap_boundary_case()
     masks = []
     original = functions._compute_bootstrap_spell_mask
