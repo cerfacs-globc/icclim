@@ -25,6 +25,11 @@ if TYPE_CHECKING:
     from collections.abc import Callable
 
 
+def _timestamp(da) -> pd.Timestamp:
+    """The single date of a datetime64 array (``item()`` depends on the xarray version)."""
+    return pd.Timestamp(da.values.ravel()[0])
+
+
 def _climate_variable(
     values: list[float] | list[list[float]],
     *,
@@ -75,7 +80,7 @@ def test_simple_extreme_returns_value_and_event_date(
     ).compute()
 
     np.testing.assert_array_equal(result.values, [[expected_value]])
-    assert result.event_date.item() == pd.Timestamp(expected_date)
+    assert _timestamp(result.event_date) == pd.Timestamp(expected_date)
 
 
 @pytest.mark.parametrize("chunked", [False, True])
@@ -106,8 +111,8 @@ def test_rolling_extreme_returns_value_and_window_dates(
     ).compute()
 
     np.testing.assert_allclose(result.values, [[expected_value]])
-    assert result.event_date_start.item() == pd.Timestamp(expected_start)
-    assert result.event_date_end.item() == pd.Timestamp(expected_end)
+    assert _timestamp(result.event_date_start) == pd.Timestamp(expected_start)
+    assert _timestamp(result.event_date_end) == pd.Timestamp(expected_end)
 
 
 @pytest.mark.parametrize("chunked", [False, True])

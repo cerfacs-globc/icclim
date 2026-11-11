@@ -11,6 +11,20 @@ Unreleased
    ``noleap``, ``360_day`` or ``all_leap`` (issue #574). It raised ``TypeError: operand
    type(s) all returned NotImplemented from __array_ufunc__``.
    Affected: 7.2.0 and later, for input with a cftime calendar.
+-  [maint] **Python 3.10 is no longer supported and the minimum versions of the
+   dependencies are raised** (issue #586). icclim now requires Python 3.11 or later.
+   The previous minimums could not be installed together or did not work. The new
+   minimums are the versions the test suite works with, measured with the lowest
+   versions the resolver can pick on Python 3.11: ``numpy>=1.24`` (was 1.21),
+   ``pandas>=2.2.0`` (was 1.3.0), ``xarray>=2024.11.0`` (was 2022.6.0),
+   ``xclim>=0.56.0`` (was 0.45.0), ``dask[array]>=2024.11.1`` (was 2022.2.0),
+   ``zarr>=2.12.0`` (was 2.11.0), ``cftime>=1.6.2`` (was 1.5.0),
+   ``dateparser>=1.1.4`` (was 1.1.0), ``pint>=0.25`` (was 0.20) and
+   ``typing-extensions>=4.5.0`` (was 4.0). ``pint`` older than 0.25 converts
+   1 mm/day to ``kg m-2 s-1`` with an error of one ulp, so a daily value exactly equal
+   to a converted threshold could be lost; ``pint`` 0.25 needs Python 3.11.
+   Affected: installations on Python 3.10 or that pin a dependency below the new
+   minimums.
 -  [fix] The DCSC indices ``TXHWD``, ``TNCWD`` and ``TNND`` returned wrong values
    (issue #616). They are now defined as in the DRIAS catalogue: ``TXHWD`` counts the
    days with ``Tx >= normal + 5°C`` and ``TNCWD`` the days with ``Tn <= normal - 5°C``,
