@@ -1993,7 +1993,7 @@ def _compute_safe_tiled_count_occurrences(  # noqa: C901
                 max_cells,
                 safe_start,
             )
-        except Exception as err:  # noqa: PERF203
+        except Exception as err:
             if not _is_memory_like_bootstrap_error(err):
                 raise
             if max_cells <= 1:
@@ -3743,8 +3743,10 @@ def _shift_cftime_dates(
     dates: DataArray, steps: DataArray | int, delta: timedelta
 ) -> DataArray:
     """Return ``dates + steps * delta`` for an array of cftime dates, lazily."""
+    # cftime adds Python timedeltas only (numpy 1.24 cannot add a timedelta64).
+    py_delta = Timedelta(delta).to_pytimedelta()
     return xr.apply_ufunc(
-        np.frompyfunc(lambda date, n: date + n * delta, 2, 1),
+        np.frompyfunc(lambda date, n: date + float(n) * py_delta, 2, 1),
         dates,
         steps,
         dask="parallelized",

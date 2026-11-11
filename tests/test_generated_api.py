@@ -372,8 +372,8 @@ def test_custom_index_anomaly__error_() -> None:
             in_files=tas,
             slice_mode=["season", [12, 1]],
             base_period_time_range=[
-                dt.datetime(2014, 1, 1, tzinfo=dt.timezone.utc),
-                dt.datetime(2044, 12, 31, tzinfo=dt.timezone.utc),
+                dt.datetime(2014, 1, 1, tzinfo=dt.UTC),
+                dt.datetime(2044, 12, 31, tzinfo=dt.UTC),
             ],
             user_index={
                 "index_name": "anomaly",
@@ -389,8 +389,8 @@ def test_custom_index_anomaly__datetime_ref_period() -> None:
         in_files=tas,
         slice_mode=["season", [12, 1]],
         base_period_time_range=[
-            dt.datetime(2014, 1, 1, tzinfo=dt.timezone.utc),
-            dt.datetime(2044, 12, 31, tzinfo=dt.timezone.utc),
+            dt.datetime(2014, 1, 1, tzinfo=dt.UTC),
+            dt.datetime(2044, 12, 31, tzinfo=dt.UTC),
         ],
         sampling_method="groupby_ref_and_resample_study",
         user_index={
@@ -414,8 +414,8 @@ def test_custom_index_anomaly__groupby_and_resample_month() -> None:
         in_files=tas,
         slice_mode="month",
         base_period_time_range=[
-            dt.datetime(2014, 1, 1, tzinfo=dt.timezone.utc),
-            dt.datetime(2044, 12, 31, tzinfo=dt.timezone.utc),
+            dt.datetime(2014, 1, 1, tzinfo=dt.UTC),
+            dt.datetime(2044, 12, 31, tzinfo=dt.UTC),
         ],
         sampling_method="groupby_ref_and_resample_study",
         user_index={
@@ -433,8 +433,8 @@ def test_custom_index_anomaly__groupby_and_resample_year() -> None:
         in_files=tas,
         slice_mode="year",
         base_period_time_range=[
-            dt.datetime(2014, 1, 1, tzinfo=dt.timezone.utc),
-            dt.datetime(2044, 12, 31, tzinfo=dt.timezone.utc),
+            dt.datetime(2014, 1, 1, tzinfo=dt.UTC),
+            dt.datetime(2044, 12, 31, tzinfo=dt.UTC),
         ],
         sampling_method="groupby_ref_and_resample_study",
         user_index={
@@ -452,8 +452,8 @@ def test_custom_index_anomaly__groupby_and_resample_day() -> None:
         in_files=tas,
         slice_mode="day",
         base_period_time_range=[
-            dt.datetime(2014, 1, 1, tzinfo=dt.timezone.utc),
-            dt.datetime(2044, 12, 31, tzinfo=dt.timezone.utc),
+            dt.datetime(2014, 1, 1, tzinfo=dt.UTC),
+            dt.datetime(2044, 12, 31, tzinfo=dt.UTC),
         ],
         sampling_method="groupby_ref_and_resample_study",
         user_index={
@@ -472,8 +472,8 @@ def test_custom_index_anomaly__groupby_and_resample_hour() -> None:
             in_files=tas,
             slice_mode="hour",
             base_period_time_range=[
-                dt.datetime(2014, 1, 1, tzinfo=dt.timezone.utc),
-                dt.datetime(2044, 12, 31, tzinfo=dt.timezone.utc),
+                dt.datetime(2014, 1, 1, tzinfo=dt.UTC),
+                dt.datetime(2044, 12, 31, tzinfo=dt.UTC),
             ],
             sampling_method="groupby_ref_and_resample_study",
             user_index={
@@ -490,8 +490,8 @@ def test_custom_index_anomaly__grouby_season() -> None:
         in_files=tas,
         slice_mode=["season", [12, 1]],
         base_period_time_range=[
-            dt.datetime(2042, 1, 1, tzinfo=dt.timezone.utc),
-            dt.datetime(2044, 12, 31, tzinfo=dt.timezone.utc),
+            dt.datetime(2042, 1, 1, tzinfo=dt.UTC),
+            dt.datetime(2044, 12, 31, tzinfo=dt.UTC),
         ],
         sampling_method="groupby",
         user_index={
@@ -510,8 +510,8 @@ def test_custom_index_anomaly__grouby_month() -> None:
         in_files=tas,
         slice_mode="month",
         base_period_time_range=[
-            dt.datetime(2042, 1, 1, tzinfo=dt.timezone.utc),
-            dt.datetime(2044, 12, 31, tzinfo=dt.timezone.utc),
+            dt.datetime(2042, 1, 1, tzinfo=dt.UTC),
+            dt.datetime(2044, 12, 31, tzinfo=dt.UTC),
         ],
         sampling_method="groupby",
         user_index={

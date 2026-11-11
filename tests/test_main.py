@@ -341,8 +341,8 @@ class TestIntegration:
             in_files=self.data,
             out_file=self.OUTPUT_FILE,
             time_range=[
-                dt.datetime(2042, 7, 19, tzinfo=dt.timezone.utc),
-                dt.datetime(2044, 8, 14, tzinfo=dt.timezone.utc),
+                dt.datetime(2042, 7, 19, tzinfo=dt.UTC),
+                dt.datetime(2044, 8, 14, tzinfo=dt.UTC),
             ],
         )
         # THEN
@@ -368,12 +368,8 @@ class TestIntegration:
         tb = res.time_bounds.astype("datetime64[ns]")
 
         # Compare with naive datetime64 (UTC info is lost in np.datetime64)
-        assert tb[0, 0] == np.datetime64(
-            dt.datetime(2042, 1, 1, tzinfo=dt.timezone.utc)
-        )
-        assert tb[0, 1] == np.datetime64(
-            dt.datetime(2042, 1, 14, tzinfo=dt.timezone.utc)
-        )
+        assert tb[0, 0] == np.datetime64(dt.datetime(2042, 1, 1, tzinfo=dt.UTC))
+        assert tb[0, 1] == np.datetime64(dt.datetime(2042, 1, 14, tzinfo=dt.UTC))
 
         assert (
             res.SU.attrs["standard_name"]
