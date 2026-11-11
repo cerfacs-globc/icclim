@@ -358,16 +358,38 @@ class BasicThreshold(Threshold):
 
 def _apply_offset(da: DataArray, offset: pint.Quantity | None) -> xr.DataArray:
     if offset is not None:
-        if offset.dimensionless:
-            # We assume the same unit as `da` if it's dimensionless
-            offset = offset.m
-        else:
-            from xclim.core.units import convert_units_to  # noqa: PLC0415
-
-            offset = convert_units_to(str(offset), da, context="hydro")
+        # A dimensionless offset is assumed to be in the unit of `da`.
+        offset = offset.m if offset.dimensionless else _convert_offset(da, offset)
         with xr.set_options(keep_attrs=True):
             return da + offset
     return da
+
+
+# A temperature difference in degree_Celsius or degree_Fahrenheit has its own unit:
+# "5 delta_degree_Celsius" cannot be converted to "degree_Celsius" (it is not a
+# temperature on a scale), but it can be converted to "delta_degree_Celsius".
+_DELTA_UNITS = (("degC", "delta_degC"), ("degF", "delta_degF"))
+
+
+def _convert_offset(da: DataArray, offset: pint.Quantity) -> float:
+    """Return the offset in the units of ``da``, a temperature difference included."""
+    from pint.errors import DimensionalityError  # noqa: PLC0415
+    from xclim.core.units import convert_units_to, units, units2pint  # noqa: PLC0415
+
+    try:
+        data_units = units2pint(da)
+    except (KeyError, TypeError, ValueError):
+        data_units = None
+    # The units are compared as objects: their text depends on the global pint
+    # format, which xclim changes ("degree_Celsius" or "°C").
+    for scale_unit, delta_unit in _DELTA_UNITS:
+        if data_units is not None and data_units == units.Unit(scale_unit):
+            try:
+                return offset.to(delta_unit).magnitude
+            except DimensionalityError:
+                break  # not a temperature difference
+    # Kelvin differences and kelvin units are the same unit.
+    return convert_units_to(str(offset), da, context="hydro")
 
 
 def _apply_min_value(da: DataArray, min_value: pint.Quantity | None) -> xr.DataArray:
