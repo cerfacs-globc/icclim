@@ -17,8 +17,10 @@ import pytest
 import xarray as xr
 
 import icclim
+from icclim._core.generic import functions
 from icclim._core.generic.functions import _run_length_encoding
 from icclim.frequency import FrequencyRegistry
+from icclim.threshold.factory import build_threshold
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -368,3 +370,69 @@ def test_split_encoding_has_the_dimension_order_of_the_default_encoding(
     # Only the values differ: the split encoding restarts in each year.
     assert int(default.max()) == 212
     assert int(split.max()) == 120
+
+
+def _bootstrap_boundary_case() -> tuple[xr.DataArray, object]:
+    """Random series with one 10-day warm spell from 2044-12-28 to 2045-01-06."""
+    time = pd.date_range("2042-01-01", periods=365 * 5 + 1)
+    values = np.random.default_rng(3).normal(0, 1, time.size)
+    values[(time >= "2044-12-28") & (time <= "2045-01-06")] = 10.0
+    source = xr.DataArray(
+        values,
+        dims="time",
+        coords={"time": time},
+        name="tasmax",
+        attrs={"units": "degC"},
+    )
+    threshold = build_threshold(
+        "> 90 doy_per",
+        doy_window_width=1,
+        reference_period=("2042-01-01", "2043-12-31"),
+    )
+    return source, threshold
+
+
+@pytest.mark.parametrize("mode", [None, "default", "safe"])
+@pytest.mark.parametrize("split", [False, True], ids=["default", "split"])
+def test_split_option_on_the_bootstrap_spell_mask_path(
+    mode: str | None,
+    split: bool,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """
+    The option is applied on the bootstrap spell-mask path too.
+
+    The three bootstrap modes (optimized, reference, exact tiled) give the same values
+    with and without the option, and the option cuts the spell at 2044-12-31.
+    """
+    source, threshold = _bootstrap_boundary_case()
+    masks = []
+    original = functions._compute_bootstrap_spell_mask
+
+    def spy(*args, **kwargs):
+        mask = original(*args, **kwargs)
+        masks.append(mask)
+        return mask
+
+    monkeypatch.setattr(functions, "_compute_bootstrap_spell_mask", spy)
+    if mode is None:
+        monkeypatch.delenv("ICCLIM_BOOTSTRAP_MODE", raising=False)
+    else:
+        monkeypatch.setenv("ICCLIM_BOOTSTRAP_MODE", mode)
+
+    result = icclim.max_consecutive_occurrence(
+        source,
+        threshold=threshold,
+        slice_mode="year",
+        out_file=None,
+        completeness="none",
+        run_index="last",
+        split_runs_at_period_boundary=split,
+    )["max_consecutive_occurrence"].compute()
+
+    # Same values whatever the mode. 2045 holds the whole spell by default (12 days with
+    # two adjacent days) and only its last 6 days when the runs are cut.
+    expected = [7, 10, 4, 8, 4] if split else [7, 10, 4, 12, 4]
+    np.testing.assert_array_equal(result.values, expected)
+    if mode is None:
+        assert any(mask is not None for mask in masks)
