@@ -99,6 +99,20 @@ Unreleased
    Affected: 7.1.10, 7.2.0, 7.3.1 and 7.3.3 (run with xclim 0.60.0), and 7.3.4.
 
 *****
+7.3.7
+*****
+
+date: 2026-11-11
+
+
+-  [fix] The DCSC indices that use a normal (``TXND``, ``TNHT``, ``TNND``, ``TNCWD`` and
+   ``TXHWD``) no longer raise ``DimensionalityError`` ("cannot convert from
+   delta_degree_Celsius to degree_Celsius") when the input is in degrees Celsius or
+   Fahrenheit (issue #617). The offset of 5 degrees is now converted as a temperature
+   difference of the input unit, so input in K, degC and degF gives the same result.
+   Affected: every release since 7.0.0 that has the DCSC indices, with input not in K.
+
+*****
 7.3.6
 *****
 
