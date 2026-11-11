@@ -22,7 +22,7 @@ Compatibility
 
 icclim is designed to stay compatible with the standard Python scientific stack:
 
-- **Python**: Supports **Python 3.10 and above**.
+- **Python**: Supports **Python 3.11 and above**.
 - **Core dependencies**: Minimum supported versions are declared in ``pyproject.toml``
   (for example ``numpy>=1.21``, ``xarray>=2022.6``, ``xclim>=0.45``).
 - **Recent stacks**: Continuous integration tracks current supported Python

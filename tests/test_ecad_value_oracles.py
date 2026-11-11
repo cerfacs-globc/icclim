@@ -7,10 +7,8 @@ from typing import Literal
 
 import numpy as np
 import pandas as pd
-import pint
 import pytest
 import xarray as xr
-from packaging.version import Version
 from scipy.stats import gamma, norm
 
 import icclim
@@ -905,16 +903,8 @@ def _batch5_basic_oracle(source: xr.Dataset, case: Batch5BasicCase) -> np.ndarra
 def test_batch5_basic_indices_match_atbd_oracle(
     case: Batch5BasicCase,
     chunk_size: int | None,
-    request: pytest.FixtureRequest,
 ) -> None:
     """Compare wind and sunshine indices with direct ATBD reductions."""
-    if case.name == "FGcalm" and Version(pint.__version__) < Version("0.25"):
-        # pint < 0.25 (the last pint on Python 3.10) converts 2 m/s with an ulp error.
-        request.applymarker(
-            pytest.mark.xfail(
-                reason="pint < 0.25: a threshold converted with an ulp error"
-            )
-        )
     source = _batch5_basic_cube()
     expected = _batch5_basic_oracle(source, case)
     study = source[[case.variable]]

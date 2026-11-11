@@ -20,28 +20,27 @@ classifiers = [
   "License :: OSI Approved :: Apache Software License",
   "Natural Language :: English",
   "Operating System :: OS Independent",
-  "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
   "Topic :: Scientific/Engineering :: Atmospheric Science"
 ]
 dynamic = ["version", "description"]
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 keywords = ["netcdf", "climate", "climate-indices", "climate-indicators", "xarray"]
 dependencies = [
   "numpy>=1.24",
   "xarray>=2024.11.0",
   "xclim>=0.56.0",
   "cf_xarray>=0.7.4",
-  "cftime>=1.6.4",
+  "cftime>=1.6.2",
   "dask[array]>=2024.11.1",
   "netCDF4>=1.5.7",
-  "zarr>=2.15.0",
+  "zarr>=2.12.0",
   "numcodecs>=0.10.0",
   "fsspec",
   "pandas>=2.2.0",
   "dateparser>=1.1.4",
-  "pint>=0.20",
+  "pint>=0.25",
   "jinja2>=3.0",
   "typing-extensions>=4.5.0"
 ]
