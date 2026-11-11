@@ -21,6 +21,11 @@ from icclim.frequency import FrequencyRegistry
 from icclim.threshold.factory import build_threshold
 
 
+def _timestamp(da) -> pd.Timestamp:
+    """The single date of a datetime64 array (``item()`` depends on the xarray version)."""
+    return pd.Timestamp(da.values.ravel()[0])
+
+
 def _climate_variable(
     values: list[float],
     threshold: str | None = None,
@@ -54,8 +59,8 @@ def test_count_occurrences_date_event_golden() -> None:
     ).compute()
 
     np.testing.assert_array_equal(result.values, [2])
-    assert result.event_date_start.item() == pd.Timestamp("2000-01-02")
-    assert result.event_date_end.item() == pd.Timestamp("2000-01-04")
+    assert _timestamp(result.event_date_start) == pd.Timestamp("2000-01-02")
+    assert _timestamp(result.event_date_end) == pd.Timestamp("2000-01-04")
 
 
 @pytest.mark.parametrize("run_index", ["first", "last"])
@@ -72,8 +77,8 @@ def test_consecutive_occurrences_date_event_golden(run_index: str) -> None:
     ).compute()
 
     np.testing.assert_array_equal(result.values, [3.0])
-    assert result.event_date_start.item() == pd.Timestamp("2000-01-04")
-    assert result.event_date_end.item() == pd.Timestamp("2000-01-07")
+    assert _timestamp(result.event_date_start) == pd.Timestamp("2000-01-04")
+    assert _timestamp(result.event_date_end) == pd.Timestamp("2000-01-07")
 
 
 @pytest.mark.parametrize(
