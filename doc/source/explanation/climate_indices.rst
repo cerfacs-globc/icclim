@@ -38,7 +38,7 @@ and precipitation variables can be computed with icclim:
 
    -  11 cold indices (GD4, CFD, FD, HD17, ID, CSDI, TG10p, TN10p,
       TX10p, TXn, TNn)
-   -  1 drought indice (CDD)
+   -  2 drought indices (CDD, BEDD)
    -  9 heat indices (SU, TR, WSDI, TG90p, TN90p, TX90p, TXx, TNx, CSU)
    -  14 rain indices (PRCPTOT, RR1, SDII, CWD, R10mm, R20mm, RX1day,
       RX5day, R75p, R75pTOT, R95p, R95pTOT, R99p, R99pTOT)
@@ -153,6 +153,8 @@ reason was to interface eventually with the `OpenClimateGIS
 | SD5cm           | Number of days with snow depth >= 5 cm                                                                                              |
 +-----------------+-------------------------------------------------------------------------------------------------------------------------------------+
 | SD50cm          | Number of days with snow depth >= 50 cm                                                                                             |
++-----------------+-------------------------------------------------------------------------------------------------------------------------------------+
+| BEDD            | Biologically Effective Degree Days: sum from 1 April to 30 September of min(max((TX + TN) / 2 - 10, 0), 9)                          |
 +-----------------+-------------------------------------------------------------------------------------------------------------------------------------+
 | CD              | Days with TG < 25th percentile of daily mean temperature and RR <25th percentile of daily precipitation sum                         |
 +-----------------+-------------------------------------------------------------------------------------------------------------------------------------+

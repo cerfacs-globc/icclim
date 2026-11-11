@@ -6,6 +6,12 @@
 Unreleased
 **********
 
+-  [enh] Added the ECA&D index ``BEDD`` (Biologically Effective Degree Days) of the
+   ATBD v11 (issue #638, part of #204): the sum, from 1 April to 30 September, of
+   ``min(max((TX + TN) / 2 - 10, 0), 9)`` in degree_Celsius day. ``icclim.bedd`` needs
+   the daily minimum and maximum temperature and no latitude. It is the definition of
+   xclim's ``biologically_effective_degree_days`` with ``method="icclim"``, except that
+   a period without any valid day from April to September is missing instead of 0.
 -  [enh] The notice about the new default ``run_index="last"`` (``CDD``, ``CWD``, ``CFD``,
    ``CSU``, ``PXCDD``, ``PXCWD`` and ``max_consecutive_occurrence``) is now printed
    once per process for each index, on stdout, instead of at every call, and starts
