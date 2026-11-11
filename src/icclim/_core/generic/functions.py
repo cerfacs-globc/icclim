@@ -3716,7 +3716,16 @@ def _consecutive_occurrences_with_dates(
     # give 0, not NaN.
     longest_run = resampled.max(dim="time").fillna(0)
     anchor_time = resampled.map(_longest_run_event_date, shortcut=False)
-    if run_index == "last":
+    if anchor_time.dtype == object:
+        # cftime dates (non-standard calendars) do not support array arithmetic with
+        # a timedelta, and the arrays can be lazy: shift them element by element.
+        if run_index == "last":
+            end_time = _shift_cftime_dates(anchor_time, 1, source_freq_delta)
+            start_time = _shift_cftime_dates(end_time, -longest_run, source_freq_delta)
+        else:
+            start_time = anchor_time
+            end_time = _shift_cftime_dates(start_time, longest_run, source_freq_delta)
+    elif run_index == "last":
         end_time = anchor_time + source_freq_delta
         start_time = end_time - (longest_run * cast("Any", source_freq_delta))
     else:
@@ -3727,6 +3736,19 @@ def _consecutive_occurrences_with_dates(
         longest_run,
         event_date_start=start_time.where(has_event),
         event_date_end=end_time.where(has_event),
+    )
+
+
+def _shift_cftime_dates(
+    dates: DataArray, steps: DataArray | int, delta: timedelta
+) -> DataArray:
+    """Return ``dates + steps * delta`` for an array of cftime dates, lazily."""
+    return xr.apply_ufunc(
+        np.frompyfunc(lambda date, n: date + n * delta, 2, 1),
+        dates,
+        steps,
+        dask="parallelized",
+        output_dtypes=[object],
     )
 
 
