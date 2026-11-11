@@ -149,7 +149,7 @@ Before every release
    and the same date: Zenodo takes the metadata of the archived version from
    ``.zenodo.json`` and ``CITATION.cff``.
 #. After publishing, verify the install in a **fresh virtual environment with a
-   supported Python (>= 3.10)**: ``pip install icclim==X.Y.Z`` and print
+   supported Python (>= 3.11)**: ``pip install icclim==X.Y.Z`` and print
    ``icclim.__version__``.
 #. After publishing, check on Zenodo that the new version exists. Zenodo creates the
    version DOI of each release itself (for example ``10.5281/zenodo.24052515`` for

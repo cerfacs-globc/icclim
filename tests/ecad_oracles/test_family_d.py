@@ -3,9 +3,7 @@
 from __future__ import annotations
 
 import numpy as np
-import pint
 import pytest
-from packaging.version import Version
 
 import icclim
 from tests.ecad_oracles._helpers import (
@@ -115,25 +113,13 @@ def test_temperature_ranges(name: str, chunk: int | None) -> None:
     )
 
 
-# pint < 0.25 converts 1 mm/day to kg m-2 s-1 with an error of one ulp, so days that
-# are exactly at the threshold are lost (pint 0.25 needs Python >= 3.11).
-OLD_PINT = Version(pint.__version__) < Version("0.25")
-
-
 @pytest.mark.parametrize("chunk", [None, 1, 7])
 @pytest.mark.parametrize("name", ["PRCPTOT", "SDII", "RX5day"])
 def test_precipitation_extrema_and_wet_day_reducers(
     name: str,
     chunk: int | None,
-    request: pytest.FixtureRequest,
 ) -> None:
     """Wet days are RR>=1 mm and RX5day uses within-period five-day sums."""
-    if OLD_PINT and name == "PRCPTOT" and chunk != 7:
-        request.applymarker(
-            pytest.mark.xfail(
-                reason="pint < 0.25: 1 mm/day converted with an ulp error"
-            )
-        )
     source = make_extreme_cube(converted_units=chunk == 7)
     values = source.pr.values * (
         86400 if source.pr.attrs["units"] == "kg m-2 s-1" else 1
