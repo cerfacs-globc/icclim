@@ -16,6 +16,7 @@ import numpy as np
 import pandas as pd
 import pytest
 import xarray as xr
+from xclim.core.units import units2pint
 
 import icclim
 from icclim.exception import InvalidIcclimArgumentError
@@ -111,7 +112,11 @@ def test_hi_matches_the_atbd_oracle(unit: str, chunked: bool) -> None:
     # No value above 50 degrees north (ATBD table 2), including 52 N.
     assert np.isnan(actual.values[:, LATITUDES.index(52.0)]).all()
     assert not np.isnan(actual.values[:, LATITUDES.index(50.0)]).any()
-    assert actual.attrs["units"] in ("degree_Celsius day", "d °C", "°C d")
+    # The text of the units depends on the pint format: compare the dimensions.
+    assert (
+        units2pint(actual.attrs["units"]).dimensionality
+        == units2pint("K d").dimensionality
+    )
 
 
 def test_hi_is_not_clipped_at_zero_like_xclim() -> None:
