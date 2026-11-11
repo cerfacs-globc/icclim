@@ -6,6 +6,11 @@
 Unreleased
 **********
 
+-  [fix] ``date_event=True`` now works with ``max_consecutive_occurrence`` and the indices
+   built on it (``CDD``, ``CWD``, ``CFD``, ``CSU``) on non-standard calendars such as
+   ``noleap``, ``360_day`` or ``all_leap`` (issue #574). It raised ``TypeError: operand
+   type(s) all returned NotImplemented from __array_ufunc__``.
+   Affected: 7.2.0 and later, for input with a cftime calendar.
 -  [fix] The DCSC indices ``TXHWD``, ``TNCWD`` and ``TNND`` returned wrong values
    (issue #616). They are now defined as in the DRIAS catalogue: ``TXHWD`` counts the
    days with ``Tx >= normal + 5°C`` and ``TNCWD`` the days with ``Tn <= normal - 5°C``,
@@ -72,6 +77,27 @@ Unreleased
    the first dimension whatever the order of the input. Code that selects these
    results by axis position instead of by dimension name has to be updated.
    Affected: 7.1.10, 7.2.0, 7.3.1 and 7.3.3 (run with xclim 0.60.0), and 7.3.4.
+
+*****
+7.3.6
+*****
+
+date: 2026-11-10
+
+
+-  [fix] The DCSC indices ``TXHWD``, ``TNCWD`` and ``TNND`` returned wrong values
+   (issue #616). They are now defined as in the DRIAS catalogue: ``TXHWD`` counts the
+   days with ``Tx >= normal + 5°C`` and ``TNCWD`` the days with ``Tn <= normal - 5°C``,
+   both in spells of more than 5 consecutive days (at least 6 days), and ``TNND`` the
+   days with ``Tn <= normal - 5°C``. They were declared with the operator ``<`` and the
+   offset +5°C, so ``TXHWD`` counted the days that were not warm and ``TNCWD`` and
+   ``TNND`` counted almost every day. The French definitions were corrected too.
+   Affected: every release since 7.0.0 that has the DCSC indices.
+-  [fix] The DCSC indices ``TXND`` and ``TNHT`` now count the days with
+   ``Tx >= normal + 5°C`` and ``Tn >= normal + 5°C`` as in the DRIAS catalogue
+   (issue #620). They used a strict ``>``, so days exactly at the threshold were not
+   counted. The French definitions were corrected too.
+   Affected: every release since 7.0.0 that has the DCSC indices.
 
 *****
 7.3.5
