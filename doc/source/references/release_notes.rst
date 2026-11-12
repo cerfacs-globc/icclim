@@ -6,6 +6,11 @@
 Unreleased
 **********
 
+-  [doc] The logo of the README no longer shows a version number (issue #659). The PyPI
+   page of a release showed the logo of 7.3.4, because the logo with the version is
+   regenerated only on master, whose version did not change for 7.3.5 to 7.3.7, while the
+   text of the page is fixed at upload. The README uses a copy of the logo without the
+   version; the logos of the documentation are unchanged.
 -  [fix] The DCSC indices ``PQ90`` and ``PQ99`` no longer raise ``DimensionalityError``
    (issue #643). They are the 90th and 99th percentile of the daily precipitation, in
    mm/day (DRIAS: "q90 des précipitations totales quotidiennes"); their output unit was

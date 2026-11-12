@@ -115,7 +115,7 @@ For a detailed description of each ECA&D index, please visit: https://www.ecad.e
         :target: https://doi.org/10.5281/zenodo.6046052
         :alt: DOI of all versions of icclim
 
-.. |logo| image:: https://github.com/cerfacs-globc/icclim/raw/master/doc/source/_static/logo_icclim_colored__displayed.svg
+.. |logo| image:: https://github.com/cerfacs-globc/icclim/raw/master/doc/source/_static/logo_icclim_colored__noversion.svg
         :target: https://github.com/cerfacs-globc/icclim
         :alt: icclim
         :width: 200px
