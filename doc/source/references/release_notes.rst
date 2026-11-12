@@ -6,6 +6,18 @@
 Unreleased
 **********
 
+-  [fix] A temperature equal to a threshold in another unit is now equal to it (issue
+   #675). pint converts 77 degF to 25.000000000000057 degC, so with float64 data in
+   degrees Fahrenheit a value exactly at a threshold was counted as above a strict ``>``
+   threshold (and 25 degC was converted to 76.99999999999993 degF, so a threshold given
+   in degrees Fahrenheit was missed by ``>=`` on data in degrees Celsius). It concerns
+   all the indices with a temperature threshold, the ECA&D ``SU``, ``TR``, ``CSU``,
+   ``FD``, ``CFD`` and ``ID``, the DCSC ``SD``, ``TX35``, ``TR``, ``TNFD`` and ``TXFD``,
+   and the generic indices with a threshold. The temperatures compared with such a
+   threshold, and the converted thresholds, are rounded to 10 decimals; the percentile
+   thresholds are not changed. Only the values exactly at a threshold in degrees
+   Fahrenheit change; data in K or in degC are not affected. Affects the 7.x releases, not
+   changed in 7.3.x.
 -  [doc] Document the run attribution of the periods that no run starts or ends in
    (issue #580). With ``run_index="first"`` or ``"last"`` a period without any event is
    ``0``, while a period wholly traversed by one continuous run attributed to another
