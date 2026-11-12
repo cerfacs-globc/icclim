@@ -243,18 +243,12 @@ CASE_IDS = [case.id for case in CASES]
 
 # Failures found by this test on master, kept as strict expected failures: when one is
 # fixed the test passes unexpectedly and fails, which says to remove its entry.
-_PERCENT = (
-    "the output unit of the precipitation percentile is '%' while the values are"
-    " in mm/day (DimensionalityError for any input unit)"
-)
 _EXCESS = (
     "excess and deficit of a precipitation raise KeyError('units'): the units are lost"
     " before delta_ is added to them (seen with xarray 2026.2 and 2026.9, not with"
     " xarray 2024.11 and 2025.1)"
 )
 XFAIL = {
-    "dcsc:PQ90": _PERCENT,
-    "dcsc:PQ99": _PERCENT,
     "generic:excess:pr": _EXCESS,
     "generic:deficit:pr": _EXCESS,
 }
