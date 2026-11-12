@@ -174,6 +174,12 @@ Limits of the validation
   an absolute difference of 0.30 in the index. It shows that the values have the
   right size and sign and follow the precipitation, not that they agree to the
   last digit with another implementation.
+- For ``CDD`` and ``CWD`` the ATBD states that a spell is counted in the year where it
+  ends, and RClimDex agrees. For ``CFD``, ``CSU`` and the other run-length indices no
+  rule is written, and the reference calculations follow the convention decided in
+  `#580 <https://github.com/cerfacs-globc/icclim/issues/580>`_: a run is credited,
+  whole, to the period where it ends. ``run_index="first"`` and
+  ``split_runs_at_period_boundary=True`` are available as options.
 - ``CD``, ``WD`` and ``WW`` can differ by one day at the edges of a subset base period
   (`#559 <https://github.com/cerfacs-globc/icclim/issues/559>`_).
 - There is **no bit-for-bit guarantee between versions**. The results depend on the
