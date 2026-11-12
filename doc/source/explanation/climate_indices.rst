@@ -154,7 +154,7 @@ reason was to interface eventually with the `OpenClimateGIS
 +-----------------+-------------------------------------------------------------------------------------------------------------------------------------+
 | SD50cm          | Number of days with snow depth >= 50 cm                                                                                             |
 +-----------------+-------------------------------------------------------------------------------------------------------------------------------------+
-| HI              | Huglin Index: sum from 1 April to 30 September of ((TG - 10) + (TX - 10)) / 2 * K; missing above 50 N                               |
+| HI              | Huglin Index: sum from 1 April to 30 September of ((TG - 10) + (TX - 10)) / 2 * K (see the note below)                              |
 +-----------------+-------------------------------------------------------------------------------------------------------------------------------------+
 | BEDD            | Biologically Effective Degree Days: sum from 1 April to 30 September of min(max((TX + TN) / 2 - 10, 0), 9)                          |
 +-----------------+-------------------------------------------------------------------------------------------------------------------------------------+
@@ -166,3 +166,19 @@ reason was to interface eventually with the `OpenClimateGIS
 +-----------------+-------------------------------------------------------------------------------------------------------------------------------------+
 | WW              | Days with TG > 75th percentile of daily mean temperature and RR >75th percentile of daily precipitation sum                         |
 +-----------------+-------------------------------------------------------------------------------------------------------------------------------------+
+
+.. note::
+
+   **Huglin Index (HI), ECA&D ATBD v11.** K is the daylength coefficient of the
+   latitude. Each band includes its upper boundary:
+
+   - latitude from 0 to 40 N: K = 1.00
+   - above 40 and up to 42 N: K = 1.02
+   - above 42 and up to 44 N: K = 1.03
+   - above 44 and up to 46 N: K = 1.04
+   - above 46 and up to 48 N: K = 1.05
+   - above 48 and up to 50 N: K = 1.06
+
+   The index is defined for the northern hemisphere only: the result is missing at
+   latitudes below 0 (southern hemisphere) and above 50 degrees north. The latitude is
+   read from the coordinates of the data. The daily terms are not clipped at 0.

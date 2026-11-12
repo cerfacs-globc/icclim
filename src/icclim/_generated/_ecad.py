@@ -10981,9 +10981,9 @@ def hi(
     allow_missing_periods: bool | None = None,
     allow_partial_final_period: bool = False,
 ) -> Dataset:
-    """Huglin Index (degree_Celsius day): sum from 1 April to 30 September of ((TG - 10) + (TX - 10)) / 2 * K, K being the daylength coefficient of the latitude (the ATBD gives no K above 50 degrees north: the result is missing there).
+    """Huglin Index (degree_Celsius day): sum from 1 April to 30 September of ((TG - 10) + (TX - 10)) / 2 * K, K being the daylength coefficient of the latitude (1.00 up to 40 N, 1.02 up to 42 N, 1.03 up to 44 N, 1.04 up to 46 N, 1.05 up to 48 N and 1.06 up to 50 N; each band includes its upper boundary). The index is defined for the northern hemisphere only: the result is missing at latitudes below 0 (southern hemisphere) and above 50 degrees north.
 
-    HI: Huglin Index (degree_Celsius day): sum from 1 April to 30 September of ((TG - 10) + (TX - 10)) / 2 * K, K being the daylength coefficient of the latitude (the ATBD gives no K above 50 degrees north: the result is missing there).
+    HI: Huglin Index (degree_Celsius day): sum from 1 April to 30 September of ((TG - 10) + (TX - 10)) / 2 * K, K being the daylength coefficient of the latitude (1.00 up to 40 N, 1.02 up to 42 N, 1.03 up to 44 N, 1.04 up to 46 N, 1.05 up to 48 N and 1.06 up to 50 N; each band includes its upper boundary). The index is defined for the northern hemisphere only: the result is missing at latitudes below 0 (southern hemisphere) and above 50 degrees north.
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 

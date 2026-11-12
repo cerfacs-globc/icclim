@@ -23,6 +23,13 @@ Unreleased
    Fahrenheit (issue #617). The offset of 5 degrees is now converted as a temperature
    difference of the input unit, so input in K, degC and degF gives the same result.
    Affected: every release since 7.0.0 that has the DCSC indices, with input not in K.
+-  [fix] The new ECA&D index ``HI`` is now missing at latitudes below 0 (issue #653). Its
+   daylength coefficient started at minus infinity, so the southern hemisphere got
+   K = 1.00 and a value that has no meaning: the index is defined for the northern
+   hemisphere only, and the result is missing below 0 and above 50 degrees north. Each
+   latitude band includes its upper boundary (K = 1.02 at 42 N); the docstring and the
+   documentation give the six values of K, and the tests cover the boundaries of the
+   bands.
 -  [enh] Added the ECA&D index ``HI`` (Huglin Index) of the ATBD v11 (issue #637,
    part of #204): the sum, from 1 April to 30 September, of
    ``((TG - 10) + (TX - 10)) / 2 * K`` in degree_Celsius day, with ``K`` the daylength
