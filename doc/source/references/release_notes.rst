@@ -173,23 +173,34 @@ date: TBD (to be set on the day of the tag; the version is not bumped yet)
 
    .. CHECK: verified against the code, the how-to page and the notes of 7.3.4. The
    .. ATBD rule is in section 5.1 ("Design rules"), page 20.
--  [Behaviour change] Size of the change, measured on CMIP6 model data (CNRM-CM6-1 and
-   ACCESS-CM2, 1976-2014, global grid): the share of grid point and period values that
-   change between ``"first"`` and ``"last"`` is, for yearly and monthly values, 22% and
-   46% for ``CDD``, 5% and 19% for ``CWD``, 28% and 10% for ``CFD``, and 12% and 11% for
-   ``CSU``. Most of the changed values differ by more than one day.
+-  [Behaviour change] Size of the change, measured on CMIP6 model data (ACCESS-CM2 for
+   ``CDD`` and ``CWD``, CNRM-CM6-1 for ``CFD`` and ``CSU``, 1976-2014, global grid), over
+   the grid point and period values that are finite in both results: the share of values
+   that differ between ``run_index="first"`` and ``"last"`` is, for yearly and monthly
+   output, 22.3% and 45.9% for ``CDD``, 5.0% and 19.4% for ``CWD``, 27.7% and 10.1% for
+   ``CFD``, and 12.3% and 11.3% for ``CSU`` and ``max_consecutive_occurrence``. Most of
+   the changed values differ by more than one day.
 
-   .. CHECK: NOT VERIFIED. These figures and the CNRM-CM6-1 run are not in the
-   .. repository; they have to be confirmed from the comparison outputs.
+   .. Source: comparison of the two results on the Kraken cluster. The sentence "Most of
+   .. the changed values differ by more than one day" comes from the first draft and is
+   .. not backed by these figures.
+   .. CHECK: confirm that sentence, or remove it.
 -  [Behaviour change] A period that is wholly traversed by a run credited to another
    period has no value (``NaN``) with ``run_index="first"`` and ``"last"``, while a
    period without any event has the value 0. With ``split_runs_at_period_boundary=True``
    every period has a value. With ``"first"`` and ``"last"`` a value can be longer than
-   its period, for example a 12,816-day frost run at a polar grid point; with the split
-   option it never is (issues #580 and #662, PR #661).
+   its period, and it is the same under both; with the split option it never is
+   (issues #580 and #662, PR #661). On the same CMIP6 data, the share of the values
+   that are longer than their period is, for yearly and monthly output, 0.75% and 7.9%
+   for ``CDD``, 0.0002% and 0.74% for ``CWD``, 2.9% and 3.7% for ``CFD``, and 1.3% and
+   4.2% for ``CSU``. For example, on CNRM-CM6-1 for 1976-2014, a polar grid point (latitude
+   -88.9) has frost on every day, so ``CFD`` is a single run of 14,245 days: it is
+   credited to one period with ``"first"`` and ``"last"``, and each year gives its own
+   length (365 days, 366 in a leap year) with the split option.
 
-   .. CHECK: behaviour verified by the tests of PR #661. The 12,816-day example is NOT
-   .. VERIFIED (not in the repository).
+   .. Source: behaviour verified by the tests of PR #661; figures and example from the
+   .. comparison on the Kraken cluster. 14,245 days = 29 years of 365 days and 10 leap
+   .. years of 366 days (1976-2014 on the standard calendar).
 -  [change] Python 3.10 is no longer supported: ``requires-python`` is ``>=3.11``. The
    minimum versions of the dependencies are now numpy 1.24, pandas 2.2.0, xarray
    2024.11.0, xclim 0.56.0, dask 2024.11.1, zarr 2.12.0, cftime 1.6.2, dateparser 1.1.4,
@@ -234,19 +245,30 @@ date: TBD (to be set on the day of the tag; the version is not bumped yet)
    .. 7.3.5 keep a caveat for the default bootstrap mode.
 -  [compat] Checked against independent reference calculations and on real CMIP6 data
    (see the page "How the indices are validated"): the results are identical between
-   7.3.3, 7.3.6 and the development version for all the indices, except for the
-   intended changes above, with xclim 0.60 and xclim 1.0.
+   7.3.3, 7.3.6 and a development version of 2026-11-10 (before ``HI`` and ``BEDD``, the
+   new minimum versions and the exact SciPy interpolation), with xclim 0.60 and 1.0,
+   except for the intended changes above. TO CHECK: to be run again on the 7.4.0
+   candidate before the release.
 
-   .. CHECK: NOT VERIFIED. There is no record of this comparison in the repository. It
-   .. was run on a master that predates PRs #627 to #657: it has to be run again on the
-   .. candidate of 7.4.0.
--  [perf] PLACEHOLDER, TO WRITE: performance and memory. To be written after the memory
+   .. CHECK: the comparison was run on a development version that predates PRs #627
+   .. to #657. It has to be run again on the 7.4.0 candidate, and this line kept until
+   .. then.
+-  [perf] The speed of the ordinary indices is unchanged from 7.3.3.
+
+   .. Source: same full-grid input (global CMIP6, 30 years, same node, three alternating
+   .. runs): 7.3.6 and 7.3.3 are within 5%, for example 59 s and 62 s for the yearly
+   .. ``TG`` and 45 s and 44 s for ``rx5day``. The date-event speed-up (PR #573) is in
+   .. 7.3.4, so it is not listed here.
+-  [perf] PLACEHOLDER, TO WRITE: memory and chunking. To be written after the memory
    budget stage and the decision on the chunk policy.
-
-   .. CHECK: the draft speed figures are left out on purpose. The date-event speed-up
-   .. (PR #573) was released in 7.3.4, not in 7.4.0: it is faster than 7.3.3, but not
-   .. than 7.3.4 to 7.3.7. Its note in 7.3.4 says about 2 hours to about 1 minute on the
-   .. ACCESS-CM2 benchmark. The other figures of the draft are NOT VERIFIED.
+-  [test] Independent reference calculations, written in plain numpy and pandas from the
+   text of the definition, check all 66 ECA&D indices, in memory and chunked, for several
+   units and calendars (PR #539 and the pull requests that follow it).
+-  [meta] Added a minimal ``CITATION.cff`` and a ``.zenodo.json`` with the authors (Pagé,
+   Tatarinova, Aoun and Pivan) and the contributors (Evaldsson and Bärring, credited in
+   the README for the controlled vocabulary of the climate indices), a test of the ORCID
+   identifiers and their checksum, and the concept DOI of Zenodo for the DOI badge
+   (PRs #588, #591, #592 and #593).
 -  [test] A test that runs every index of the registries with the same data in other
    units (K, degC and degF, kg m-2 s-1 and mm/day, in memory and chunked) checks that
    the results are the same (PR #642); tests lock in the run attribution of the
