@@ -253,7 +253,7 @@ def test_normal_based_indices_match_drias_reference(
     )
 
 
-@pytest.mark.parametrize("run_index,split", [("first", False), ("last", False), ("last", True)])
+@pytest.mark.parametrize(("run_index", "split"), [("first", False), ("last", False), ("last", True)])
 @pytest.mark.parametrize("case", [case for case in NORMAL_CASES if case.spell], ids=lambda case: case.name)
 def test_normal_spell_attribution_matches_reference(
     case: NormalCase, run_index: str, split: bool
@@ -298,5 +298,5 @@ def test_normal_argument_errors_are_clear() -> None:
         icclim.dcsc.txnd(study)
     wrong = normal.copy()
     wrong.attrs["units"] = "mm/day"
-    with pytest.raises(Exception, match="convert|dimension|temperature"):
+    with pytest.raises(Exception, match=r"convert|dimension|temperature"):
         icclim.dcsc.txnd(study, normal=wrong, out_file=None)
