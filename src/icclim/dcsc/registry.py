@@ -435,7 +435,7 @@ class DcscIndexRegistry(Registry[StandardIndex]):
         reference=DCSC_REFERENCE,
         indicator=GenericIndicatorRegistry.Percentile,
         threshold=build_threshold("> 90 doy_per", threshold_min_value="1 mm/day"),
-        output_unit="%",
+        output_unit="mm/day",
         definition="Précipitation quotidienne intense"
         " (90e centile des précipitations).",
         source=DCSC_SOURCE,
@@ -448,7 +448,7 @@ class DcscIndexRegistry(Registry[StandardIndex]):
         reference=DCSC_REFERENCE,
         indicator=GenericIndicatorRegistry.Percentile,
         threshold=build_threshold("> 99 doy_per", threshold_min_value="1 mm/day"),
-        output_unit="%",
+        output_unit="mm/day",
         definition="Précipitation quotidienne extrême"
         " (99e centile des précipitations).",
         source=DCSC_SOURCE,

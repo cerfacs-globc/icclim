@@ -246,15 +246,8 @@ CASES = _standard_cases() + _generic_cases()
 CASE_IDS = [case.id for case in CASES]
 
 # Failures found by this test on master, kept as strict expected failures: when one is
-# fixed the test passes unexpectedly and fails, which says to remove its entry.
-_PERCENT = (
-    "the output unit of the precipitation percentile is '%' while the values are"
-    " in mm/day (DimensionalityError for any input unit)"
-)
-XFAIL = {
-    "dcsc:PQ90": _PERCENT,
-    "dcsc:PQ99": _PERCENT,
-}
+# fixed the test passes unexpectedly and fails, which says to remove its entry. Nothing is expected to fail at the moment.
+XFAIL: dict[str, str] = {}
 
 
 def _marked(case_id: str):

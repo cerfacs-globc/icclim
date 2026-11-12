@@ -6,6 +6,11 @@
 Unreleased
 **********
 
+-  [fix] The DCSC indices ``PQ90`` and ``PQ99`` no longer raise ``DimensionalityError``
+   (issue #643). They are the 90th and 99th percentile of the daily precipitation, in
+   mm/day (DRIAS: "q90 des précipitations totales quotidiennes"); their output unit was
+   declared as a percent, which a precipitation cannot be converted to.
+   Affected: every release since 7.0.0 that has the DCSC indices.
 -  [fix] The generic ``excess`` and ``deficit`` no longer raise ``KeyError: 'units'`` on a
    precipitation with xarray 2026.2 and later (issue #644). The units of the result are
    taken from the studied variable instead of from the subtraction of the threshold,
