@@ -26,9 +26,19 @@ Alternatively you can clone without a ssh key using ``git clone https://github.c
 With HTTPS, you will have to authenticate using your github account.
 
 Afterward, you must install the python environment to build icclim code and documentation.
-We provide a conda environment file and a pip requirement file to install the necessary libraries.
-With conda, run ``conda env create -f environment.yml`` from sources' root.
-With pip, run ``pip install -r requirement_dev.txt`` from sources' root.
+From sources' root, in a new environment (Python 3.11 or later), use one of the following.
+
+- With pip, the same setup as the continuous integration: icclim in editable mode with the
+  development, test and documentation dependencies declared in ``pyproject.toml``,
+  ``pip install -e ".[dev,test,doc]"``.
+- With pip and the exact versions that were tested, listed in ``requirements-lock.txt``
+  (the same dependencies, generated with ``pip-compile``),
+  ``pip install -r requirements-lock.txt`` and then ``pip install --no-deps -e .``.
+- With conda, ``conda env create -f environment.yml``, then ``conda activate icclim-dev``
+  and ``pip install --no-deps -e .``.
+
+To check the installation, run ``python -c "import icclim"``, then ``pytest tests/test_ecad_indices.py``
+for a quick check or ``pytest tests/`` for the whole test suite.
 
 You will also need to fork icclim in github.
 See `this tutorial <https://docs.github.com/en/get-started/quickstart/fork-a-repo>`_.
