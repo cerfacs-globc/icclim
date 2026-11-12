@@ -1595,6 +1595,150 @@ def mean_of_difference(
     return mean_of_diff
 
 
+# Upper latitude (degrees north) of each step of the daylength coefficient K of the
+# Huglin index, ECA&D ATBD v11 table 2. The ATBD gives no value above 50 degrees.
+_HUGLIN_K_BY_LATITUDE = (
+    (40.0, 1.00),
+    (42.0, 1.02),
+    (44.0, 1.03),
+    (46.0, 1.04),
+    (48.0, 1.05),
+    (50.0, 1.06),
+)
+
+
+def _viticulture_season(da: DataArray) -> DataArray:
+    """True on the days from 1 April to 30 September."""
+    return (da.time.dt.month >= 4) & (da.time.dt.month <= 9)  # noqa: PLR2004
+
+
+def _get_latitude(da: DataArray, indicator: str) -> DataArray:
+    """Latitude (degrees north) of the studied data, taken from its coordinates."""
+    latitude = None
+    try:
+        latitude = da.cf["latitude"]
+    except (KeyError, ValueError):
+        for name in ("lat", "latitude"):
+            if name in da.coords:
+                latitude = da.coords[name]
+                break
+    if latitude is None:
+        msg = (
+            f"{indicator} needs the latitude of the data to compute its daylength"
+            " coefficient, but no latitude coordinate was found. Name the coordinate"
+            ' "lat" or "latitude", or give it the units "degrees_north" or the'
+            ' standard_name "latitude".'
+        )
+        raise InvalidIcclimArgumentError(msg)
+    return latitude
+
+
+def _huglin_coefficient(latitude: DataArray) -> DataArray:
+    """Daylength coefficient K of the Huglin index, missing above 50 degrees north."""
+    k = xr.full_like(latitude, np.nan, dtype="float64")
+    lower = -np.inf
+    for upper, value in _HUGLIN_K_BY_LATITUDE:
+        k = xr.where((latitude > lower) & (latitude <= upper), value, k)
+        lower = upper
+    return k
+
+
+def huglin_index(
+    climate_vars: list[ClimateVariable],
+    resample_freq: Frequency,
+    **kwargs,  # noqa: ARG001
+) -> DataArray:
+    """
+    Compute the Huglin Index (HI) of the ECA&D ATBD v11.
+
+    ``HI = sum(((TG - 10) + (TX - 10)) / 2 * K)`` over the days from 1 April to
+    30 September of each output period, in degree_Celsius day, where TG is the daily
+    mean and TX the daily maximum temperature and K the daylength coefficient of the
+    latitude (1.00 up to 40 N, 1.02 up to 42 N, 1.03 up to 44 N, 1.04 up to 46 N, 1.05
+    up to 48 N and 1.06 up to 50 N; no value above 50 N, the result is then missing).
+
+    Parameters
+    ----------
+    climate_vars : list[ClimateVariable]
+        The daily mean temperature, then the daily maximum temperature. The latitude
+        is read from the coordinates of the data.
+    resample_freq : Frequency
+        Resampling frequency of the output.
+    **kwargs : dict
+        Ignored keyword arguments (for compatibility).
+
+    Returns
+    -------
+    DataArray
+        The Huglin Index. It is missing for the periods without any day from April to
+        September, and where the latitude is above 50 degrees north.
+
+    Notes
+    -----
+    Unlike xclim's ``huglin_index``, the daily values are not clipped at 0, as in the
+    ATBD formula, and K is not capped above 50 degrees north.
+    """
+    from xclim.core.units import convert_units_to  # noqa: PLC0415
+
+    tas, tasmax = get_couple_of_var(climate_vars, "huglin_index")
+    tas = convert_units_to(tas, "degC")
+    tasmax = convert_units_to(tasmax, "degC")
+    k = _huglin_coefficient(_get_latitude(tasmax, "huglin_index"))
+    daily = (((tas - 10) + (tasmax - 10)) / 2 * k).where(_viticulture_season(tasmax))
+    hi = daily.resample(time=resample_freq.pandas_freq).sum(min_count=1)
+    hi.attrs["units"] = "degree_Celsius day"
+    return hi
+
+
+def biologically_effective_degree_days(
+    climate_vars: list[ClimateVariable],
+    resample_freq: Frequency,
+    **kwargs,  # noqa: ARG001
+) -> DataArray:
+    """
+    Compute the Biologically Effective Degree Days (BEDD) of the ECA&D ATBD v11.
+
+    ``BEDD = sum(min(max((TX + TN) / 2 - b, 0), 9))`` over the days from 1 April to
+    30 September of each output period, in degree_Celsius day, where TX and TN are
+    the daily maximum and minimum temperature and ``b = 10`` degree_Celsius.
+
+    Parameters
+    ----------
+    climate_vars : list[ClimateVariable]
+        The daily minimum temperature, then the daily maximum temperature.
+    resample_freq : Frequency
+        Resampling frequency of the output.
+    **kwargs : dict
+        Ignored keyword arguments (for compatibility).
+
+    Returns
+    -------
+    DataArray
+        The BEDD. It is missing for the periods without any valid day from April to
+        September.
+
+    Notes
+    -----
+    This is the definition of xclim's ``biologically_effective_degree_days`` with
+    ``method="icclim"`` (no latitude coefficient, no temperature range adjustment),
+    except that a period without any valid day is missing instead of 0.
+    """
+    from xclim.core.units import convert_units_to  # noqa: PLC0415
+
+    tasmin, tasmax = get_couple_of_var(
+        climate_vars, "biologically_effective_degree_days"
+    )
+    tasmin = convert_units_to(tasmin, "degC")
+    tasmax = convert_units_to(tasmax, "degC")
+    daily = (((tasmax + tasmin) / 2) - 10).clip(min=0, max=9)
+    daily = daily.where(
+        _viticulture_season(tasmax) & tasmin.notnull() & tasmax.notnull()
+    )
+    bedd = daily.resample(time=resample_freq.pandas_freq).sum(min_count=1)
+    bedd.attrs["units"] = "degree_Celsius day"
+    return bedd
+
+
 def difference_of_extremes(
     climate_vars: list[ClimateVariable],
     resample_freq: Frequency,
