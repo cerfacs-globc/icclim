@@ -1600,7 +1600,9 @@ def mean_of_difference(
 
 
 # Upper latitude (degrees north) of each step of the daylength coefficient K of the
-# Huglin index, ECA&D ATBD v11 table 2. The ATBD gives no value above 50 degrees.
+# Huglin index, ECA&D ATBD v11 table 2. Each step includes its upper boundary and the
+# first one starts at the equator: the ATBD gives no value below 0 (southern hemisphere)
+# nor above 50 degrees north.
 _HUGLIN_K_BY_LATITUDE = (
     (40.0, 1.00),
     (42.0, 1.02),
@@ -1638,11 +1640,19 @@ def _get_latitude(da: DataArray, indicator: str) -> DataArray:
 
 
 def _huglin_coefficient(latitude: DataArray) -> DataArray:
-    """Daylength coefficient K of the Huglin index, missing above 50 degrees north."""
+    """
+    Daylength coefficient K of the Huglin index.
+
+    It is missing at latitudes below 0 and above 50 degrees north. Each step includes
+    its upper boundary (K = 1.02 at 42 degrees north, 1.03 at 44 degrees north...).
+    """
     k = xr.full_like(latitude, np.nan, dtype="float64")
-    lower = -np.inf
+    in_first_step = True
+    lower = 0.0
     for upper, value in _HUGLIN_K_BY_LATITUDE:
-        k = xr.where((latitude > lower) & (latitude <= upper), value, k)
+        above_lower = (latitude >= lower) if in_first_step else (latitude > lower)
+        k = xr.where(above_lower & (latitude <= upper), value, k)
+        in_first_step = False
         lower = upper
     return k
 
@@ -1659,7 +1669,10 @@ def huglin_index(
     30 September of each output period, in degree_Celsius day, where TG is the daily
     mean and TX the daily maximum temperature and K the daylength coefficient of the
     latitude (1.00 up to 40 N, 1.02 up to 42 N, 1.03 up to 44 N, 1.04 up to 46 N, 1.05
-    up to 48 N and 1.06 up to 50 N; no value above 50 N, the result is then missing).
+    up to 48 N and 1.06 up to 50 N; each band includes its upper boundary).
+
+    The index is defined for the northern hemisphere only: the result is missing at
+    latitudes below 0 (southern hemisphere) and above 50 degrees north.
 
     Parameters
     ----------
@@ -1675,7 +1688,7 @@ def huglin_index(
     -------
     DataArray
         The Huglin Index. It is missing for the periods without any day from April to
-        September, and where the latitude is above 50 degrees north.
+        September, and where the latitude is below 0 or above 50 degrees north.
 
     Notes
     -----

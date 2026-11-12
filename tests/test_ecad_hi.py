@@ -4,8 +4,10 @@ Huglin Index (HI) against the ECA&D ATBD v11 definition (issue #637).
 ATBD: HI = sum over 1 April to 30 September of ((TG - 10) + (TX - 10)) / 2 * K, TG
 being the daily mean and TX the daily maximum temperature, K the daylength coefficient
 of the latitude: 1.00 up to 40 N, 1.02 for 40-42 N, 1.03 for 42-44 N, 1.04 for
-44-46 N, 1.05 for 46-48 N and 1.06 for 48-50 N (no value above 50 N). The oracle
-below is written from that text, day by day, and does not use icclim or xclim.
+44-46 N, 1.05 for 46-48 N and 1.06 for 48-50 N, each band including its upper boundary
+(no value above 50 N, and none below 0: the index is defined for the northern
+hemisphere only). The oracle below is written from that text, day by day, and does not
+use icclim or xclim.
 """
 
 from __future__ import annotations
@@ -36,6 +38,8 @@ ATBD_K_TABLE = [
 
 
 def _atbd_k(latitude: float) -> float:
+    if latitude < 0:
+        return float("nan")  # northern hemisphere only
     for upper, k in ATBD_K_TABLE:
         if latitude <= upper:
             return k
@@ -61,11 +65,12 @@ def _oracle(tg, tx, time, latitudes) -> np.ndarray:
     return result
 
 
-def _data(nan: bool = False):
+def _data(nan: bool = False, latitudes=None):
+    latitudes = LATITUDES if latitudes is None else latitudes
     rng = np.random.default_rng(7)
     # Cold spring days make some daily terms negative: the ATBD sum has no clipping.
     seasonal = 10 + 12 * np.sin(2 * np.pi * (TIME.dayofyear.values - 100) / 365)
-    tg = seasonal[:, None] + rng.uniform(-3, 3, (len(TIME), len(LATITUDES)))
+    tg = seasonal[:, None] + rng.uniform(-3, 3, (len(TIME), len(latitudes)))
     tx = tg + rng.uniform(2, 8, tg.shape)
     if nan:
         tg[(TIME >= "2002-06-01") & (TIME <= "2002-06-03"), 2] = np.nan
@@ -73,9 +78,9 @@ def _data(nan: bool = False):
     return tg, tx
 
 
-def _dataset(tg, tx, unit: str, chunked: bool) -> xr.Dataset:
+def _dataset(tg, tx, unit: str, chunked: bool, latitudes=None) -> xr.Dataset:
     offset = 273.15 if unit == "K" else 0.0
-    coords = {"time": TIME, "lat": LATITUDES}
+    coords = {"time": TIME, "lat": LATITUDES if latitudes is None else latitudes}
     ds = xr.Dataset(
         {
             "tas": xr.DataArray(
@@ -117,6 +122,60 @@ def test_hi_matches_the_atbd_oracle(unit: str, chunked: bool) -> None:
         units2pint(actual.attrs["units"]).dimensionality
         == units2pint("K d").dimensionality
     )
+
+
+# Each band includes its upper boundary; the first one starts at the equator.
+BOUNDARY_LATITUDES = [
+    -45.0,
+    -0.01,
+    0.0,
+    40.0,
+    40.01,
+    42.0,
+    42.01,
+    44.0,
+    44.01,
+    46.0,
+    46.01,
+    48.0,
+    48.01,
+    50.0,
+    50.01,
+]
+EXPECTED_K = {
+    -45.0: None,
+    -0.01: None,
+    0.0: 1.00,
+    40.0: 1.00,
+    40.01: 1.02,
+    42.0: 1.02,
+    42.01: 1.03,
+    44.0: 1.03,
+    44.01: 1.04,
+    46.0: 1.04,
+    46.01: 1.05,
+    48.0: 1.05,
+    48.01: 1.06,
+    50.0: 1.06,
+    50.01: None,
+}
+
+
+@pytest.mark.parametrize("chunked", [False, True], ids=["eager", "chunked"])
+@pytest.mark.parametrize("unit", ["degC", "K"])
+def test_hi_at_the_boundaries_of_the_latitude_bands(unit: str, chunked: bool) -> None:
+    tg, tx = _data(latitudes=BOUNDARY_LATITUDES)
+    ds = _dataset(tg, tx, unit, chunked, latitudes=BOUNDARY_LATITUDES)
+    actual = _hi(ds)
+    expected = _oracle(tg, tx, TIME, BOUNDARY_LATITUDES)
+    np.testing.assert_allclose(actual.values, expected, rtol=1e-9, equal_nan=True)
+    # The oracle itself follows the table of the ATBD at each of these latitudes.
+    for j, latitude in enumerate(BOUNDARY_LATITUDES):
+        if EXPECTED_K[latitude] is None:
+            assert np.isnan(actual.values[:, j]).all(), latitude
+        else:
+            assert not np.isnan(actual.values[:, j]).any(), latitude
+            assert _atbd_k(latitude) == EXPECTED_K[latitude]
 
 
 def test_hi_is_not_clipped_at_zero_like_xclim() -> None:
