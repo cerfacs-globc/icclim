@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 from icclim._core.constants import ECAD_ATBD, QUANTILE_BASED, REFERENCE_PERIOD_INDEX
+from icclim._core.generic.functions import huglin_index
+from icclim._core.generic.indicator import GenericIndicator
 from icclim._core.model.index_group import IndexGroupRegistry
 from icclim._core.model.registry import Registry
 from icclim._core.model.standard_index import StandardIndex
@@ -12,11 +14,22 @@ from icclim.ecad.binding import (
     StandardizedPrecipitationIndex3,
     StandardizedPrecipitationIndex6,
 )
-from icclim.generic.registry import GenericIndicatorRegistry
+from icclim.generic.registry import GenericIndicatorRegistry, _check_couple_of_vars
 
 ECAD_REFERENCE = (
     "ATBD of the ECA&D indices calculation"
     " (https://knmi-ecad-assets-prd.s3.amazonaws.com/documents/atbd.pdf)"
+)
+
+
+HuglinIndex = GenericIndicator(
+    "huglin_index",
+    huglin_index,
+    check_vars=_check_couple_of_vars,
+    definition="Huglin Index, ECA&D ATBD v11: sum from 1 April to 30 September of"
+    " ((TG - 10) + (TX - 10)) / 2 * K, with K the daylength coefficient of the"
+    " latitude.",
+    wmo_aggregation="sum",
 )
 
 
@@ -812,4 +825,21 @@ class EcadIndexRegistry(Registry[StandardIndex]):
         input_variables=[StandardVariableRegistry.HURS],
         qualifiers=[],
         output_unit="%",
+    )
+    HI = StandardIndex(
+        reference=ECAD_REFERENCE,
+        indicator=HuglinIndex,
+        definition="Huglin Index (degree_Celsius day): sum from 1 April to 30 "
+        "September of ((TG - 10) + (TX - 10)) / 2 * K, K being the daylength "
+        "coefficient of the latitude (the ATBD gives no K above 50 degrees north: "
+        "the result is missing there).",
+        source=ECAD_ATBD,
+        short_name="HI",
+        group=IndexGroupRegistry.DROUGHT,
+        input_variables=[
+            StandardVariableRegistry.TAS,
+            StandardVariableRegistry.TAS_MAX,
+        ],
+        qualifiers=[],
+        output_unit="degree_Celsius day",
     )
