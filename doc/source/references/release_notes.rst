@@ -6,6 +6,20 @@
 Unreleased
 **********
 
+-  [fix] The DCSC indices that use a normal (``TXND``, ``TNHT``, ``TNND``, ``TNCWD`` and
+   ``TXHWD``) no longer raise ``DimensionalityError`` ("cannot convert from
+   delta_degree_Celsius to degree_Celsius") when the input is in degrees Celsius or
+   Fahrenheit (issue #617). The offset of 5 degrees is now converted as a temperature
+   difference of the input unit, so input in K, degC and degF gives the same result.
+   Affected: every release since 7.0.0 that has the DCSC indices, with input not in K.
+-  [enh] Added the ECA&D index ``HI`` (Huglin Index) of the ATBD v11 (issue #637,
+   part of #204): the sum, from 1 April to 30 September, of
+   ``((TG - 10) + (TX - 10)) / 2 * K`` in degree_Celsius day, with ``K`` the daylength
+   coefficient of the latitude of the ATBD (1.00 up to 40 N and 1.06 for 48-50 N).
+   ``icclim.hi`` needs the daily mean and maximum temperature and reads the latitude
+   from the coordinates of the data. It differs from xclim's ``huglin_index``, which
+   clips each day at 0 and caps the coefficient above 50 N: the ATBD sum has no
+   clipping and gives no value above 50 N, where the result is missing.
 -  [enh] Added the ECA&D index ``BEDD`` (Biologically Effective Degree Days) of the
    ATBD v11 (issue #638, part of #204): the sum, from 1 April to 30 September, of
    ``min(max((TX + TN) / 2 - 10, 0), 9)`` in degree_Celsius day. ``icclim.bedd`` needs

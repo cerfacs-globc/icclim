@@ -104,6 +104,7 @@ Package Contents
     pp
     ss
     rh
+    hi
     bedd
 
 .. Generated API comment:End

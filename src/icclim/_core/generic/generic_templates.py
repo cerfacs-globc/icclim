@@ -159,6 +159,15 @@ INDICATORS_TEMPLATES_EN: dict[str, IndicatorMetadata] = {
         "cell_methods":  "time: range within {{source_freq.units}}"
                          " time: mean over {{source_freq.units}}",
     },
+    "huglin_index": {
+        "standard_name": "huglin_index",  # not CF
+        "long_name":     "Huglin Index (heliothermal index) for each"
+                         " {{output_freq.long_name}}: sum from 1 April to 30"
+                         " September of the mean of the daily mean and maximum"
+                         " temperature above 10 degree_Celsius, times the daylength"
+                         " coefficient of the latitude.",
+        "cell_methods":  "time: sum over {{source_freq.units}}",
+    },
     "biologically_effective_degree_days": {
         "standard_name": "biologically_effective_degree_days",  # not CF
         "long_name":     "Biologically Effective Degree Days for each"

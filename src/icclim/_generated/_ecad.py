@@ -97,6 +97,7 @@ __all__ = [
     "pp",
     "ss",
     "rh",
+    "hi",
     "bedd",
 ]
 
@@ -10960,6 +10961,161 @@ def rh(
         allow_missing_periods=allow_missing_periods,
         allow_partial_final_period=allow_partial_final_period,
         out_unit="%",
+    )
+
+
+def hi(
+    in_files: InFileLike,
+    var_name: str | Sequence[str] | None = None,
+    slice_mode: FrequencyLike | Frequency = "year",
+    time_range: Sequence[dt.datetime | str] | None = None,
+    out_file: str | None = None,
+    bootstrap: bool | None = None,
+    ignore_Feb29th: bool = False,
+    netcdf_version: str | NetcdfVersion = "NETCDF4",
+    logs_verbosity: Verbosity | str = "LOW",
+    date_event: bool = False,
+    run_index: str | None = "first",
+    allow_partial_seasons: bool | Literal["start", "end"] | None = None,
+    completeness: CompletenessLike = None,
+    allow_missing_periods: bool | None = None,
+    allow_partial_final_period: bool = False,
+) -> Dataset:
+    """Huglin Index (degree_Celsius day): sum from 1 April to 30 September of ((TG - 10) + (TX - 10)) / 2 * K, K being the daylength coefficient of the latitude (the ATBD gives no K above 50 degrees north: the result is missing there).
+
+    HI: Huglin Index (degree_Celsius day): sum from 1 April to 30 September of ((TG - 10) + (TX - 10)) / 2 * K, K being the daylength coefficient of the latitude (the ATBD gives no K above 50 degrees north: the result is missing there).
+    Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
+
+
+
+    Parameters
+    ----------
+    in_files : str | list[str] | Dataset | DataArray | InputDictionary
+        Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
+        or path to zarr store, or xarray.Dataset or xarray.DataArray.
+    var_name : str | list[str] | None
+        ``optional`` Target variable name to process corresponding to ``in_files``.
+        If None (default) on ECA&D index, the variable is guessed based on the
+        climate index wanted.
+        Mandatory for the deprecated ``user_index`` bridge.
+    slice_mode : FrequencyLike | Frequency, default="year"
+        Type of temporal aggregation:
+        The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
+        "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
+        (where season and month lists can be customized) or any valid pandas
+        frequency.
+        A season can also be defined between two exact dates:
+        ``("season", ("19 july", "14 august"))``.
+        Spatially varying seasons can be defined by providing a tuple of
+        two ``xarray.DataArray`` objects (start day-of-year and end day-of-year):
+        ``(start_da, end_da)``.
+        Default is "year".
+        See :ref:`slice_mode` for details.
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+        ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
+        If ``None``, whole period of input files will be processed.
+        The dates can either be given as instance of datetime.datetime or as string
+        values. For strings, many format are accepted.
+        Default is ``None``.
+    out_file : str | None, default="icclim_out.nc"
+        Output NetCDF file name (default: "icclim_out.nc" in the current directory).
+        Default is "icclim_out.nc".
+        If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
+        Use the function returned value instead to retrieve the computed value.
+        If ``out_file`` already exists, icclim will overwrite it!
+    bootstrap : bool | None
+        ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
+        Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
+        ``False`` to disable bootstrap, or ``True`` to force it when supported by the
+        threshold type. For dask-backed percentile count indices, icclim automatically
+        uses bounded spatial tiles so users do not have to find a working dask chunking
+        strategy by trial and error. The safe path derives its spatial tile size from
+        ``ICCLIM_BOOTSTRAP_SAFE_TILE_MEMORY`` (default: ``2GB``), unless
+        ``ICCLIM_BOOTSTRAP_SAFE_TILE_CELLS`` is set as an expert override.
+        Set ``ICCLIM_BOOTSTRAP_MODE=default`` only for diagnostics to keep the reference bootstrap
+        dask graph path. ``bootstrap=False`` should only be used as an explicit user
+        shortcut for fast exploratory assessments, because disabling bootstrap removes
+        the overlap correction and can bias percentile-based results.
+    run_index : str | None, default=attribution
+        ``optional`` The index used to attribute a run that crosses an output-period
+        boundary. Since icclim 7.4.0, omitting this argument selects ``"last"`` for
+        ``CDD``, ``CWD``, ``CFD``, ``CSU``, ``PXCDD``, ``PXCWD`` and
+        ``max_consecutive_occurrence``: the whole run is counted in the period where
+        it ends. Pass ``run_index="first"`` for the pre-7.4.0 behavior, or pass
+        ``split_runs_at_period_boundary=True`` to cut runs at every boundary.
+        The default attribution of ``WSDI`` and ``CSDI`` is unchanged. ECA&D ATBD v11, pp. 20--21 specifies
+        end-period attribution for CDD and CWD; the same convention is applied to
+        CFD, CSU, PXCDD, PXCWD and the generic function for consistency.
+    ignore_Feb29th : bool
+        ``optional`` Ignoring or not February 29th (default: False).
+    netcdf_version : str | NetcdfVersion
+        ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
+    date_event : bool
+        When True the date of the event (such as when a maximum is reached) will be
+        stored in coordinates variables.
+        **warning** This option may significantly slow down computation.
+    logs_verbosity : str | Verbosity
+        ``optional`` Configure how verbose icclim is.
+        Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
+    allow_partial_seasons : bool | "start" | "end", default=False
+        Flag indicating whether to allow partial seasons to be included in the
+        index calculation.
+        - True: Unmasks both the first and last periods.
+        - False: Masks any incomplete periods (standard behavior).
+        - "start": Unmasks only the first period.
+        - "end": Unmasks only the last period.
+        Default is False.
+    completeness : {"ecad", "wmo", "strict", "none"} | float | None
+        Completeness rule used to decide whether an output period has enough
+        source observations to be calculated. ``None`` selects the ECA&D ATBD
+        profile automatically: at least 350 daily values for a year, 175 for a
+        half-year, 85 for a three-month season, and 25 for a month. ``strict``
+        requires every expected value. ``wmo`` applies the aggregation-specific
+        WMO-No. 1203 rules: the 11-day/5-consecutive-day monthly rule for means
+        and counts, complete data for sums, and no completeness mask for simple
+        extrema. Unclassified operations, unsupported period types, non-daily
+        WMO inputs, and spatially varying seasons safely fall back to strict.
+        ``none`` always computes from available values, and a fraction in
+        ``(0, 1]`` sets a configurable minimum valid fraction. Do not combine
+        this parameter with the legacy ``allow_missing_periods`` parameter.
+    allow_missing_periods : bool | None
+        Compatibility parameter for 7.2 workflows. An explicit False selects
+        strict completeness, while True computes from available source values.
+        None delegates to ``completeness`` and therefore uses ECA&D by default.
+        When neither parameter is explicit, icclim warns if an irregular source
+        time coordinate is detected or an already-eager mask shows an incomplete
+        period. Lazy inputs are not evaluated solely to emit a warning.
+    allow_partial_final_period : bool
+        When True, incomplete historical output periods are still masked, but
+        the final output period is allowed to be computed from available source
+        timesteps. This is useful for an ongoing month or year at the end of a
+        time series. Ignored when ``allow_missing_periods=True``.
+
+    Notes
+    -----
+    This function has been auto-generated.
+
+    """  # noqa: D401
+    from icclim.ecad.registry import EcadIndexRegistry  # noqa: PLC0415
+
+    return icclim.index(
+        index_name=EcadIndexRegistry.HI,
+        in_files=in_files,
+        var_name=var_name,
+        slice_mode=slice_mode,
+        time_range=time_range,
+        out_file=out_file,
+        bootstrap=bootstrap,
+        ignore_Feb29th=ignore_Feb29th,
+        netcdf_version=netcdf_version,
+        logs_verbosity=logs_verbosity,
+        date_event=date_event,
+        run_index=run_index,
+        allow_partial_seasons=allow_partial_seasons,
+        completeness=completeness,
+        allow_missing_periods=allow_missing_periods,
+        allow_partial_final_period=allow_partial_final_period,
+        out_unit="degree_Celsius day",
     )
 
 
