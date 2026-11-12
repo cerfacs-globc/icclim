@@ -6,6 +6,12 @@
 Unreleased
 **********
 
+-  [fix] ``TNCWD`` and ``TXHWD`` (DCSC), and ``WSDI`` and ``CSDI`` (ECA&D), return their
+   dimensions in the order of the input, with ``time`` where the input has it, as the
+   other spell indices do (issue #669, after issues #542 and #550). They moved ``time``
+   behind the spatial dimensions, whatever the order of the input. Layout change only:
+   the values do not change, and code that selects the results by axis position has to be
+   updated. Not changed in 7.3.x.
 -  [doc] Document the run attribution of the periods that no run starts or ends in
    (issue #580). With ``run_index="first"`` or ``"last"`` a period without any event is
    ``0``, while a period wholly traversed by one continuous run attributed to another
