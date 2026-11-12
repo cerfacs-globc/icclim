@@ -19,7 +19,6 @@ import numpy as np
 import pandas as pd
 import pytest
 import xarray as xr
-from packaging.version import Version
 from xclim.core.units import convert_units_to
 
 import icclim
@@ -252,31 +251,16 @@ _PERCENT = (
     "the output unit of the precipitation percentile is '%' while the values are"
     " in mm/day (DimensionalityError for any input unit)"
 )
-_EXCESS = (
-    "excess and deficit of a precipitation raise KeyError('units'): the units are lost"
-    " before delta_ is added to them (seen with xarray 2026.2 and 2026.9, not with"
-    " xarray 2024.11 and 2025.1)"
-)
 XFAIL = {
     "dcsc:PQ90": _PERCENT,
     "dcsc:PQ99": _PERCENT,
-    "generic:excess:pr": _EXCESS,
-    "generic:deficit:pr": _EXCESS,
 }
-
-
-# Failures that depend on the version of xarray (the lowest set does not have them).
-XFAIL_FROM_XARRAY = {"generic:excess:pr", "generic:deficit:pr"}
-XARRAY_2026 = Version(xr.__version__) >= Version("2026.1")
 
 
 def _marked(case_id: str):
     marks = []
     if case_id in XFAIL:
-        condition = XARRAY_2026 if case_id in XFAIL_FROM_XARRAY else True
-        marks.append(
-            pytest.mark.xfail(strict=True, condition=condition, reason=XFAIL[case_id])
-        )
+        marks.append(pytest.mark.xfail(strict=True, reason=XFAIL[case_id]))
     return pytest.param(CASES[CASE_IDS.index(case_id)], id=case_id, marks=marks)
 
 
