@@ -2,9 +2,12 @@
  Release history
 #################
 
-**********
-Unreleased
-**********
+*****
+7.3.7
+*****
+
+date: 2026-11-12
+
 
 -  [fix] The DCSC indices that use a normal (``TXND``, ``TNHT``, ``TNND``, ``TNCWD`` and
    ``TXHWD``) no longer raise ``DimensionalityError`` ("cannot convert from
@@ -23,20 +26,6 @@ Unreleased
    mm/day (DRIAS: "q90 des précipitations totales quotidiennes"); their output unit was
    declared as a percent, which a precipitation cannot be converted to.
    Affected: every release since 7.0.0 that has the DCSC indices.
-
-*****
-7.3.7
-*****
-
-date: 2026-11-11
-
-
--  [fix] The DCSC indices that use a normal (``TXND``, ``TNHT``, ``TNND``, ``TNCWD`` and
-   ``TXHWD``) no longer raise ``DimensionalityError`` ("cannot convert from
-   delta_degree_Celsius to degree_Celsius") when the input is in degrees Celsius or
-   Fahrenheit (issue #617). The offset of 5 degrees is now converted as a temperature
-   difference of the input unit, so input in K, degC and degF gives the same result.
-   Affected: every release since 7.0.0 that has the DCSC indices, with input not in K.
 
 *****
 7.3.6

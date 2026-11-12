@@ -2,7 +2,7 @@ cff-version: 1.2.0
 message: "If you use this software, please cite it as below."
 title: "icclim: Index Calculation CLIMate"
 version: "7.3.7"
-date-released: "2026-11-11"
+date-released: "2026-11-12"
 authors:
   - family-names: "Pagé"
     given-names: "Christian"
