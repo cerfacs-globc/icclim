@@ -6,6 +6,14 @@
 Unreleased
 **********
 
+-  [doc] Document the run attribution of the periods that no run starts or ends in
+   (issue #580). With ``run_index="first"`` or ``"last"`` a period without any event is
+   ``0``, while a period wholly traversed by one continuous run attributed to another
+   period is ``NaN`` (not reported), as in ETCCDI and the ATBD for ``CDD`` and ``CWD``;
+   with ``split_runs_at_period_boundary=True`` every period gets a value, and the value of
+   a period can exceed its length under ``"first"`` and ``"last"``. The docstrings and the
+   how-to page "Attribute or split longest runs" say it, and tests lock the behaviour in.
+   No change of the results.
 -  [doc] The logo of the README no longer shows a version number (issue #659). The PyPI
    page of a release showed the logo of 7.3.4, because the logo with the version is
    regenerated only on master, whose version did not change for 7.3.5 to 7.3.7, while the
