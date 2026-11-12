@@ -51,8 +51,10 @@ def _temperature_cube() -> xr.Dataset:
     rng = np.random.default_rng(20261112)
     phase = 2 * np.pi * (time.dayofyear.to_numpy() - 80) / 365.25
     tas = 12 + 11 * np.sin(phase)[:, None, None]
-    tas = tas + np.array([[-2.0, 0.0], [1.5, 3.0]]) + rng.normal(
-        0, 0.8, (len(time), 2, 2)
+    tas = (
+        tas
+        + np.array([[-2.0, 0.0], [1.5, 3.0]])
+        + rng.normal(0, 0.8, (len(time), 2, 2))
     )
     tasmin = tas - 5.0
     tasmax = tas + 5.0
@@ -73,7 +75,9 @@ def _temperature_cube() -> xr.Dataset:
     coords = {"time": time, "lat": [45.0, 46.0], "lon": [1.0, 2.0]}
     return xr.Dataset(
         {
-            "tas": xr.DataArray(tas, dims=("time", "lat", "lon"), attrs={"units": "degC"}),
+            "tas": xr.DataArray(
+                tas, dims=("time", "lat", "lon"), attrs={"units": "degC"}
+            ),
             "tasmin": xr.DataArray(
                 tasmin, dims=("time", "lat", "lon"), attrs={"units": "degC"}
             ),
@@ -85,7 +89,9 @@ def _temperature_cube() -> xr.Dataset:
     )
 
 
-def _annual_temperature_reference(source: xr.Dataset, case: TemperatureCase) -> np.ndarray:
+def _annual_temperature_reference(
+    source: xr.Dataset, case: TemperatureCase
+) -> np.ndarray:
     """Evaluate the DRIAS-2020 formula using only numpy and pandas."""
     years = np.asarray(source.time.dt.year.values)
     outputs = []
@@ -126,7 +132,9 @@ def _temperature_in_unit(source: xr.Dataset | xr.DataArray, unit: str):
     return converted
 
 
-@pytest.mark.parametrize("chunk_size", [None, 1, 7, -1], ids=["eager", "time1", "time7", "full"])
+@pytest.mark.parametrize(
+    "chunk_size", [None, 1, 7, -1], ids=["eager", "time1", "time7", "full"]
+)
 @pytest.mark.parametrize("case", TEMPERATURE_CASES, ids=lambda case: case.name)
 def test_basic_temperature_indices_match_drias_reference(
     case: TemperatureCase, chunk_size: int | None
@@ -216,7 +224,9 @@ NORMAL_CASES = (
 )
 
 
-def _normal_cube(case: NormalCase, varying_normal: bool) -> tuple[xr.DataArray, xr.DataArray]:
+def _normal_cube(
+    case: NormalCase, varying_normal: bool
+) -> tuple[xr.DataArray, xr.DataArray]:
     """Return study values and a user-supplied daily reference normal."""
     time = pd.date_range("2000-01-01", "2002-12-31", freq="D")
     normal_values = np.full((len(time), 2, 2), 10.0)
@@ -225,7 +235,7 @@ def _normal_cube(case: NormalCase, varying_normal: bool) -> tuple[xr.DataArray, 
     values = normal_values.copy()
     direction = 1.0 if case.direction == "warm" else -1.0
     internal = (time >= "2001-07-01") & (time <= "2001-07-08")
-    crossing = ((time >= "2000-12-28") & (time <= "2001-01-06"))
+    crossing = (time >= "2000-12-28") & (time <= "2001-01-06")
     values[internal | crossing] += direction * 5.0
     values[time == pd.Timestamp("2002-05-05"), 0, 1] += direction * 5.0
     values[time == pd.Timestamp("2001-08-08"), 1, 0] = np.nan
@@ -293,7 +303,9 @@ def _normal_reference(
     return result
 
 
-@pytest.mark.parametrize("chunk_size", [None, 1, 7, -1], ids=["eager", "time1", "time7", "full"])
+@pytest.mark.parametrize(
+    "chunk_size", [None, 1, 7, -1], ids=["eager", "time1", "time7", "full"]
+)
 @pytest.mark.parametrize("varying_normal", [False, True], ids=["constant", "array"])
 @pytest.mark.parametrize("case", NORMAL_CASES, ids=lambda case: case.name)
 def test_normal_based_indices_match_drias_reference(
@@ -339,8 +351,12 @@ def test_normal_based_temperature_units_match_reference(
     )
 
 
-@pytest.mark.parametrize(("run_index", "split"), [("first", False), ("last", False), ("last", True)])
-@pytest.mark.parametrize("case", [case for case in NORMAL_CASES if case.spell], ids=lambda case: case.name)
+@pytest.mark.parametrize(
+    ("run_index", "split"), [("first", False), ("last", False), ("last", True)]
+)
+@pytest.mark.parametrize(
+    "case", [case for case in NORMAL_CASES if case.spell], ids=lambda case: case.name
+)
 def test_normal_spell_attribution_matches_reference(
     case: NormalCase, run_index: str, split: bool
 ) -> None:
@@ -363,7 +379,9 @@ def test_normal_spell_attribution_matches_reference(
 
 
 @pytest.mark.xfail(strict=True, reason="#669")
-@pytest.mark.parametrize("case", [case for case in NORMAL_CASES if case.spell], ids=lambda case: case.name)
+@pytest.mark.parametrize(
+    "case", [case for case in NORMAL_CASES if case.spell], ids=lambda case: case.name
+)
 def test_normal_spell_output_keeps_input_dimension_order(case: NormalCase) -> None:
     """Regular output follows the input order, with the resampled time first."""
     study, normal = _normal_cube(case, False)
@@ -473,7 +491,9 @@ def _precipitation_reference(
         if case.reducer == "mean":
             output = np.nanmean(period, axis=0)
         elif case.reducer == "wet_mean":
-            output = np.nanmean(np.where(period_finite & (period >= 1.0), period, np.nan), axis=0)
+            output = np.nanmean(
+                np.where(period_finite & (period >= 1.0), period, np.nan), axis=0
+            )
         elif case.reducer == "sum":
             output = np.nansum(period, axis=0)
         else:
@@ -482,7 +502,9 @@ def _precipitation_reference(
     return np.stack(outputs)
 
 
-@pytest.mark.parametrize("chunk_size", [None, 1, 7, -1], ids=["eager", "time1", "time7", "full"])
+@pytest.mark.parametrize(
+    "chunk_size", [None, 1, 7, -1], ids=["eager", "time1", "time7", "full"]
+)
 @pytest.mark.parametrize("unit", ["mm/day", "kg m-2 s-1"])
 @pytest.mark.parametrize("case", PRECIPITATION_CASES, ids=lambda case: case.name)
 def test_basic_precipitation_indices_match_drias_reference(
@@ -509,8 +531,14 @@ def test_basic_precipitation_indices_match_drias_reference(
     assert actual.attrs.get("long_name")
 
 
-@pytest.mark.parametrize(("run_index", "split"), [("first", False), ("last", False), ("last", True)])
-@pytest.mark.parametrize("case", [case for case in PRECIPITATION_CASES if case.reducer == "run"], ids=lambda case: case.name)
+@pytest.mark.parametrize(
+    ("run_index", "split"), [("first", False), ("last", False), ("last", True)]
+)
+@pytest.mark.parametrize(
+    "case",
+    [case for case in PRECIPITATION_CASES if case.reducer == "run"],
+    ids=lambda case: case.name,
+)
 def test_precipitation_run_attribution_matches_reference(
     case: PrecipitationCase, run_index: str, split: bool
 ) -> None:
@@ -532,11 +560,18 @@ def test_precipitation_run_attribution_matches_reference(
 
 
 @pytest.mark.xfail(strict=True, reason="#670")
-@pytest.mark.parametrize("chunk_size", [None, 1, 7, -1], ids=["eager", "time1", "time7", "full"])
+@pytest.mark.parametrize(
+    "chunk_size", [None, 1, 7, -1], ids=["eager", "time1", "time7", "full"]
+)
 @pytest.mark.parametrize("unit", ["degC", "K", "degF"])
 @pytest.mark.parametrize(
     ("name", "variable", "quantile"),
-    [("TX10", "tasmax", 0.10), ("TX90", "tasmax", 0.90), ("TN10", "tasmin", 0.10), ("TN90", "tasmin", 0.90)],
+    [
+        ("TX10", "tasmax", 0.10),
+        ("TX90", "tasmax", 0.90),
+        ("TN10", "tasmin", 0.10),
+        ("TN90", "tasmin", 0.90),
+    ],
 )
 def test_temperature_percentiles_are_values_in_degrees(
     name: str, variable: str, quantile: float, unit: str, chunk_size: int | None
@@ -614,7 +649,9 @@ def _period_precipitation_reference(
     return np.stack(outputs)
 
 
-@pytest.mark.parametrize("chunk_size", [None, 1, 7, -1], ids=["eager", "time1", "time7", "full"])
+@pytest.mark.parametrize(
+    "chunk_size", [None, 1, 7, -1], ids=["eager", "time1", "time7", "full"]
+)
 @pytest.mark.parametrize("unit", ["mm/day", "kg m-2 s-1"])
 @pytest.mark.parametrize(("name", "quantile"), PERCENTILE_PRECIPITATION)
 def test_percentile_precipitation_indices_match_drias_reference(
@@ -672,7 +709,9 @@ WIND_CASES = [
 ]
 
 
-@pytest.mark.parametrize("chunk_size", [None, 1, 7, -1], ids=["eager", "time1", "time7", "full"])
+@pytest.mark.parametrize(
+    "chunk_size", [None, 1, 7, -1], ids=["eager", "time1", "time7", "full"]
+)
 @pytest.mark.parametrize("unit", ["m s-1", "km h-1"])
 @pytest.mark.parametrize("name", WIND_CASES)
 def test_wind_indices_match_drias_reference(
@@ -698,12 +737,18 @@ def test_wind_indices_match_drias_reference(
     if name == "FFAV":
         reference_value = np.nanmean(reference, axis=0)
         expected = np.stack(
-            [np.nanmean(values[time.year == year], axis=0) - reference_value for year in (2001, 2002)]
+            [
+                np.nanmean(values[time.year == year], axis=0) - reference_value
+                for year in (2001, 2002)
+            ]
         )
     else:
         threshold = np.nanquantile(reference, 0.98, axis=0, method="median_unbiased")
         expected = np.stack(
-            [np.sum(values[time.year == year] > threshold, axis=0) for year in (2001, 2002)]
+            [
+                np.sum(values[time.year == year] > threshold, axis=0)
+                for year in (2001, 2002)
+            ]
         )
     np.testing.assert_allclose(
         actual.transpose("time", "lat", "lon").values,
@@ -838,7 +883,12 @@ def test_wind_calendars_match_reference(name: str, calendar: str) -> None:
 @pytest.mark.parametrize("calendar", CALENDARS)
 @pytest.mark.parametrize(
     ("name", "variable", "quantile"),
-    [("TX10", "tasmax", 0.10), ("TX90", "tasmax", 0.90), ("TN10", "tasmin", 0.10), ("TN90", "tasmin", 0.90)],
+    [
+        ("TX10", "tasmax", 0.10),
+        ("TX90", "tasmax", 0.90),
+        ("TN10", "tasmin", 0.10),
+        ("TN90", "tasmin", 0.90),
+    ],
 )
 def test_temperature_percentile_calendars_match_reference(
     name: str, variable: str, quantile: float, calendar: str
@@ -869,10 +919,38 @@ def test_temperature_percentile_calendars_match_reference(
 
 
 ALL_DCSC_NAMES = (
-    "TAV", "TXAV", "TRAV", "TX10", "TX90", "TN10", "TN90", "TNFD",
-    "TXFD", "SD", "TX35", "TR", "TXND", "TNHT", "TNND", "TNCWD",
-    "TXHWD", "HDD", "CDD", "PAV", "PINT", "RR", "RR1MM", "PN20MM",
-    "PXCDD", "PXCWD", "R99", "PFL90", "PQ90", "PQ99", "FFAV", "FF98",
+    "TAV",
+    "TXAV",
+    "TRAV",
+    "TX10",
+    "TX90",
+    "TN10",
+    "TN90",
+    "TNFD",
+    "TXFD",
+    "SD",
+    "TX35",
+    "TR",
+    "TXND",
+    "TNHT",
+    "TNND",
+    "TNCWD",
+    "TXHWD",
+    "HDD",
+    "CDD",
+    "PAV",
+    "PINT",
+    "RR",
+    "RR1MM",
+    "PN20MM",
+    "PXCDD",
+    "PXCWD",
+    "R99",
+    "PFL90",
+    "PQ90",
+    "PQ99",
+    "FFAV",
+    "FF98",
 )
 
 
@@ -988,9 +1066,7 @@ SUBSET_NAMES = [
 @pytest.mark.parametrize("name", SUBSET_NAMES)
 def test_time_range_subset_equals_full_result_slice(name: str) -> None:
     """A one-year request equals the same year selected from a two-year request."""
-    full = _edge_call(
-        name, slice_mode="year", time_range=["2001-01-01", "2002-12-31"]
-    )
+    full = _edge_call(name, slice_mode="year", time_range=["2001-01-01", "2002-12-31"])
     subset = _edge_call(
         name, slice_mode="year", time_range=["2002-01-01", "2002-12-31"]
     )
@@ -1011,7 +1087,9 @@ def test_strict_completeness_masks_a_whole_missing_grid_point(name: str) -> None
     assert actual.sel(lat=45.0, lon=1.0).isnull().all()
 
 
-@pytest.mark.parametrize(("run_index", "split"), [("first", False), ("last", False), ("last", True)])
+@pytest.mark.parametrize(
+    ("run_index", "split"), [("first", False), ("last", False), ("last", True)]
+)
 @pytest.mark.parametrize("name", ["TNCWD", "TXHWD", "PXCDD", "PXCWD"])
 def test_run_crossing_a_whole_period_follows_attribution_convention(
     name: str, run_index: str, split: bool
