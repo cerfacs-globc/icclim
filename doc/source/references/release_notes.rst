@@ -2,9 +2,12 @@
  Release history
 #################
 
-**********
-Unreleased
-**********
+*****
+7.3.7
+*****
+
+date: 2026-11-12
+
 
 -  [fix] The DCSC indices that use a normal (``TXND``, ``TNHT``, ``TNND``, ``TNCWD`` and
    ``TXHWD``) no longer raise ``DimensionalityError`` ("cannot convert from
