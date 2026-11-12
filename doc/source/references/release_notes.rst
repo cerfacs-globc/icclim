@@ -202,20 +202,15 @@ date: TBD
 -  [perf] The speed of the ordinary indices on a full CMIP6 grid is unchanged since 7.3.3
    (59 s against 62 s for the yearly ``TG``, 45 s against 44 s for ``rx5day``, same input
    and node).
--  [perf] Peak memory depends strongly on how the input is chunked along time. On a 128x256
-   grid of daily data, on one node (wall time, and peak memory of the process), for 30 to
-   165 years, auto-sized chunks were 1.4 to 1.7 times faster than the one-time-step chunks
-   of the files but used more memory, and the difference grows with the length of the
-   series: for a count index over 165 years, 44 s and 3.9 GiB with auto-sized chunks, and
-   73 s and 1.7 GiB with the one-time-step chunks of the files. Input held in a single
-   chunk along time needed 18 to 32 GiB and took about 30 minutes, against under a minute
-   with auto-sized chunks.
-
-   .. CHECK: the calibration script is not in the repository. Confirm that "native" is
-   .. the chunking of the opened files and that the "contiguous" case is a single chunk
-   .. along time. icclim rechunks the input to "auto" when its largest chunk is smaller than
-   .. one eighth of the Dask array.chunk-size (see input_parsing.py), so say how the native
-   .. runs were made.
+-  [perf] Peak memory and speed depend on how the input is opened. On a 128x256 grid of
+   daily data, on one node, for 30 to 165 years: opening the files with their own chunks
+   (one time step each in this test, ``chunks={}``; icclim then rechunks them to auto-sized
+   chunks) used less memory and was 1.4 to 1.7 times slower than opening them with
+   ``chunks="auto"``, and the difference in memory grows with the length of the series
+   (count index, 165 years: 44 s and 3.9 GiB with ``"auto"``, 73 s and 1.7 GiB with the
+   file chunks). Input held in a single chunk along time is left as it is by icclim and
+   needed 18 to 32 GiB; the count, rolling and date indices took about 30 minutes, against
+   less than 90 s with ``"auto"``.
 -  [perf] Percentile indices with a bootstrap over the years outside the base period are
    the slowest case. The time is proportional to the number of grid points and grows with
    the number of years outside the base period: on a full 128x256 grid, about 45 minutes
