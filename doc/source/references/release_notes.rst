@@ -11,6 +11,12 @@ Unreleased
    mm/day (DRIAS: "q90 des précipitations totales quotidiennes"); their output unit was
    declared as a percent, which a precipitation cannot be converted to.
    Affected: every release since 7.0.0 that has the DCSC indices.
+-  [fix] The generic ``excess`` and ``deficit`` no longer raise ``KeyError: 'units'`` on a
+   precipitation with xarray 2026.2 and later (issue #644). The units of the result are
+   taken from the studied variable instead of from the subtraction of the threshold,
+   whose attributes recent xarray versions drop when the texts of the units differ
+   ("mm/day" and "mm d-1").
+   Affected: every release with ``excess`` and ``deficit``, with xarray 2026.2 or later.
 -  [fix] The DCSC indices that use a normal (``TXND``, ``TNHT``, ``TNND``, ``TNCWD`` and
    ``TXHWD``) no longer raise ``DimensionalityError`` ("cannot convert from
    delta_degree_Celsius to degree_Celsius") when the input is in degrees Celsius or
