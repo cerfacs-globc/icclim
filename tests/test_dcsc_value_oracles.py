@@ -300,3 +300,146 @@ def test_normal_argument_errors_are_clear() -> None:
     wrong.attrs["units"] = "mm/day"
     with pytest.raises(Exception, match=r"convert|dimension|temperature"):
         icclim.dcsc.txnd(study, normal=wrong, out_file=None)
+
+
+@dataclass(frozen=True)
+class PrecipitationCase:
+    name: str
+    reducer: Literal["mean", "wet_mean", "sum", "count", "run"]
+    threshold: float | None = None
+    operator: Literal["<", ">="] | None = None
+
+
+PRECIPITATION_CASES = (
+    PrecipitationCase("PAV", "mean"),
+    PrecipitationCase("PINT", "wet_mean", 1.0, ">="),
+    PrecipitationCase("RR", "sum"),
+    PrecipitationCase("RR1MM", "count", 1.0, ">="),
+    PrecipitationCase("PN20MM", "count", 20.0, ">="),
+    PrecipitationCase("PXCDD", "run", 1.0, "<"),
+    PrecipitationCase("PXCWD", "run", 1.0, ">="),
+)
+
+
+def _precipitation_cube(case: PrecipitationCase, unit: str) -> xr.DataArray:
+    """Build deterministic precipitation with equality and boundary runs."""
+    time = pd.date_range("2000-01-01", "2002-12-31", freq="D")
+    rng = np.random.default_rng(20261113)
+    values = rng.gamma(1.6, 3.0, (len(time), 2, 2))
+    values[np.arange(len(time)) % 11 == 0] = 0.2
+    values[time == pd.Timestamp("2001-03-03"), 0, 0] = 1.0
+    values[time == pd.Timestamp("2001-04-04"), 0, 1] = 20.0
+    values[time == pd.Timestamp("2002-05-05"), 1, 0] = np.nan
+    if case.reducer == "run":
+        event = 0.2 if case.operator == "<" else 2.0
+        non_event = 2.0 if case.operator == "<" else 0.2
+        values[:] = non_event
+        crossing = (time >= "2000-12-28") & (time <= "2001-01-06")
+        internal = (time >= "2002-06-01") & (time <= "2002-06-08")
+        values[crossing | internal] = event
+        values[time == pd.Timestamp("2001-08-08"), 1, 0] = np.nan
+        values[time == pd.Timestamp("2001-09-09"), 0, 1] = 1.0
+    data = values / 86400.0 if unit == "kg m-2 s-1" else values
+    return xr.DataArray(
+        data,
+        dims=("time", "lat", "lon"),
+        coords={"time": time, "lat": [45.0, 46.0], "lon": [1.0, 2.0]},
+        name="pr",
+        attrs={"units": unit},
+    )
+
+
+def _precipitation_reference(
+    source: xr.DataArray,
+    case: PrecipitationCase,
+    run_index: str = "first",
+    split: bool = False,
+) -> np.ndarray:
+    """Evaluate DRIAS precipitation reductions in mm/day without library code."""
+    time = pd.DatetimeIndex(source.time.values)
+    years = np.unique(time.year)
+    values = source.values * (86400.0 if source.attrs["units"] == "kg m-2 s-1" else 1.0)
+    finite = np.isfinite(values)
+    if case.reducer == "run":
+        events = finite & ((values < 1.0) if case.operator == "<" else (values >= 1.0))
+        result = np.zeros((len(years), *events.shape[1:]), dtype=float)
+        for cell in np.ndindex(events.shape[1:]):
+            for start, end in _runs(events[(slice(None), *cell)]):
+                if split:
+                    for year_index, year in enumerate(years):
+                        length = int(np.sum(time[start : end + 1].year == year))
+                        result[(year_index, *cell)] = max(
+                            result[(year_index, *cell)], length
+                        )
+                else:
+                    anchor = start if run_index == "first" else end
+                    year_index = int(np.flatnonzero(years == time[anchor].year)[0])
+                    result[(year_index, *cell)] = max(
+                        result[(year_index, *cell)], end - start + 1
+                    )
+        return result
+
+    outputs = []
+    for year in years:
+        selected = time.year == year
+        period = values[selected]
+        period_finite = finite[selected]
+        if case.reducer == "mean":
+            output = np.nanmean(period, axis=0)
+        elif case.reducer == "wet_mean":
+            output = np.nanmean(np.where(period_finite & (period >= 1.0), period, np.nan), axis=0)
+        elif case.reducer == "sum":
+            output = np.nansum(period, axis=0)
+        else:
+            output = np.sum(period_finite & (period >= case.threshold), axis=0)
+        outputs.append(output)
+    return np.stack(outputs)
+
+
+@pytest.mark.parametrize("chunk_size", [None, 1, 7, -1], ids=["eager", "time1", "time7", "full"])
+@pytest.mark.parametrize("unit", ["mm/day", "kg m-2 s-1"])
+@pytest.mark.parametrize("case", PRECIPITATION_CASES, ids=lambda case: case.name)
+def test_basic_precipitation_indices_match_drias_reference(
+    case: PrecipitationCase, unit: str, chunk_size: int | None
+) -> None:
+    """Check precipitation values, wet-day equality and hydro unit conversion."""
+    source = _precipitation_cube(case, unit)
+    if chunk_size is not None:
+        size = source.sizes["time"] if chunk_size == -1 else chunk_size
+        source = source.chunk({"time": size})
+    actual = getattr(icclim.dcsc, case.name.lower())(
+        source,
+        slice_mode="year",
+        run_index="first",
+        out_file=None,
+        completeness="none",
+        logs_verbosity="SILENT",
+    )[case.name].compute()
+    expected = _precipitation_reference(source.compute(), case)
+    np.testing.assert_allclose(
+        actual.transpose("time", "lat", "lon").values, expected, equal_nan=True
+    )
+    assert actual.attrs.get("units")
+    assert actual.attrs.get("long_name")
+
+
+@pytest.mark.parametrize(("run_index", "split"), [("first", False), ("last", False), ("last", True)])
+@pytest.mark.parametrize("case", [case for case in PRECIPITATION_CASES if case.reducer == "run"], ids=lambda case: case.name)
+def test_precipitation_run_attribution_matches_reference(
+    case: PrecipitationCase, run_index: str, split: bool
+) -> None:
+    """Check a ten-day wet or dry run crossing 31 December."""
+    source = _precipitation_cube(case, "mm/day").chunk({"time": 7})
+    actual = getattr(icclim.dcsc, case.name.lower())(
+        source,
+        slice_mode="year",
+        run_index=run_index,
+        split_runs_at_period_boundary=split,
+        out_file=None,
+        completeness="none",
+        logs_verbosity="SILENT",
+    )[case.name].compute()
+    expected = _precipitation_reference(source.compute(), case, run_index, split)
+    np.testing.assert_allclose(
+        actual.transpose("time", "lat", "lon").values, expected, equal_nan=True
+    )

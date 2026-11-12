@@ -25,13 +25,13 @@ provided as a PDF capture. The registry identifies the family as DCSC
 | TXHWD | DRIAS 2023-12-01 indicator table | Y | values pass; dims xfail #669 |
 | HDD | DRIAS-2020 temperature indicators | Y | pass |
 | CDD | DRIAS-2020 temperature indicators | Y | pass |
-| PAV | DRIAS-2020 precipitation indicators | N | pending |
-| PINT | DRIAS-2020 precipitation indicators | N | pending |
-| RR | DRIAS-2020 precipitation indicators | N | pending |
-| RR1MM | DRIAS-2020 precipitation indicators | N | pending |
-| PN20MM | DRIAS-2020 precipitation indicators | N | pending |
-| PXCDD | DRIAS-2020 precipitation indicators | N | pending |
-| PXCWD | DRIAS-2020 precipitation indicators | N | pending |
+| PAV | DRIAS 2023-12-01 indicator table | Y | pass |
+| PINT | DRIAS 2023-12-01 indicator table | Y | pass |
+| RR | DRIAS 2023-12-01 indicator table | Y | pass |
+| RR1MM | DRIAS 2023-12-01 indicator table | Y | pass |
+| PN20MM | DRIAS 2023-12-01 indicator table | Y | pass |
+| PXCDD | DRIAS 2023-12-01 indicator table | Y | pass |
+| PXCWD | DRIAS 2023-12-01 indicator table | Y | pass |
 | R99 | DRIAS-2020 precipitation indicators | N | pending |
 | PFL90 | DRIAS-2020 precipitation indicators | N | pending |
 | PQ90 | DRIAS-2020 precipitation indicators | N | pending |
