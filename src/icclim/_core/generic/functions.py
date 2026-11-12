@@ -644,7 +644,9 @@ def excess(
     res = (
         (excesses).clip(min=0).resample(time=resample_freq.pandas_freq).sum(dim="time")
     )
-    res = res.assign_attrs(units=f"delta_{res.attrs['units']}")
+    # The units come from the study: recent xarray versions drop the conflicting
+    # attributes of a subtraction ("mm/day" and "mm d-1" are different texts).
+    res = res.assign_attrs(units=f"delta_{study.attrs['units']}")
     freq = check_freq(study, dim="time")
     return _safe_to_agg_units(res, study, "integral", deffreq=freq)
 
@@ -719,7 +721,9 @@ def deficit(
             ),
         )
     res = deficit.clip(min=0).resample(time=resample_freq.pandas_freq).sum(dim="time")
-    res = res.assign_attrs(units=f"delta_{res.attrs['units']}")
+    # The units come from the study: recent xarray versions drop the conflicting
+    # attributes of a subtraction ("mm/day" and "mm d-1" are different texts).
+    res = res.assign_attrs(units=f"delta_{study.attrs['units']}")
     freq = check_freq(study, dim="time")
     return _safe_to_agg_units(res, study, "integral", deffreq=freq)
 
