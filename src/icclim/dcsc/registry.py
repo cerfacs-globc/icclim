@@ -78,8 +78,8 @@ class DcscIndexRegistry(Registry[StandardIndex]):
         short_name="TRAV",
         group=IndexGroupRegistry.TEMPERATURE,
         input_variables=[
-            StandardVariableRegistry.TAS_MIN,
             StandardVariableRegistry.TAS_MAX,
+            StandardVariableRegistry.TAS_MIN,
         ],
     )
     TX10 = StandardIndex(

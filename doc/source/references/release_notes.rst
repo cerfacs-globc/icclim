@@ -6,6 +6,13 @@
 Unreleased
 **********
 
+-  [Behaviour change] The DCSC index ``TRAV`` (mean of the daily thermal amplitude) now
+   returns the mean of ``TX - TN``, as the ECA&D ``DTR``, instead of its opposite (issue
+   #668). Its inputs were declared in the order ``TN``, ``TX``, so the result has had the
+   wrong sign since 7.0.0 when the variables are found in the dataset. ``var_name`` is
+   positional: its first name is the minuend. ``var_name=["tasmax", "tasmin"]`` gave and
+   still gives ``TX - TN``, and ``var_name=["tasmin", "tasmax"]`` gave and still gives
+   ``TN - TX``; only the calls without ``var_name`` change sign.
 -  [doc] Document the run attribution of the periods that no run starts or ends in
    (issue #580). With ``run_index="first"`` or ``"last"`` a period without any event is
    ``0``, while a period wholly traversed by one continuous run attributed to another
