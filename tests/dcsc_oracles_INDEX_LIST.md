@@ -18,11 +18,11 @@ provided as a PDF capture. The registry identifies the family as DCSC
 | SD | DRIAS-2020 temperature indicators | Y | pass |
 | TX35 | DRIAS-2020 temperature indicators | Y | pass |
 | TR | DRIAS-2020 temperature indicators | Y | pass |
-| TXND | DRIAS-2020 temperature indicators | N | pending |
-| TNHT | DRIAS-2020 temperature indicators | N | pending |
-| TNND | DRIAS-2020 temperature indicators | N | pending |
-| TNCWD | DRIAS-2020 temperature indicators | N | pending |
-| TXHWD | DRIAS-2020 temperature indicators | N | pending |
+| TXND | DRIAS 2023-12-01 indicator table | Y | pass |
+| TNHT | DRIAS 2023-12-01 indicator table | Y | pass |
+| TNND | DRIAS 2023-12-01 indicator table | Y | pass |
+| TNCWD | DRIAS 2023-12-01 indicator table | Y | values pass; dims xfail #669 |
+| TXHWD | DRIAS 2023-12-01 indicator table | Y | values pass; dims xfail #669 |
 | HDD | DRIAS-2020 temperature indicators | Y | pass |
 | CDD | DRIAS-2020 temperature indicators | Y | pass |
 | PAV | DRIAS-2020 precipitation indicators | N | pending |
