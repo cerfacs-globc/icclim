@@ -199,15 +199,34 @@ date: TBD
    the tag.
 
    .. CHECK: rerun this comparison on the 7.4.0 candidate before the tag.
--  [perf] The speed of the ordinary indices is unchanged from 7.3.3 (same global
-   30-year input and node: 59 s against 62 s for the yearly ``TG``, 45 s against 44 s
-   for ``rx5day``).
+-  [perf] The speed of the ordinary indices on a full CMIP6 grid is unchanged since 7.3.3
+   (59 s against 62 s for the yearly ``TG``, 45 s against 44 s for ``rx5day``, same input
+   and node).
+-  [perf] Peak memory depends strongly on how the input is chunked along time. On a 128x256
+   grid of daily data, on one node (wall time, and peak memory of the process), for 30 to
+   165 years, auto-sized chunks were 1.4 to 1.7 times faster than the one-time-step chunks
+   of the files but used more memory, and the difference grows with the length of the
+   series: for a count index over 165 years, 44 s and 3.9 GiB with auto-sized chunks, and
+   73 s and 1.7 GiB with the one-time-step chunks of the files. Input held in a single
+   chunk along time needed 18 to 32 GiB and took about 30 minutes, against under a minute
+   with auto-sized chunks.
+
+   .. CHECK: the calibration script is not in the repository. Confirm that "native" is
+   .. the chunking of the opened files and that the "contiguous" case is a single chunk
+   .. along time. icclim rechunks the input to "auto" when its largest chunk is smaller than
+   .. one eighth of the Dask array.chunk-size (see input_parsing.py), so say how the native
+   .. runs were made.
+-  [perf] Percentile indices with a bootstrap over the years outside the base period are
+   the slowest case. The time is proportional to the number of grid points and grows with
+   the number of years outside the base period: on a full 128x256 grid, about 45 minutes
+   for 60 years and 2.2 hours for 165 years (annual ``TX90p``, 30-year base period,
+   auto-sized chunks).
+-  [perf] Memory guard and chunk policy: to be decided before the release.
+
+   .. CHECK: any memory guard or change of the chunk policy is not decided for 7.4.0.
 -  [test] Independent reference calculations now cover all 66 implemented indices (PR #539
    and the following pull requests); a registry-wide test checks the equivalence of
    inputs in K, degC and degF, and in kg m-2 s-1 and mm/day (PR #642).
--  [perf] Memory and chunking: to be written before the release.
-
-   .. CHECK: write this entry after the RAM-budget stage.
 -  [meta] ``environment.yml`` and the installation notes match ``pyproject.toml`` (PR
    #664); citation metadata and the concept DOI badge (PRs #588, #591, #592 and #593).
 
