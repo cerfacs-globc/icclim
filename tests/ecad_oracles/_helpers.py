@@ -410,8 +410,32 @@ def make_threshold_cubes(
     )
 
 
+def _longest_run_by_year(time: xr.DataArray, events: np.ndarray) -> np.ndarray:
+    """Longest run of true days of each year, a run being counted where it ends.
+
+    This is the rule of the ATBD (``run_index="last"``, the default of icclim): a run
+    that crosses the end of a year is counted whole in the year of its last day, and
+    the year where it starts gets no credit for its first days.
+    """
+    years = np.unique(time.dt.year.values)
+    year_of_day = time.dt.year.values
+    longest = np.zeros((len(years), *events.shape[1:]), dtype=int)
+    for point in np.ndindex(events.shape[1:]):
+        series = events[(slice(None), *point)]
+        run = 0
+        for day, event in enumerate(series):
+            run = run + 1 if event else 0
+            # The run is over when the next day is not an event or the data end.
+            if run and (day == len(series) - 1 or not series[day + 1]):
+                year_index = int(np.searchsorted(years, year_of_day[day]))
+                longest[(year_index, *point)] = max(longest[(year_index, *point)], run)
+    return longest
+
+
 def annual_reduce(time: xr.DataArray, values: np.ndarray, reducer: str) -> np.ndarray:
     """Apply a simple numpy annual reduction."""
+    if reducer == "max_run":
+        return _longest_run_by_year(time, values)
     years = np.unique(time.dt.year.values)
     reduced = []
     for year in years:
@@ -420,15 +444,6 @@ def annual_reduce(time: xr.DataArray, values: np.ndarray, reducer: str) -> np.nd
             reduced.append(np.nansum(yearly, axis=0))
         elif reducer == "mean":
             reduced.append(np.nanmean(yearly, axis=0))
-        elif reducer == "max_run":
-            cells = np.zeros(values.shape[1:], dtype=int)
-            for cell in np.ndindex(values.shape[1:]):
-                longest = run = 0
-                for event in yearly[(slice(None), *cell)]:
-                    run = run + 1 if event else 0
-                    longest = max(longest, run)
-                cells[cell] = longest
-            reduced.append(cells)
         else:
             raise ValueError(reducer)
     return np.stack(reduced)
