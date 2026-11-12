@@ -10980,9 +10980,9 @@ def hi(
     allow_missing_periods: bool | None = None,
     allow_partial_final_period: bool = False,
 ) -> Dataset:
-    """Huglin Index (degree_Celsius day): sum from 1 April to 30 September of ((TG - 10) + (TX - 10)) / 2 * K, K being the daylength coefficient of the latitude.
+    """Huglin Index (degree_Celsius day): sum from 1 April to 30 September of ((TG - 10) + (TX - 10)) / 2 * K, K being the daylength coefficient of the latitude (the ATBD gives no K above 50 degrees north: the result is missing there).
 
-    HI: Huglin Index (degree_Celsius day): sum from 1 April to 30 September of ((TG - 10) + (TX - 10)) / 2 * K, K being the daylength coefficient of the latitude.
+    HI: Huglin Index (degree_Celsius day): sum from 1 April to 30 September of ((TG - 10) + (TX - 10)) / 2 * K, K being the daylength coefficient of the latitude (the ATBD gives no K above 50 degrees north: the result is missing there).
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 

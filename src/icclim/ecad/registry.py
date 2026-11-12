@@ -831,7 +831,8 @@ class EcadIndexRegistry(Registry[StandardIndex]):
         indicator=HuglinIndex,
         definition="Huglin Index (degree_Celsius day): sum from 1 April to 30 "
         "September of ((TG - 10) + (TX - 10)) / 2 * K, K being the daylength "
-        "coefficient of the latitude.",
+        "coefficient of the latitude (the ATBD gives no K above 50 degrees north: "
+        "the result is missing there).",
         source=ECAD_ATBD,
         short_name="HI",
         group=IndexGroupRegistry.DROUGHT,
