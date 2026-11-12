@@ -153,131 +153,63 @@ Unreleased
 7.4.0
 *****
 
-date: TBD (to be set on the day of the tag; the version is not bumped yet)
+date: TBD
 
-.. This section is a draft for review. Lines that start with ".. CHECK" are comments for
-.. the reviewers: they are not published and have to be removed before the release.
 
--  [Behaviour change] Read before upgrading: ``CDD``, ``CWD``, ``CFD``, ``CSU``,
-   ``PXCDD``, ``PXCWD`` and ``max_consecutive_occurrence`` now default to
-   ``run_index="last"``: a run of consecutive days is credited, whole, to the period
-   where it ends. Until 7.3.x it was credited to the period where it starts. This
-   follows the ECA&D ATBD v11 (section 5.1) for ``CDD`` and ``CWD``, and the RClimDex
-   manual and ``climdex.pcic``, which implement the ETCCDI definition of ``CDD`` and
-   ``CWD``. For ``CFD``, ``CSU``, ``PXCDD``, ``PXCWD`` and the generic function it is
-   icclim's own convention, applied for consistency (issue #580, PR #596).
-   ``run_index="first"`` still gives the previous behaviour, and
-   ``split_runs_at_period_boundary=True`` cuts the runs at the boundary of every
-   period. When the default applies, icclim prints a notice once per process and per
-   index (PR #633).
+-  [Behaviour change] Run-length indices now credit a run to the period where it ends.
+   ``CDD``, ``CWD``, ``CFD``, ``CSU``, ``PXCDD``, ``PXCWD`` and
+   ``max_consecutive_occurrence`` default to ``run_index="last"``. Until 7.3.x a run was
+   credited to the period where it starts. For ``CDD`` and ``CWD`` this follows the ECA&D
+   ATBD v11 (section 5.1) and the ETCCDI definitions; for ``CFD``, ``CSU`` and the
+   generic function it is icclim's own convention, applied for consistency (issue #580).
+   ``run_index="first"`` gives the previous behaviour, and
+   ``split_runs_at_period_boundary=True`` cuts the runs at the period boundaries. A
+   notice is printed once per process and per index (PR #633).
+-  [Behaviour change] Size of the change, on CMIP6 data (1976-2014, global grid;
+   ACCESS-CM2 for ``CDD`` and ``CWD``, CNRM-CM6-1 for ``CFD`` and ``CSU``): the share of
+   values that differ between ``"first"`` and ``"last"`` is, for yearly and monthly
+   output, 22% and 46% for ``CDD``, 5% and 19% for ``CWD``, 28% and 10% for ``CFD``, and
+   12% and 11% for ``CSU`` and ``max_consecutive_occurrence``. Between 80% and 99% of the
+   changed values differ by more than one day.
+-  [Behaviour change] Periods wholly crossed by a run: a period with no event is 0; a
+   period entirely covered by a run credited to another period is ``NaN`` with
+   ``"first"`` and ``"last"`` (as in ETCCDI for ``CDD`` and ``CWD``); with the split
+   option every period has a value. With ``"first"`` and ``"last"`` a value can be longer
+   than its period: at a polar grid point with frost on every day of 1976-2014, ``CFD``
+   is a single run of 14,245 days credited to one period, while with the split option it
+   is 365 days per year (366 in a leap year). The share of values longer than their
+   period is, for yearly and monthly output, 0.75% and 7.9% for ``CDD``, 2.9% and 3.7%
+   for ``CFD``, and 1.3% and 4.2% for ``CSU`` (PR #661).
+-  [change] Python 3.10 is no longer supported (``requires-python >=3.11``). The new
+   minimum versions are numpy 1.24, pandas 2.2.0, xarray 2024.11.0, xclim 0.56.0, dask
+   2024.11.1, zarr 2.12.0, cftime 1.6.2, dateparser 1.1.4, typing-extensions 4.5.0 and
+   pint 0.25 (PR #630).
+-  [enh] ``HI`` and ``BEDD`` follow the ATBD v11: they sum from 1 April to 30 September,
+   and the coefficient of ``HI`` is 1.00 up to 40 N and 1.02 to 1.06 for each band of two
+   degrees up to 50 N, with a missing result above 50 N and below the equator (PRs #640,
+   #641 and #655). 66 of the 75 ECA&D indices are implemented; the others are followed in
+   issue #204.
+-  [compat] Tested with xclim 0.56 (lowest), 0.60 and 1.0, xarray 2026.2 or later, and
+   pint 0.25 or later (PR #631). SciPy is not a direct dependency; with
+   ``ICCLIM_BOOTSTRAP_MODE=default``, the bootstrap interpolation of xclim is still
+   affected by the SciPy 1.18.1 behaviour change described in the 7.3.5 notes.
+-  [compat] Validation: the results on CMIP6 data are identical to those of 7.3.3 and
+   7.3.6, with xclim 0.60 and 1.0, except for the changes above (see "How the indices are
+   validated", PR #657). This comparison will be repeated on the release candidate before
+   the tag.
 
-   .. CHECK: verified against the code, the how-to page and the notes of 7.3.4. The
-   .. ATBD rule is in section 5.1 ("Design rules"), page 20.
--  [Behaviour change] Size of the change, measured on CMIP6 model data (ACCESS-CM2 for
-   ``CDD`` and ``CWD``, CNRM-CM6-1 for ``CFD`` and ``CSU``, 1976-2014, global grid), over
-   the grid point and period values that are finite in both results: the share of values
-   that differ between ``run_index="first"`` and ``"last"`` is, for yearly and monthly
-   output, 22.3% and 45.9% for ``CDD``, 5.0% and 19.4% for ``CWD``, 27.7% and 10.1% for
-   ``CFD``, and 12.3% and 11.3% for ``CSU`` and ``max_consecutive_occurrence``. Most of
-   the changed values differ by more than one day.
+   .. CHECK: rerun this comparison on the 7.4.0 candidate before the tag.
+-  [perf] The speed of the ordinary indices is unchanged from 7.3.3 (same global
+   30-year input and node: 59 s against 62 s for the yearly ``TG``, 45 s against 44 s
+   for ``rx5day``).
+-  [test] Independent reference calculations now cover all 66 implemented indices (PR #539
+   and the following pull requests); a registry-wide test checks the equivalence of
+   inputs in K, degC and degF, and in kg m-2 s-1 and mm/day (PR #642).
+-  [perf] Memory and chunking: to be written before the release.
 
-   .. Source: comparison of the two results on the Kraken cluster. The sentence "Most of
-   .. the changed values differ by more than one day" comes from the first draft and is
-   .. not backed by these figures.
-   .. CHECK: confirm that sentence, or remove it.
--  [Behaviour change] A period that is wholly traversed by a run credited to another
-   period has no value (``NaN``) with ``run_index="first"`` and ``"last"``, while a
-   period without any event has the value 0. With ``split_runs_at_period_boundary=True``
-   every period has a value. With ``"first"`` and ``"last"`` a value can be longer than
-   its period, and it is the same under both; with the split option it never is
-   (issues #580 and #662, PR #661). On the same CMIP6 data, the share of the values
-   that are longer than their period is, for yearly and monthly output, 0.75% and 7.9%
-   for ``CDD``, 0.0002% and 0.74% for ``CWD``, 2.9% and 3.7% for ``CFD``, and 1.3% and
-   4.2% for ``CSU``. For example, on CNRM-CM6-1 for 1976-2014, a polar grid point (latitude
-   -88.9) has frost on every day, so ``CFD`` is a single run of 14,245 days: it is
-   credited to one period with ``"first"`` and ``"last"``, and each year gives its own
-   length (365 days, 366 in a leap year) with the split option.
-
-   .. Source: behaviour verified by the tests of PR #661; figures and example from the
-   .. comparison on the Kraken cluster. 14,245 days = 29 years of 365 days and 10 leap
-   .. years of 366 days (1976-2014 on the standard calendar).
--  [change] Python 3.10 is no longer supported: ``requires-python`` is ``>=3.11``. The
-   minimum versions of the dependencies are now numpy 1.24, pandas 2.2.0, xarray
-   2024.11.0, xclim 0.56.0, dask 2024.11.1, zarr 2.12.0, cftime 1.6.2, dateparser 1.1.4,
-   typing-extensions 4.5.0 and pint 0.25. They are the oldest versions that pass the
-   tests (issue #586, PR #630).
-
-   .. CHECK: verified against pyproject.toml and the diff of PR #630. cf_xarray, netCDF4,
-   .. numcodecs and jinja2 were not changed. environment.yml and the installation page
-   .. still say Python 3.10 and the old floors (not changed here).
--  [enh] Added the ECA&D indices ``HI`` (Huglin Index) and ``BEDD`` (Biologically
-   Effective Degree Days) of the ATBD v11 (issues #637 and #638, PRs #640 and #641).
-   Both sum from 1 April to 30 September. The daylength coefficient K of ``HI`` is 1.00
-   up to 40 N and 1.02, 1.03, 1.04, 1.05 and 1.06 for each band of two degrees up to
-   50 N, each band including its upper boundary. The result is ``NaN`` above 50 N and
-   below the equator (issue #653, PR #655). 66 of the 75 indices of the ATBD are now
-   implemented; the nine that are not are ``CC``, ``CC2``, ``CC6``, ``UTCI``, ``TCI``,
-   ``TCI60``, ``TCI80``, ``PET`` and ``SSp`` (issue #204).
--  [fix] The DCSC indices follow the DRIAS definitions and the units of their input.
-   ``TXHWD``, ``TNCWD`` and ``TNND`` (issue #616) and ``TXND`` and ``TNHT``
-   (issue #620) were corrected in 7.3.6. In 7.3.7, the indices that use a normal
-   (``TXND``, ``TNHT``, ``TNND``, ``TNCWD`` and ``TXHWD``) work with input in degrees
-   Celsius and Fahrenheit (issue #617), ``PQ90`` and ``PQ99`` have the unit mm/day
-   instead of a percent (issue #643), and the generic ``excess`` and ``deficit`` of a
-   precipitation work with xarray 2026.2 and later (issue #644). These fixes were
-   released in 7.3.6 and 7.3.7 and are included here.
-
-   .. CHECK: reworded after the notes of 7.3.6 and 7.3.7: the degC and degF fix is for
-   .. the five indices with a normal, not for PQ90 and PQ99; the excess and deficit
-   .. fix (#644) was added.
--  [compat] Tested with xclim 0.56.0 (lowest declared version), 0.60.0 (locked
-   requirements) and 1.0.0 (newest), with SciPy 1.17.1 and 1.18.1, with xarray 2024.11.0
-   (lowest) and 2026.2 and later, and with pint 0.25 and later. Since 7.3.5, the
-   percentile thresholds are adjusted to the calendar with icclim's exact interpolation,
-   which gives the same results with SciPy 1.17 and 1.18.1 (issue #603). SciPy is not a
-   direct dependency of icclim. The percentile bootstrap of xclim, selected with the
-   diagnostic setting ``ICCLIM_BOOTSTRAP_MODE=default``, still uses its own
-   interpolation and is affected with SciPy 1.18.1.
-
-   .. CHECK: reworded. There is no upper limit on xclim in pyproject.toml, and the lowest,
-   .. locked and newest sets were run in the continuous integration, not every version in
-   .. between. The draft said that SciPy 1.18.1 was fully handled by 7.3.5: the notes of
-   .. 7.3.5 keep a caveat for the default bootstrap mode.
--  [compat] Checked against independent reference calculations and on real CMIP6 data
-   (see the page "How the indices are validated"): the results are identical between
-   7.3.3, 7.3.6 and a development version of 2026-11-10 (before ``HI`` and ``BEDD``, the
-   new minimum versions and the exact SciPy interpolation), with xclim 0.60 and 1.0,
-   except for the intended changes above. TO CHECK: to be run again on the 7.4.0
-   candidate before the release.
-
-   .. CHECK: the comparison was run on a development version that predates PRs #627
-   .. to #657. It has to be run again on the 7.4.0 candidate, and this line kept until
-   .. then.
--  [perf] The speed of the ordinary indices is unchanged from 7.3.3.
-
-   .. Source: same full-grid input (global CMIP6, 30 years, same node, three alternating
-   .. runs): 7.3.6 and 7.3.3 are within 5%, for example 59 s and 62 s for the yearly
-   .. ``TG`` and 45 s and 44 s for ``rx5day``. The date-event speed-up (PR #573) is in
-   .. 7.3.4, so it is not listed here.
--  [perf] PLACEHOLDER, TO WRITE: memory and chunking. To be written after the memory
-   budget stage and the decision on the chunk policy.
--  [test] Independent reference calculations, written in plain numpy and pandas from the
-   text of the definition, check all 66 ECA&D indices, in memory and chunked, for several
-   units and calendars (PR #539 and the pull requests that follow it).
--  [meta] Added a minimal ``CITATION.cff`` and a ``.zenodo.json`` with the authors (Pagé,
-   Tatarinova, Aoun and Pivan) and the contributors (Evaldsson and Bärring, credited in
-   the README for the controlled vocabulary of the climate indices), a test of the ORCID
-   identifiers and their checksum, and the concept DOI of Zenodo for the DOI badge
-   (PRs #588, #591, #592 and #593).
--  [test] A test that runs every index of the registries with the same data in other
-   units (K, degC and degF, kg m-2 s-1 and mm/day, in memory and chunked) checks that
-   the results are the same (PR #642); tests lock in the run attribution of the
-   periods that are wholly traversed by a run (PR #661).
--  [ci] New jobs run the tests on Python 3.12 with the newest packages and on Python 3.11
-   with the lowest declared versions (issue #626, PR #631).
--  [doc] New page "How the indices are validated" (issue #656, PR #657); the how-to
-   page "Attribute or split longest runs" describes the periods wholly traversed by a
-   run (PR #661).
+   .. CHECK: write this entry after the RAM-budget stage.
+-  [meta] ``environment.yml`` and the installation notes match ``pyproject.toml`` (PR
+   #664); citation metadata and the concept DOI badge (PRs #588, #591, #592 and #593).
 
 *****
 7.3.7
