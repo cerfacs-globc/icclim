@@ -9,10 +9,10 @@ provided as a PDF capture. The registry identifies the family as DCSC
 | TAV | DRIAS-2020 temperature indicators | Y | pass |
 | TXAV | DRIAS-2020 temperature indicators | Y | pass |
 | TRAV | DRIAS 2023-12-01 indicator table | Y | xfail #668: sign reversed |
-| TX10 | DRIAS-2020 temperature indicators | N | pending |
-| TX90 | DRIAS-2020 temperature indicators | N | pending |
-| TN10 | DRIAS-2020 temperature indicators | N | pending |
-| TN90 | DRIAS-2020 temperature indicators | N | pending |
+| TX10 | DRIAS 2023-12-01 TXQ10 definition | Y | xfail #670: returns count, not q10 value |
+| TX90 | DRIAS 2023-12-01 TXQ90 definition | Y | xfail #670: returns count, not q90 value |
+| TN10 | DRIAS 2023-12-01 TNQ10 definition | Y | xfail #670: returns count, not q10 value |
+| TN90 | DRIAS 2023-12-01 TNQ90 definition | Y | xfail #670: returns count, not q90 value |
 | TNFD | DRIAS 2023-12-01 indicator table | Y | pass; older source says <= 0 C |
 | TXFD | DRIAS 2023-12-01 indicator table | Y | pass; older source says <= 0 C |
 | SD | DRIAS-2020 temperature indicators | Y | pass |
@@ -32,9 +32,9 @@ provided as a PDF capture. The registry identifies the family as DCSC
 | PN20MM | DRIAS 2023-12-01 indicator table | Y | pass |
 | PXCDD | DRIAS 2023-12-01 indicator table | Y | pass |
 | PXCWD | DRIAS 2023-12-01 indicator table | Y | pass |
-| R99 | DRIAS-2020 precipitation indicators | N | pending |
-| PFL90 | DRIAS-2020 precipitation indicators | N | pending |
-| PQ90 | DRIAS-2020 precipitation indicators | N | pending |
-| PQ99 | DRIAS-2020 precipitation indicators | N | pending |
-| FFAV | DRIAS-2020 wind indicators | N | pending |
-| FF98 | DRIAS-2020 wind indicators | N | pending |
+| R99 | DRIAS-2020 reference-q99 definition | Y | xfail #672: undocumented wet-day floor |
+| PFL90 | DRIAS 2023-12-01 indicator table | Y | xfail #671: wet-only percentile and denominator |
+| PQ90 | DRIAS 2023-12-01 indicator table | Y | pass |
+| PQ99 | DRIAS 2023-12-01 indicator table | Y | pass |
+| FFAV | DRIAS 2023-12-01 wind indicators | Y | xfail #673: base-period call errors |
+| FF98 | DRIAS 2023-12-01 wind indicators | Y | xfail #674: undocumented one-knot floor |

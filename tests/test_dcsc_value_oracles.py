@@ -443,3 +443,183 @@ def test_precipitation_run_attribution_matches_reference(
     np.testing.assert_allclose(
         actual.transpose("time", "lat", "lon").values, expected, equal_nan=True
     )
+
+
+@pytest.mark.xfail(strict=True, reason="#670")
+@pytest.mark.parametrize("chunk_size", [None, 1, 7, -1], ids=["eager", "time1", "time7", "full"])
+@pytest.mark.parametrize(
+    ("name", "variable", "quantile"),
+    [("TX10", "tasmax", 0.10), ("TX90", "tasmax", 0.90), ("TN10", "tasmin", 0.10), ("TN90", "tasmin", 0.90)],
+)
+def test_temperature_percentiles_are_values_in_degrees(
+    name: str, variable: str, quantile: float, chunk_size: int | None
+) -> None:
+    """DRIAS TXQ/TNQ indices are period percentiles, not occurrence counts."""
+    source = _temperature_cube()[variable]
+    if chunk_size is not None:
+        size = source.sizes["time"] if chunk_size == -1 else chunk_size
+        source = source.chunk({"time": size})
+    actual = getattr(icclim.dcsc, name.lower())(
+        source,
+        base_period_time_range=["2000-01-01", "2000-12-31"],
+        time_range=["2001-01-01", "2002-12-31"],
+        slice_mode="year",
+        out_file=None,
+        completeness="none",
+        logs_verbosity="SILENT",
+    )[name].compute()
+    values = source.compute().sel(time=slice("2001-01-01", "2002-12-31"))
+    years = pd.DatetimeIndex(values.time.values).year
+    expected = np.stack(
+        [
+            np.nanquantile(
+                values.values[years == year],
+                quantile,
+                axis=0,
+                method="median_unbiased",
+            )
+            for year in np.unique(years)
+        ]
+    )
+    np.testing.assert_allclose(actual.values, expected, equal_nan=True)
+    assert actual.attrs["units"] in {"degC", "degree_Celsius", "°C"}
+
+
+PERCENTILE_PRECIPITATION = (
+    pytest.param("R99", 0.99, marks=pytest.mark.xfail(strict=True, reason="#672")),
+    pytest.param("PFL90", 0.90, marks=pytest.mark.xfail(strict=True, reason="#671")),
+    ("PQ90", 0.90),
+    ("PQ99", 0.99),
+)
+
+
+def _period_precipitation_reference(
+    source: xr.DataArray, name: str, quantile: float
+) -> np.ndarray:
+    """Apply the annual percentile formulas in the DRIAS 2023 table."""
+    time = pd.DatetimeIndex(source.time.values)
+    values = source.values * (86400.0 if source.attrs["units"] == "kg m-2 s-1" else 1.0)
+    outputs = []
+    output_years = np.unique(time.year)
+    reference_threshold = None
+    if name == "R99":
+        reference = values[time.year == output_years[0]]
+        reference_threshold = np.nanquantile(
+            reference, quantile, axis=0, method="median_unbiased"
+        )
+        output_years = output_years[1:]
+    for year in output_years:
+        period = values[time.year == year]
+        threshold = (
+            reference_threshold
+            if reference_threshold is not None
+            else np.nanquantile(period, quantile, axis=0, method="median_unbiased")
+        )
+        if name == "R99":
+            output = np.sum(np.isfinite(period) & (period > threshold), axis=0)
+        elif name == "PFL90":
+            numerator = np.nansum(np.where(period > threshold, period, 0.0), axis=0)
+            output = 100.0 * numerator / np.nansum(period, axis=0)
+        else:
+            output = threshold
+        outputs.append(output)
+    return np.stack(outputs)
+
+
+@pytest.mark.parametrize("chunk_size", [None, 1, 7, -1], ids=["eager", "time1", "time7", "full"])
+@pytest.mark.parametrize("unit", ["mm/day", "kg m-2 s-1"])
+@pytest.mark.parametrize(("name", "quantile"), PERCENTILE_PRECIPITATION)
+def test_percentile_precipitation_indices_match_drias_reference(
+    name: str, quantile: float, unit: str, chunk_size: int | None
+) -> None:
+    """Check annual precipitation percentiles, counts and fraction of total."""
+    source = _precipitation_cube(PRECIPITATION_CASES[0], unit)
+    if chunk_size is not None:
+        size = source.sizes["time"] if chunk_size == -1 else chunk_size
+        source = source.chunk({"time": size})
+    kwargs = {}
+    if name == "R99":
+        kwargs = {
+            "base_period_time_range": ["2000-01-01", "2000-12-31"],
+            "time_range": ["2001-01-01", "2002-12-31"],
+        }
+    actual = getattr(icclim.dcsc, name.lower())(
+        source,
+        slice_mode="year",
+        out_file=None,
+        completeness="none",
+        logs_verbosity="SILENT",
+        **kwargs,
+    )[name].compute()
+    expected = _period_precipitation_reference(source.compute(), name, quantile)
+    np.testing.assert_allclose(
+        actual.transpose("time", "lat", "lon").values,
+        expected,
+        rtol=1e-6,
+        equal_nan=True,
+    )
+
+
+def _wind_cube(unit: str = "m s-1") -> xr.DataArray:
+    """Return three years of deterministic daily wind speed."""
+    time = pd.date_range("2000-01-01", "2002-12-31", freq="D")
+    rng = np.random.default_rng(20261114)
+    values = rng.weibull(2.2, (len(time), 2, 2)) * 7.0
+    values[time.year == 2001] += 1.0
+    values[time.year == 2002] -= 0.5
+    values[time == pd.Timestamp("2002-05-05"), 1, 0] = np.nan
+    data = values * 3.6 if unit == "km h-1" else values
+    return xr.DataArray(
+        data,
+        dims=("time", "lat", "lon"),
+        coords={"time": time, "lat": [45.0, 46.0], "lon": [1.0, 2.0]},
+        name="sfcWind",
+        attrs={"units": unit},
+    )
+
+
+@pytest.mark.parametrize("chunk_size", [None, 1, 7, -1], ids=["eager", "time1", "time7", "full"])
+@pytest.mark.parametrize("unit", ["m s-1", "km h-1"])
+@pytest.mark.parametrize(
+    "name",
+    [
+        pytest.param("FFAV", marks=pytest.mark.xfail(strict=True, reason="#673")),
+        pytest.param("FF98", marks=pytest.mark.xfail(strict=True, reason="#674")),
+    ],
+)
+def test_wind_indices_match_drias_reference(
+    name: str, unit: str, chunk_size: int | None
+) -> None:
+    """Check reference-mean difference and days above the reference q98."""
+    source = _wind_cube(unit)
+    if chunk_size is not None:
+        size = source.sizes["time"] if chunk_size == -1 else chunk_size
+        source = source.chunk({"time": size})
+    actual = getattr(icclim.dcsc, name.lower())(
+        source,
+        base_period_time_range=["2000-01-01", "2000-12-31"],
+        time_range=["2001-01-01", "2002-12-31"],
+        slice_mode="year",
+        out_file=None,
+        completeness="none",
+        logs_verbosity="SILENT",
+    )[name].compute()
+    values = source.compute().values / (3.6 if unit == "km h-1" else 1.0)
+    time = pd.DatetimeIndex(source.time.values)
+    reference = values[time.year == 2000]
+    if name == "FFAV":
+        reference_value = np.nanmean(reference, axis=0)
+        expected = np.stack(
+            [np.nanmean(values[time.year == year], axis=0) - reference_value for year in (2001, 2002)]
+        )
+    else:
+        threshold = np.nanquantile(reference, 0.98, axis=0, method="median_unbiased")
+        expected = np.stack(
+            [np.sum(values[time.year == year] > threshold, axis=0) for year in (2001, 2002)]
+        )
+    np.testing.assert_allclose(
+        actual.transpose("time", "lat", "lon").values,
+        expected,
+        rtol=1e-6,
+        equal_nan=True,
+    )
