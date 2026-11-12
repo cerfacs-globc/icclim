@@ -12,5 +12,6 @@ knowledge, see :ref:`references`.
    :caption: Contents:
 
    climate_indices
+   validation
    xclim_and_icclim
    4.2.x_installation
