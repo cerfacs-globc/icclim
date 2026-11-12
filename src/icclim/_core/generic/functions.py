@@ -356,6 +356,11 @@ def max_consecutive_occurrence(
     -------
     DataArray
         The maximum number of consecutive occurrences of exceedances.
+        With ``run_index`` "first" or "last", a run is counted whole in the period
+        where it starts or ends, so a value can exceed the length of its period. A
+        period without any event is 0. A period that is wholly traversed by one
+        continuous run attributed to another period is not reported: its value is
+        NaN. With ``split_runs_at_period_boundary=True`` every period has a value.
 
     Examples
     --------

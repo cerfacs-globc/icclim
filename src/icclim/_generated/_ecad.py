@@ -1458,8 +1458,17 @@ def wsdi(
         starts with ``run_index="first"``, or the one where it ends with
         ``run_index="last"`` (the default since 7.4.0). The following (or preceding) period then gets no
         credit for the days of that run, so its value can be 0.
+        With ``run_index="first"`` or ``"last"``, the value of a period can exceed the
+        length of the period, because the whole run is counted in it. A period that
+        no run is attributed to gets 0, as does a period without any event. The value
+        is NaN (not reported) when every day of the period belongs to a run that is
+        attributed to another period, that is when the period is wholly traversed by
+        one continuous run: with yearly output, a three-year run gives
+        ``[1095, NaN, NaN]`` with ``"first"`` and ``[NaN, NaN, 1095]`` with
+        ``"last"``.
         When ``True``, runs are cut at the boundary of every output period and each
-        period gets the longest run found inside it. ``run_index`` then has no
+        period gets the longest run found inside it, so every period gets a value
+        (``[365, 365, 365]`` in the example above). ``run_index`` then has no
         effect on the values.
         For ``WSDI`` and ``CSDI`` the runs are cut first and only the pieces of at
         least 6 days are summed (the pieces, not the whole spell, must reach 6 days).
@@ -2556,8 +2565,17 @@ def csu(
         starts with ``run_index="first"``, or the one where it ends with
         ``run_index="last"`` (the default since 7.4.0). The following (or preceding) period then gets no
         credit for the days of that run, so its value can be 0.
+        With ``run_index="first"`` or ``"last"``, the value of a period can exceed the
+        length of the period, because the whole run is counted in it. A period that
+        no run is attributed to gets 0, as does a period without any event. The value
+        is NaN (not reported) when every day of the period belongs to a run that is
+        attributed to another period, that is when the period is wholly traversed by
+        one continuous run: with yearly output, a three-year run gives
+        ``[1095, NaN, NaN]`` with ``"first"`` and ``[NaN, NaN, 1095]`` with
+        ``"last"``.
         When ``True``, runs are cut at the boundary of every output period and each
-        period gets the longest run found inside it. ``run_index`` then has no
+        period gets the longest run found inside it, so every period gets a value
+        (``[365, 365, 365]`` in the example above). ``run_index`` then has no
         effect on the values.
         For ``WSDI`` and ``CSDI`` the runs are cut first and only the pieces of at
         least 6 days are summed (the pieces, not the whole spell, must reach 6 days).
@@ -3060,8 +3078,17 @@ def cfd(
         starts with ``run_index="first"``, or the one where it ends with
         ``run_index="last"`` (the default since 7.4.0). The following (or preceding) period then gets no
         credit for the days of that run, so its value can be 0.
+        With ``run_index="first"`` or ``"last"``, the value of a period can exceed the
+        length of the period, because the whole run is counted in it. A period that
+        no run is attributed to gets 0, as does a period without any event. The value
+        is NaN (not reported) when every day of the period belongs to a run that is
+        attributed to another period, that is when the period is wholly traversed by
+        one continuous run: with yearly output, a three-year run gives
+        ``[1095, NaN, NaN]`` with ``"first"`` and ``[NaN, NaN, 1095]`` with
+        ``"last"``.
         When ``True``, runs are cut at the boundary of every output period and each
-        period gets the longest run found inside it. ``run_index`` then has no
+        period gets the longest run found inside it, so every period gets a value
+        (``[365, 365, 365]`` in the example above). ``run_index`` then has no
         effect on the values.
         For ``WSDI`` and ``CSDI`` the runs are cut first and only the pieces of at
         least 6 days are summed (the pieces, not the whole spell, must reach 6 days).
@@ -4461,8 +4488,17 @@ def csdi(
         starts with ``run_index="first"``, or the one where it ends with
         ``run_index="last"`` (the default since 7.4.0). The following (or preceding) period then gets no
         credit for the days of that run, so its value can be 0.
+        With ``run_index="first"`` or ``"last"``, the value of a period can exceed the
+        length of the period, because the whole run is counted in it. A period that
+        no run is attributed to gets 0, as does a period without any event. The value
+        is NaN (not reported) when every day of the period belongs to a run that is
+        attributed to another period, that is when the period is wholly traversed by
+        one continuous run: with yearly output, a three-year run gives
+        ``[1095, NaN, NaN]`` with ``"first"`` and ``[NaN, NaN, 1095]`` with
+        ``"last"``.
         When ``True``, runs are cut at the boundary of every output period and each
-        period gets the longest run found inside it. ``run_index`` then has no
+        period gets the longest run found inside it, so every period gets a value
+        (``[365, 365, 365]`` in the example above). ``run_index`` then has no
         effect on the values.
         For ``WSDI`` and ``CSDI`` the runs are cut first and only the pieces of at
         least 6 days are summed (the pieces, not the whole spell, must reach 6 days).
@@ -4667,8 +4703,17 @@ def cdd(
         starts with ``run_index="first"``, or the one where it ends with
         ``run_index="last"`` (the default since 7.4.0). The following (or preceding) period then gets no
         credit for the days of that run, so its value can be 0.
+        With ``run_index="first"`` or ``"last"``, the value of a period can exceed the
+        length of the period, because the whole run is counted in it. A period that
+        no run is attributed to gets 0, as does a period without any event. The value
+        is NaN (not reported) when every day of the period belongs to a run that is
+        attributed to another period, that is when the period is wholly traversed by
+        one continuous run: with yearly output, a three-year run gives
+        ``[1095, NaN, NaN]`` with ``"first"`` and ``[NaN, NaN, 1095]`` with
+        ``"last"``.
         When ``True``, runs are cut at the boundary of every output period and each
-        period gets the longest run found inside it. ``run_index`` then has no
+        period gets the longest run found inside it, so every period gets a value
+        (``[365, 365, 365]`` in the example above). ``run_index`` then has no
         effect on the values.
         For ``WSDI`` and ``CSDI`` the runs are cut first and only the pieces of at
         least 6 days are summed (the pieces, not the whole spell, must reach 6 days).
@@ -5329,8 +5374,17 @@ def cwd(
         starts with ``run_index="first"``, or the one where it ends with
         ``run_index="last"`` (the default since 7.4.0). The following (or preceding) period then gets no
         credit for the days of that run, so its value can be 0.
+        With ``run_index="first"`` or ``"last"``, the value of a period can exceed the
+        length of the period, because the whole run is counted in it. A period that
+        no run is attributed to gets 0, as does a period without any event. The value
+        is NaN (not reported) when every day of the period belongs to a run that is
+        attributed to another period, that is when the period is wholly traversed by
+        one continuous run: with yearly output, a three-year run gives
+        ``[1095, NaN, NaN]`` with ``"first"`` and ``[NaN, NaN, 1095]`` with
+        ``"last"``.
         When ``True``, runs are cut at the boundary of every output period and each
-        period gets the longest run found inside it. ``run_index`` then has no
+        period gets the longest run found inside it, so every period gets a value
+        (``[365, 365, 365]`` in the example above). ``run_index`` then has no
         effect on the values.
         For ``WSDI`` and ``CSDI`` the runs are cut first and only the pieces of at
         least 6 days are summed (the pieces, not the whole spell, must reach 6 days).

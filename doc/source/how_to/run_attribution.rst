@@ -14,8 +14,9 @@ applies to monthly and seasonal output: a run crossing a month boundary is
 attributed to the month in which it ends. For monthly output, a 12-day run from
 January 25 through February 5 is ``[12, 0]`` with ``run_index="first"``,
 ``[0, 12]`` with the new default, and ``[7, 5]`` when split at the boundary.
-With ``run_index="last"``, a period's value can include days that fall in the
-previous period, so it can exceed the length of the period itself.
+With ``run_index="first"`` or ``"last"``, a period's value counts the whole run,
+including the days that fall in other periods, so it can exceed the length of the
+period itself.
 
 For example, the ECA&D ATBD describes a dry spell beginning in December 2000
 and ending in January 2001. It counts toward 2001. For a longer dry spell from
@@ -32,6 +33,43 @@ Pre-7.4.0 behavior (``run_index="first"``)       ``[212, 0]``
 Pass ``run_index="first"`` explicitly to reproduce the old attribution. Pass
 ``split_runs_at_period_boundary=True`` to cut every run at each period boundary;
 the pieces then contribute independently to their respective periods.
+
+Periods wholly traversed by a run
+=================================
+
+Only the period where a run starts (``run_index="first"``) or ends
+(``run_index="last"``) receives its length. The result of the other periods depends on
+what they contain:
+
+- a period without any event, or that contains at least one day outside a run, gets
+  ``0``;
+- a period that is wholly traversed by one continuous run attributed to another period
+  is **not reported**: its value is ``NaN``. ``NaN`` here means "not reported because
+  every day of this period belongs to a run that is attributed to another period", not
+  a missing input.
+
+With ``split_runs_at_period_boundary=True`` the runs are cut at the boundaries, so every
+period gets a value.
+
+For example, with a continuous run of 1095 days from 2001-01-01 to 2003-12-31 (three
+years of consecutive dry days) and yearly output:
+
+===============================================  ============================
+Setting                                          Result
+===============================================  ============================
+``run_index="first"``                            ``[1095, NaN, NaN]``
+``run_index="last"`` (default)                   ``[NaN, NaN, 1095]``
+``split_runs_at_period_boundary=True``           ``[365, 365, 365]``
+===============================================  ============================
+
+The same holds for monthly output: with ``run_index="last"`` the 35 first months are
+``NaN`` and the last one is ``1095``, which is far more than the length of a month.
+A period without any event, on the other hand, is ``0`` in the three modes.
+
+This is the convention of ETCCDI and ``climdex`` for a spell that spans a whole year
+(the year is not reported and the run is carried to the period where it ends), and
+the one of the ECA&D ATBD for ``CDD`` and ``CWD``. It is applied to ``CFD``, ``CSU``,
+``PXCDD``, ``PXCWD`` and the generic function for consistency (issue #580).
 
 Default-change notice
 =====================

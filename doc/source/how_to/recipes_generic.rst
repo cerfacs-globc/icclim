@@ -229,10 +229,11 @@ Runs that cross the end of a period
 
 A run of consecutive days can start in one output period and end in the next one,
 for example frost days from 1 October to 30 April with a yearly output. By default
-the whole run is counted in a single period: the one where it starts
-(``run_index="first"``, the default) or the one where it ends
-(``run_index="last"``). The other period gets no credit for the days of that run, so
-its value can be 0. This is the behaviour of ``max_consecutive_occurrence`` and of
+the whole run is counted in a single period: the one where it ends
+(``run_index="last"``, the default since 7.4.0) or the one where it starts
+(``run_index="first"``). The other period gets no credit for the days of that run, so
+its value can be 0 (or NaN when it is wholly traversed by the run, see
+:ref:`run_attribution`). This is the behaviour of ``max_consecutive_occurrence`` and of
 the ECA&D indices built on it (CDD, CWD, CFD and CSU), and it is not modified unless
 you ask for it.
 
@@ -259,8 +260,8 @@ output period: each period then gets the longest run found inside it.
 ======================================  ============  ============
 options                                 2001          2002
 ======================================  ============  ============
-default (``run_index="first"``)         212           0
-``run_index="last"``                    0             212
+default (``run_index="last"``)          0             212
+``run_index="first"``                   212           0
 ``split_runs_at_period_boundary=True``  92            120
 ======================================  ============  ============
 
