@@ -15,9 +15,9 @@ provided as a PDF capture. The registry identifies the family as DCSC
 | TN90 | DRIAS 2023-12-01 TNQ90 definition | Y | xfail #670: returns count, not q90 value |
 | TNFD | DRIAS 2023-12-01 indicator table | Y | pass; older source says <= 0 C |
 | TXFD | DRIAS 2023-12-01 indicator table | Y | pass; older source says <= 0 C |
-| SD | DRIAS-2020 temperature indicators | Y | pass |
-| TX35 | DRIAS-2020 temperature indicators | Y | pass |
-| TR | DRIAS-2020 temperature indicators | Y | pass |
+| SD | DRIAS-2020 temperature indicators | Y | values pass; degF equality xfail #675 |
+| TX35 | DRIAS-2020 temperature indicators | Y | values pass; degF equality xfail #675 |
+| TR | DRIAS-2020 temperature indicators | Y | values pass; degF equality xfail #675 |
 | TXND | DRIAS 2023-12-01 indicator table | Y | pass |
 | TNHT | DRIAS 2023-12-01 indicator table | Y | pass |
 | TNND | DRIAS 2023-12-01 indicator table | Y | pass |
@@ -34,7 +34,7 @@ provided as a PDF capture. The registry identifies the family as DCSC
 | PXCWD | DRIAS 2023-12-01 indicator table | Y | pass |
 | R99 | DRIAS-2020 reference-q99 definition | Y | xfail #672: undocumented wet-day floor |
 | PFL90 | DRIAS 2023-12-01 indicator table | Y | xfail #671: wet-only percentile and denominator |
-| PQ90 | DRIAS 2023-12-01 indicator table | Y | pass |
-| PQ99 | DRIAS 2023-12-01 indicator table | Y | pass |
+| PQ90 | DRIAS 2023-12-01 indicator table | Y | values pass; metadata xfail #676 |
+| PQ99 | DRIAS 2023-12-01 indicator table | Y | values pass; metadata xfail #676 |
 | FFAV | DRIAS 2023-12-01 wind indicators | Y | xfail #673: base-period call errors |
 | FF98 | DRIAS 2023-12-01 wind indicators | Y | xfail #674: undocumented one-knot floor |

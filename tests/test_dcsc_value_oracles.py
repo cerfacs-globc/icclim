@@ -38,6 +38,12 @@ TEMPERATURE_CASES = (
     TemperatureCase("CDD", ("tas",), "cooling", 18.0),
 )
 
+TEMPERATURE_UNITS = {
+    "degC": lambda values: values,
+    "K": lambda values: values + 273.15,
+    "degF": lambda values: values * 9.0 / 5.0 + 32.0,
+}
+
 
 def _temperature_cube() -> xr.Dataset:
     """Build a deterministic three-year 2x2 daily temperature cube."""
@@ -81,7 +87,7 @@ def _temperature_cube() -> xr.Dataset:
 
 def _annual_temperature_reference(source: xr.Dataset, case: TemperatureCase) -> np.ndarray:
     """Evaluate the DRIAS-2020 formula using only numpy and pandas."""
-    years = pd.DatetimeIndex(source.time.values).year
+    years = np.asarray(source.time.dt.year.values)
     outputs = []
     for year in np.unique(years):
         selected = years == year
@@ -105,6 +111,19 @@ def _annual_temperature_reference(source: xr.Dataset, case: TemperatureCase) -> 
         all_missing = np.isnan(values).all(axis=0)
         outputs.append(np.where(all_missing, np.nan, output))
     return np.stack(outputs)
+
+
+def _temperature_in_unit(source: xr.Dataset | xr.DataArray, unit: str):
+    """Represent the same physical temperatures in another declared unit."""
+    converted = source.copy(deep=True)
+    if isinstance(converted, xr.Dataset):
+        for variable in converted.data_vars.values():
+            variable.data = TEMPERATURE_UNITS[unit](variable.data)
+            variable.attrs["units"] = unit
+    else:
+        converted.data = TEMPERATURE_UNITS[unit](converted.data)
+        converted.attrs["units"] = unit
+    return converted
 
 
 @pytest.mark.parametrize("chunk_size", [None, 1, 7, -1], ids=["eager", "time1", "time7", "full"])
@@ -131,6 +150,53 @@ def test_basic_temperature_indices_match_drias_reference(
     assert actual.dims == ("time", "lat", "lon")
     assert actual.attrs.get("units")
     assert actual.attrs.get("long_name")
+
+
+@pytest.mark.parametrize("unit", ["K", "degF"])
+@pytest.mark.parametrize("case", TEMPERATURE_CASES, ids=lambda case: case.name)
+def test_basic_temperature_units_match_drias_reference(
+    case: TemperatureCase, unit: str
+) -> None:
+    """K, degC and degF representations yield the same physical values."""
+    if unit == "degF" and case.name in {"SD", "TX35", "TR"}:
+        pytest.skip("covered by the strict #675 regression")
+    original = _temperature_cube()
+    source = _temperature_in_unit(original[list(case.variables)], unit)
+    actual = getattr(icclim.dcsc, case.name.lower())(
+        source,
+        var_name=list(case.variables),
+        out_file=None,
+        completeness="none",
+        logs_verbosity="SILENT",
+    )[case.name].compute()
+    expected = _annual_temperature_reference(original, case)
+    np.testing.assert_allclose(actual.values, expected, rtol=1e-6, equal_nan=True)
+
+
+@pytest.mark.xfail(strict=True, reason="#675")
+@pytest.mark.parametrize(
+    ("name", "variable", "value"),
+    [("SD", "tasmax", 77.0), ("TX35", "tasmax", 95.0), ("TR", "tasmin", 68.0)],
+)
+def test_strict_temperature_threshold_equality_in_fahrenheit(
+    name: str, variable: str, value: float
+) -> None:
+    """A Fahrenheit value equal to a strict Celsius threshold is not an event."""
+    time = pd.date_range("2001-01-01", periods=3)
+    source = xr.DataArray(
+        [value] * 3,
+        dims="time",
+        coords={"time": time},
+        name=variable,
+        attrs={"units": "degF"},
+    )
+    actual = getattr(icclim.dcsc, name.lower())(
+        source,
+        out_file=None,
+        completeness="none",
+        logs_verbosity="SILENT",
+    )[name]
+    np.testing.assert_array_equal(actual.values, [0])
 
 
 @dataclass(frozen=True)
@@ -202,27 +268,27 @@ def _normal_reference(
     split: bool,
 ) -> np.ndarray:
     """Apply the DRIAS normal departure and spell definitions directly."""
-    time = pd.DatetimeIndex(study.time.values)
-    years = np.unique(time.year)
+    time_years = np.asarray(study.time.dt.year.values)
+    years = np.unique(time_years)
     finite = np.isfinite(study.values) & np.isfinite(normal.values)
     if case.direction == "warm":
         events = finite & (study.values >= normal.values + 5.0)
     else:
         events = finite & (study.values <= normal.values - 5.0)
     if not case.spell:
-        return np.stack([events[time.year == year].sum(axis=0) for year in years])
+        return np.stack([events[time_years == year].sum(axis=0) for year in years])
 
     result = np.zeros((len(years), *events.shape[1:]), dtype=float)
     for cell in np.ndindex(events.shape[1:]):
         for start, end in _runs(events[(slice(None), *cell)]):
             if split:
                 for year_index, year in enumerate(years):
-                    length = int(np.sum(time[start : end + 1].year == year))
+                    length = int(np.sum(time_years[start : end + 1] == year))
                     if length >= 6:
                         result[(year_index, *cell)] += length
             elif end - start + 1 >= 6:
                 anchor = start if run_index == "first" else end
-                year_index = int(np.flatnonzero(years == time[anchor].year)[0])
+                year_index = int(np.flatnonzero(years == time_years[anchor])[0])
                 result[(year_index, *cell)] += end - start + 1
     return result
 
@@ -248,6 +314,26 @@ def test_normal_based_indices_match_drias_reference(
         logs_verbosity="SILENT",
     )[case.name].compute()
     expected = _normal_reference(study.compute(), normal, case, "first", False)
+    np.testing.assert_allclose(
+        actual.transpose("time", "lat", "lon").values, expected, equal_nan=True
+    )
+
+
+@pytest.mark.parametrize("unit", ["K", "degF"])
+@pytest.mark.parametrize("case", NORMAL_CASES, ids=lambda case: case.name)
+def test_normal_based_temperature_units_match_reference(
+    case: NormalCase, unit: str
+) -> None:
+    """The five-degree normal offset is invariant across temperature units."""
+    study, normal = _normal_cube(case, True)
+    actual = getattr(icclim.dcsc, case.name.lower())(
+        _temperature_in_unit(study, unit),
+        normal=_temperature_in_unit(normal, unit),
+        out_file=None,
+        completeness="none",
+        logs_verbosity="SILENT",
+    )[case.name].compute()
+    expected = _normal_reference(study, normal, case, "first", False)
     np.testing.assert_allclose(
         actual.transpose("time", "lat", "lon").values, expected, equal_nan=True
     )
@@ -356,8 +442,8 @@ def _precipitation_reference(
     split: bool = False,
 ) -> np.ndarray:
     """Evaluate DRIAS precipitation reductions in mm/day without library code."""
-    time = pd.DatetimeIndex(source.time.values)
-    years = np.unique(time.year)
+    time_years = np.asarray(source.time.dt.year.values)
+    years = np.unique(time_years)
     values = source.values * (86400.0 if source.attrs["units"] == "kg m-2 s-1" else 1.0)
     finite = np.isfinite(values)
     if case.reducer == "run":
@@ -367,13 +453,13 @@ def _precipitation_reference(
             for start, end in _runs(events[(slice(None), *cell)]):
                 if split:
                     for year_index, year in enumerate(years):
-                        length = int(np.sum(time[start : end + 1].year == year))
+                        length = int(np.sum(time_years[start : end + 1] == year))
                         result[(year_index, *cell)] = max(
                             result[(year_index, *cell)], length
                         )
                 else:
                     anchor = start if run_index == "first" else end
-                    year_index = int(np.flatnonzero(years == time[anchor].year)[0])
+                    year_index = int(np.flatnonzero(years == time_years[anchor])[0])
                     result[(year_index, *cell)] = max(
                         result[(year_index, *cell)], end - start + 1
                     )
@@ -381,7 +467,7 @@ def _precipitation_reference(
 
     outputs = []
     for year in years:
-        selected = time.year == year
+        selected = time_years == year
         period = values[selected]
         period_finite = finite[selected]
         if case.reducer == "mean":
@@ -447,15 +533,17 @@ def test_precipitation_run_attribution_matches_reference(
 
 @pytest.mark.xfail(strict=True, reason="#670")
 @pytest.mark.parametrize("chunk_size", [None, 1, 7, -1], ids=["eager", "time1", "time7", "full"])
+@pytest.mark.parametrize("unit", ["degC", "K", "degF"])
 @pytest.mark.parametrize(
     ("name", "variable", "quantile"),
     [("TX10", "tasmax", 0.10), ("TX90", "tasmax", 0.90), ("TN10", "tasmin", 0.10), ("TN90", "tasmin", 0.90)],
 )
 def test_temperature_percentiles_are_values_in_degrees(
-    name: str, variable: str, quantile: float, chunk_size: int | None
+    name: str, variable: str, quantile: float, unit: str, chunk_size: int | None
 ) -> None:
     """DRIAS TXQ/TNQ indices are period percentiles, not occurrence counts."""
-    source = _temperature_cube()[variable]
+    original = _temperature_cube()[variable]
+    source = _temperature_in_unit(original, unit)
     if chunk_size is not None:
         size = source.sizes["time"] if chunk_size == -1 else chunk_size
         source = source.chunk({"time": size})
@@ -468,7 +556,7 @@ def test_temperature_percentiles_are_values_in_degrees(
         completeness="none",
         logs_verbosity="SILENT",
     )[name].compute()
-    values = source.compute().sel(time=slice("2001-01-01", "2002-12-31"))
+    values = original.sel(time=slice("2001-01-01", "2002-12-31"))
     years = pd.DatetimeIndex(values.time.values).year
     expected = np.stack(
         [
@@ -497,19 +585,19 @@ def _period_precipitation_reference(
     source: xr.DataArray, name: str, quantile: float
 ) -> np.ndarray:
     """Apply the annual percentile formulas in the DRIAS 2023 table."""
-    time = pd.DatetimeIndex(source.time.values)
+    time_years = np.asarray(source.time.dt.year.values)
     values = source.values * (86400.0 if source.attrs["units"] == "kg m-2 s-1" else 1.0)
     outputs = []
-    output_years = np.unique(time.year)
+    output_years = np.unique(time_years)
     reference_threshold = None
     if name == "R99":
-        reference = values[time.year == output_years[0]]
+        reference = values[time_years == output_years[0]]
         reference_threshold = np.nanquantile(
             reference, quantile, axis=0, method="median_unbiased"
         )
         output_years = output_years[1:]
     for year in output_years:
-        period = values[time.year == year]
+        period = values[time_years == year]
         threshold = (
             reference_threshold
             if reference_threshold is not None
@@ -578,15 +666,15 @@ def _wind_cube(unit: str = "m s-1") -> xr.DataArray:
     )
 
 
+WIND_CASES = [
+    pytest.param("FFAV", marks=pytest.mark.xfail(strict=True, reason="#673")),
+    pytest.param("FF98", marks=pytest.mark.xfail(strict=True, reason="#674")),
+]
+
+
 @pytest.mark.parametrize("chunk_size", [None, 1, 7, -1], ids=["eager", "time1", "time7", "full"])
 @pytest.mark.parametrize("unit", ["m s-1", "km h-1"])
-@pytest.mark.parametrize(
-    "name",
-    [
-        pytest.param("FFAV", marks=pytest.mark.xfail(strict=True, reason="#673")),
-        pytest.param("FF98", marks=pytest.mark.xfail(strict=True, reason="#674")),
-    ],
-)
+@pytest.mark.parametrize("name", WIND_CASES)
 def test_wind_indices_match_drias_reference(
     name: str, unit: str, chunk_size: int | None
 ) -> None:
@@ -623,3 +711,349 @@ def test_wind_indices_match_drias_reference(
         rtol=1e-6,
         equal_nan=True,
     )
+
+
+CALENDARS = ("standard", "noleap", "360_day", "all_leap")
+
+
+def _in_calendar(source: xr.Dataset | xr.DataArray, calendar: str):
+    """Convert a deterministic cube without using climate-index code."""
+    if calendar == "standard":
+        return source
+    return source.convert_calendar(calendar, align_on="date", missing=np.nan)
+
+
+@pytest.mark.parametrize("calendar", CALENDARS)
+@pytest.mark.parametrize("case", TEMPERATURE_CASES, ids=lambda case: case.name)
+def test_basic_temperature_calendars_match_reference(
+    case: TemperatureCase, calendar: str
+) -> None:
+    """Basic temperature formulas apply unchanged to all supported calendars."""
+    source = _in_calendar(_temperature_cube(), calendar)
+    actual = getattr(icclim.dcsc, case.name.lower())(
+        source[list(case.variables)],
+        var_name=list(case.variables),
+        out_file=None,
+        completeness="none",
+        logs_verbosity="SILENT",
+    )[case.name].compute()
+    expected = _annual_temperature_reference(source, case)
+    np.testing.assert_allclose(actual.values, expected, equal_nan=True)
+
+
+@pytest.mark.parametrize("calendar", CALENDARS)
+@pytest.mark.parametrize("case", NORMAL_CASES, ids=lambda case: case.name)
+def test_normal_based_calendars_match_reference(
+    case: NormalCase, calendar: str
+) -> None:
+    """Reference-normal comparisons and spells work on cftime calendars."""
+    study, normal = _normal_cube(case, True)
+    study = _in_calendar(study, calendar)
+    normal = _in_calendar(normal, calendar)
+    actual = getattr(icclim.dcsc, case.name.lower())(
+        study,
+        normal=normal,
+        run_index="first",
+        out_file=None,
+        completeness="none",
+        logs_verbosity="SILENT",
+    )[case.name].compute()
+    expected = _normal_reference(study, normal, case, "first", False)
+    np.testing.assert_allclose(
+        actual.transpose("time", "lat", "lon").values, expected, equal_nan=True
+    )
+
+
+@pytest.mark.parametrize("calendar", CALENDARS)
+@pytest.mark.parametrize("case", PRECIPITATION_CASES, ids=lambda case: case.name)
+def test_basic_precipitation_calendars_match_reference(
+    case: PrecipitationCase, calendar: str
+) -> None:
+    """Precipitation reductions work on standard and cftime calendars."""
+    source = _in_calendar(_precipitation_cube(case, "mm/day"), calendar)
+    actual = getattr(icclim.dcsc, case.name.lower())(
+        source,
+        run_index="first",
+        out_file=None,
+        completeness="none",
+        logs_verbosity="SILENT",
+    )[case.name].compute()
+    expected = _precipitation_reference(source, case)
+    np.testing.assert_allclose(
+        actual.transpose("time", "lat", "lon").values, expected, equal_nan=True
+    )
+
+
+@pytest.mark.parametrize("calendar", CALENDARS)
+@pytest.mark.parametrize(("name", "quantile"), PERCENTILE_PRECIPITATION)
+def test_percentile_precipitation_calendars_match_reference(
+    name: str, quantile: float, calendar: str
+) -> None:
+    """Annual percentile formulas support standard and cftime calendars."""
+    source = _in_calendar(
+        _precipitation_cube(PRECIPITATION_CASES[0], "mm/day"), calendar
+    )
+    kwargs = {}
+    if name == "R99":
+        kwargs = {
+            "base_period_time_range": ["2000-01-01", "2000-12-30"],
+            "time_range": ["2001-01-01", "2002-12-30"],
+        }
+    actual = getattr(icclim.dcsc, name.lower())(
+        source,
+        out_file=None,
+        completeness="none",
+        logs_verbosity="SILENT",
+        **kwargs,
+    )[name].compute()
+    expected = _period_precipitation_reference(source, name, quantile)
+    np.testing.assert_allclose(
+        actual.transpose("time", "lat", "lon").values,
+        expected,
+        rtol=1e-6,
+        equal_nan=True,
+    )
+
+
+@pytest.mark.parametrize("calendar", CALENDARS)
+@pytest.mark.parametrize(
+    "name",
+    [pytest.param("FFAV", marks=pytest.mark.xfail(strict=True, reason="#673")), "FF98"],
+)
+def test_wind_calendars_match_reference(name: str, calendar: str) -> None:
+    """Wind reference-period formulas support standard and cftime calendars."""
+    source = _in_calendar(_wind_cube(), calendar)
+    actual = getattr(icclim.dcsc, name.lower())(
+        source,
+        base_period_time_range=["2000-01-01", "2000-12-30"],
+        time_range=["2001-01-01", "2002-12-30"],
+        out_file=None,
+        completeness="none",
+        logs_verbosity="SILENT",
+    )[name].compute()
+    assert actual.sizes["time"] == 2
+
+
+@pytest.mark.xfail(strict=True, reason="#670")
+@pytest.mark.parametrize("calendar", CALENDARS)
+@pytest.mark.parametrize(
+    ("name", "variable", "quantile"),
+    [("TX10", "tasmax", 0.10), ("TX90", "tasmax", 0.90), ("TN10", "tasmin", 0.10), ("TN90", "tasmin", 0.90)],
+)
+def test_temperature_percentile_calendars_match_reference(
+    name: str, variable: str, quantile: float, calendar: str
+) -> None:
+    """Temperature percentile values support standard and cftime calendars."""
+    source = _in_calendar(_temperature_cube()[variable], calendar)
+    actual = getattr(icclim.dcsc, name.lower())(
+        source,
+        base_period_time_range=["2000-01-01", "2000-12-30"],
+        time_range=["2001-01-01", "2002-12-30"],
+        out_file=None,
+        completeness="none",
+        logs_verbosity="SILENT",
+    )[name].compute()
+    years = np.asarray(source.time.dt.year.values)
+    expected = np.stack(
+        [
+            np.nanquantile(
+                source.values[years == year],
+                quantile,
+                axis=0,
+                method="median_unbiased",
+            )
+            for year in (2001, 2002)
+        ]
+    )
+    np.testing.assert_allclose(actual.values, expected, equal_nan=True)
+
+
+ALL_DCSC_NAMES = (
+    "TAV", "TXAV", "TRAV", "TX10", "TX90", "TN10", "TN90", "TNFD",
+    "TXFD", "SD", "TX35", "TR", "TXND", "TNHT", "TNND", "TNCWD",
+    "TXHWD", "HDD", "CDD", "PAV", "PINT", "RR", "RR1MM", "PN20MM",
+    "PXCDD", "PXCWD", "R99", "PFL90", "PQ90", "PQ99", "FFAV", "FF98",
+)
+
+
+def _parameter_value(item):
+    """Return a dataclass value stored directly or in a pytest parameter."""
+    return item.values[0] if hasattr(item, "values") else item
+
+
+BASIC_TEMPERATURE_BY_NAME = {
+    case.name: case for case in map(_parameter_value, TEMPERATURE_CASES)
+}
+NORMAL_BY_NAME = {case.name: case for case in NORMAL_CASES}
+PRECIPITATION_BY_NAME = {case.name: case for case in PRECIPITATION_CASES}
+
+
+def _edge_call(  # noqa: C901
+    name: str,
+    *,
+    slice_mode: str,
+    time_range: list[str],
+    completeness: str = "none",
+    whole_cell_missing: bool = False,
+) -> xr.DataArray:
+    """Call one DCSC entry point on its deterministic cube."""
+    kwargs = {
+        "slice_mode": slice_mode,
+        "time_range": time_range,
+        "out_file": None,
+        "completeness": completeness,
+        "logs_verbosity": "SILENT",
+    }
+    if slice_mode == "DJF":
+        kwargs["allow_partial_seasons"] = True
+    if name in BASIC_TEMPERATURE_BY_NAME:
+        case = BASIC_TEMPERATURE_BY_NAME[name]
+        source = _temperature_cube()[list(case.variables)]
+        kwargs["var_name"] = list(case.variables)
+    elif name in NORMAL_BY_NAME:
+        case = NORMAL_BY_NAME[name]
+        source, normal = _normal_cube(case, True)
+        kwargs.update(normal=normal, run_index="first")
+    elif name in {"TX10", "TX90", "TN10", "TN90"}:
+        variable = "tasmax" if name.startswith("TX") else "tasmin"
+        source = _temperature_cube()[variable]
+        kwargs["base_period_time_range"] = ["2000-01-01", "2000-12-31"]
+    elif name in PRECIPITATION_BY_NAME:
+        case = PRECIPITATION_BY_NAME[name]
+        source = _precipitation_cube(case, "mm/day")
+        kwargs["run_index"] = "first"
+    elif name in {"R99", "PFL90", "PQ90", "PQ99"}:
+        source = _precipitation_cube(PRECIPITATION_CASES[0], "mm/day")
+        if name == "R99":
+            kwargs["base_period_time_range"] = ["2000-01-01", "2000-12-31"]
+    else:
+        source = _wind_cube()
+        kwargs["base_period_time_range"] = ["2000-01-01", "2000-12-31"]
+    if whole_cell_missing:
+        source = source.copy(deep=True)
+        if isinstance(source, xr.Dataset):
+            for variable in source.data_vars.values():
+                variable.loc[{"lat": 45.0, "lon": 1.0}] = np.nan
+        else:
+            source.loc[{"lat": 45.0, "lon": 1.0}] = np.nan
+    return getattr(icclim.dcsc, name.lower())(source, **kwargs)[name].compute()
+
+
+EDGE_NAMES = [
+    pytest.param("FFAV", marks=pytest.mark.xfail(strict=True, reason="#673"))
+    if name == "FFAV"
+    else name
+    for name in ALL_DCSC_NAMES
+]
+
+
+@pytest.mark.parametrize("slice_mode", ["month", "DJF"])
+@pytest.mark.parametrize("name", EDGE_NAMES)
+def test_monthly_and_seasonal_outputs_have_metadata(name: str, slice_mode: str) -> None:
+    """Every DCSC entry point supports the documented monthly and seasonal output."""
+    actual = _edge_call(
+        name,
+        slice_mode=slice_mode,
+        time_range=["2001-01-01", "2002-12-31"],
+    )
+    assert "time" in actual.dims
+    assert actual.attrs.get("units")
+    assert actual.attrs.get("long_name")
+    assert actual.attrs.get("standard_name")
+    if name not in {"PQ90", "PQ99"}:
+        assert actual.attrs["long_name"] != "todo"
+        assert actual.attrs["standard_name"] != "todo"
+    assert actual.time.size > 0
+
+
+@pytest.mark.xfail(strict=True, reason="#676")
+@pytest.mark.parametrize("name", ["PQ90", "PQ99"])
+def test_precipitation_percentile_metadata_is_meaningful(name: str) -> None:
+    """Published percentile outputs must not expose placeholder metadata."""
+    actual = _edge_call(
+        name, slice_mode="year", time_range=["2001-01-01", "2002-12-31"]
+    )
+    assert actual.attrs["long_name"] != "todo"
+    assert actual.attrs["standard_name"] != "todo"
+
+
+SUBSET_NAMES = [
+    pytest.param("FFAV", marks=pytest.mark.xfail(strict=True, reason="#673"))
+    if name == "FFAV"
+    else name
+    for name in ALL_DCSC_NAMES
+]
+
+
+@pytest.mark.parametrize("name", SUBSET_NAMES)
+def test_time_range_subset_equals_full_result_slice(name: str) -> None:
+    """A one-year request equals the same year selected from a two-year request."""
+    full = _edge_call(
+        name, slice_mode="year", time_range=["2001-01-01", "2002-12-31"]
+    )
+    subset = _edge_call(
+        name, slice_mode="year", time_range=["2002-01-01", "2002-12-31"]
+    )
+    selected = full.sel(time=slice("2002-01-01", "2002-12-31"))
+    xr.testing.assert_allclose(subset, selected)
+
+
+@pytest.mark.parametrize("name", EDGE_NAMES)
+def test_strict_completeness_masks_a_whole_missing_grid_point(name: str) -> None:
+    """Strict completeness never turns an entirely missing cell into a value."""
+    actual = _edge_call(
+        name,
+        slice_mode="year",
+        time_range=["2001-01-01", "2002-12-31"],
+        completeness="strict",
+        whole_cell_missing=True,
+    )
+    assert actual.sel(lat=45.0, lon=1.0).isnull().all()
+
+
+@pytest.mark.parametrize(("run_index", "split"), [("first", False), ("last", False), ("last", True)])
+@pytest.mark.parametrize("name", ["TNCWD", "TXHWD", "PXCDD", "PXCWD"])
+def test_run_crossing_a_whole_period_follows_attribution_convention(
+    name: str, run_index: str, split: bool
+) -> None:
+    """One 2000-2002 run is attributed whole or split at year boundaries."""
+    if name in NORMAL_BY_NAME:
+        case = NORMAL_BY_NAME[name]
+        study, normal = _normal_cube(case, False)
+        direction = 1.0 if case.direction == "warm" else -1.0
+        study.data = normal.values + direction * 5.0
+        kwargs = {"normal": normal}
+    else:
+        case = PRECIPITATION_BY_NAME[name]
+        study = _precipitation_cube(case, "mm/day")
+        study.data[:] = 0.2 if case.operator == "<" else 2.0
+        kwargs = {}
+    actual = getattr(icclim.dcsc, name.lower())(
+        study,
+        run_index=run_index,
+        split_runs_at_period_boundary=split,
+        out_file=None,
+        completeness="none",
+        logs_verbosity="SILENT",
+        **kwargs,
+    )[name].compute()
+    if split:
+        expected = np.array([366.0, 365.0, 365.0])
+    elif run_index == "first":
+        expected = (
+            np.array([1096.0, 0.0, 0.0])
+            if name in NORMAL_BY_NAME
+            else np.array([1096.0, np.nan, np.nan])
+        )
+    else:
+        expected = (
+            np.array([0.0, 0.0, 1096.0])
+            if name in NORMAL_BY_NAME
+            else np.array([np.nan, np.nan, 1096.0])
+        )
+    for cell in np.ndindex(actual.sizes["lat"], actual.sizes["lon"]):
+        np.testing.assert_allclose(
+            actual.transpose("time", "lat", "lon").values[(slice(None), *cell)],
+            expected,
+            equal_nan=True,
+        )
