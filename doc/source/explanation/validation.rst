@@ -174,10 +174,7 @@ Limits of the validation
   an absolute difference of 0.30 in the index. It shows that the values have the
   right size and sign and follow the precipitation, not that they agree to the
   last digit with another implementation.
-- For ``CFD``, a run that crosses the end of a year gives a known difference in the
-  reference-calculation test, recorded as a strict expected failure
-  (`#543 <https://github.com/cerfacs-globc/icclim/issues/543>`_). ``CD``, ``WD`` and
-  ``WW`` can differ by one day at the edges of a subset base period
+- ``CD``, ``WD`` and ``WW`` can differ by one day at the edges of a subset base period
   (`#559 <https://github.com/cerfacs-globc/icclim/issues/559>`_).
 - There is **no bit-for-bit guarantee between versions**. The results depend on the
   versions of xclim, xarray, numpy and scipy; a change of version can change the last
@@ -258,7 +255,7 @@ humidity). The families are described above.
    * - CSU
      - ATBD v11
      - family C; unit equivalence
-     - With ``split_runs_at_period_boundary=True`` the result is checked.
+     - A run is attributed to the period where it ends; with ``split_runs_at_period_boundary=True`` the result is checked.
    * - GD4
      - ATBD v11
      - family C; unit equivalence
@@ -270,7 +267,7 @@ humidity). The families are described above.
    * - CFD
      - ATBD v11
      - family C; unit equivalence
-     - A run across the end of a year gives a known difference (issue 543, strict expected failure); with ``split_runs_at_period_boundary=True`` the result is checked.
+     - A run is attributed to the period where it ends, as in the ATBD, RClimDex and climdex; with ``split_runs_at_period_boundary=True`` the result is checked.
    * - HD17
      - ATBD v11
      - family C; unit equivalence
