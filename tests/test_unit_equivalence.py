@@ -83,7 +83,12 @@ def _dataset(
         data[variable] = xr.DataArray(
             conversion(values),
             dims=("time", "x"),
-            coords={"time": time, "x": np.arange(N_CELLS)},
+            coords={
+                "time": time,
+                "x": np.arange(N_CELLS),
+                # Some indices (HI) need the latitude of the data.
+                "lat": ("x", [42.0, 47.0]),
+            },
             name=variable,
             attrs={"units": unit_of[variable]},
         )
