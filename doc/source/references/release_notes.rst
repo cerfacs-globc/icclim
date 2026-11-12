@@ -6,6 +6,17 @@
 Unreleased
 **********
 
+-  [fix] The generic ``excess`` and ``deficit`` no longer raise ``KeyError: 'units'`` on a
+   precipitation with xarray 2026.2 and later (issue #644). The units of the result are
+   taken from the studied variable instead of from the subtraction of the threshold,
+   whose attributes recent xarray versions drop when the texts of the units differ
+   ("mm/day" and "mm d-1").
+   Affected: every release with ``excess`` and ``deficit``, with xarray 2026.2 or later.
+
+**********
+Unreleased
+**********
+
 -  [fix] The DCSC indices that use a normal (``TXND``, ``TNHT``, ``TNND``, ``TNCWD`` and
    ``TXHWD``) no longer raise ``DimensionalityError`` ("cannot convert from
    delta_degree_Celsius to degree_Celsius") when the input is in degrees Celsius or
