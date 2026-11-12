@@ -4771,7 +4771,7 @@ def pq90(
             reference_period=base_period_time_range,
             threshold_min_value="1 mm d-1",
         ),
-        out_unit="%",
+        out_unit="mm/day",
     )
 
 
@@ -4959,7 +4959,7 @@ def pq99(
             reference_period=base_period_time_range,
             threshold_min_value="1 mm d-1",
         ),
-        out_unit="%",
+        out_unit="mm/day",
     )
 
 
