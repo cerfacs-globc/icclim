@@ -243,10 +243,6 @@ CASE_IDS = [case.id for case in CASES]
 
 # Failures found by this test on master, kept as strict expected failures: when one is
 # fixed the test passes unexpectedly and fails, which says to remove its entry.
-_OFFSET = (
-    "#617: the offset of 5 delta_degree_Celsius cannot be converted to the units of"
-    " the normal (DimensionalityError) with degC and degF input"
-)
 _PERCENT = (
     "the output unit of the precipitation percentile is '%' while the values are"
     " in mm/day (DimensionalityError for any input unit)"
@@ -257,11 +253,6 @@ _EXCESS = (
     " xarray 2024.11 and 2025.1)"
 )
 XFAIL = {
-    "dcsc:TXND": _OFFSET,
-    "dcsc:TNHT": _OFFSET,
-    "dcsc:TNND": _OFFSET,
-    "dcsc:TNCWD": _OFFSET,
-    "dcsc:TXHWD": _OFFSET,
     "dcsc:PQ90": _PERCENT,
     "dcsc:PQ99": _PERCENT,
     "generic:excess:pr": _EXCESS,
