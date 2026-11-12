@@ -35,8 +35,9 @@ The xarray issue cited by the date-event TODO,
 `xarray issue 2511 <https://github.com/pydata/xarray/issues/2511>`_, was closed
 when `xarray pull request 5873
 <https://github.com/pydata/xarray/pull/5873>`_ merged on March 15, 2023.
-icclim still declares ``xarray>=2022.6.0``, which predates that fix, so the
-minimum supported version cannot rely on it.
+icclim declares ``xarray>=2024.11.0`` since the minimum versions were raised
+(pull request #630), which includes that fix, so the minimum supported version no
+longer prevents relying on it.
 
 In addition, the public max/min date-event path still attempts vectorized
 indexing with a Dask-backed ``argmax`` result and fails with current xarray and

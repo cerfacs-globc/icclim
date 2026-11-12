@@ -5,19 +5,23 @@ channels:
  - defaults
 dependencies:
 # Core dependencies
- - python>=3.10
- - xclim>=0.45
- - numpy
- - xarray>=2022.6
+ - python>=3.11
+ - xclim>=0.56.0
+ - numpy>=1.24
+ - xarray>=2024.11.0
  - cf_xarray>=0.7.4
- - dask[array]
+ - dask>=2024.11.1
  - netCDF4>=1.5.7
- - cftime>=1.5.0
+ - cftime>=1.6.2
  - psutil
- - zarr
+ - zarr>=2.12.0
+ - numcodecs>=0.10.0
  - fsspec
- - dateparser
- - pandas>=1.3
+ - dateparser>=1.1.4
+ - pandas>=2.2.0
+ - jinja2>=3.0
+ - typing-extensions>=4.5.0
+ - pint>=0.25
  # Dev dependencies
  - pre-commit
  - pydata-sphinx-theme
@@ -32,4 +36,3 @@ dependencies:
  # Extra dependencies
  - matplotlib
  - cartopy
- - pint<0.20
