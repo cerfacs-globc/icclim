@@ -168,6 +168,15 @@ INDICATORS_TEMPLATES_EN: dict[str, IndicatorMetadata] = {
                          " coefficient of the latitude.",
         "cell_methods":  "time: sum over {{source_freq.units}}",
     },
+    "biologically_effective_degree_days": {
+        "standard_name": "biologically_effective_degree_days",  # not CF
+        "long_name":     "Biologically Effective Degree Days for each"
+                         " {{output_freq.long_name}}: sum from 1 April to 30"
+                         " September of the daily mean of the minimum and maximum"
+                         " temperature above 10 degree_Celsius, limited to 9"
+                         " degree_Celsius per day.",
+        "cell_methods":  "time: sum over {{source_freq.units}}",
+    },
     "difference_of_extremes":  {
         "standard_name": "range_of_extremes_between_{{climate_vars[0].standard_name}}"
                          "_and_{{climate_vars[1].standard_name}}", # not CF

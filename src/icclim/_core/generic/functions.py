@@ -1690,6 +1690,55 @@ def huglin_index(
     return hi
 
 
+def biologically_effective_degree_days(
+    climate_vars: list[ClimateVariable],
+    resample_freq: Frequency,
+    **kwargs,  # noqa: ARG001
+) -> DataArray:
+    """
+    Compute the Biologically Effective Degree Days (BEDD) of the ECA&D ATBD v11.
+
+    ``BEDD = sum(min(max((TX + TN) / 2 - b, 0), 9))`` over the days from 1 April to
+    30 September of each output period, in degree_Celsius day, where TX and TN are
+    the daily maximum and minimum temperature and ``b = 10`` degree_Celsius.
+
+    Parameters
+    ----------
+    climate_vars : list[ClimateVariable]
+        The daily minimum temperature, then the daily maximum temperature.
+    resample_freq : Frequency
+        Resampling frequency of the output.
+    **kwargs : dict
+        Ignored keyword arguments (for compatibility).
+
+    Returns
+    -------
+    DataArray
+        The BEDD. It is missing for the periods without any valid day from April to
+        September.
+
+    Notes
+    -----
+    This is the definition of xclim's ``biologically_effective_degree_days`` with
+    ``method="icclim"`` (no latitude coefficient, no temperature range adjustment),
+    except that a period without any valid day is missing instead of 0.
+    """
+    from xclim.core.units import convert_units_to  # noqa: PLC0415
+
+    tasmin, tasmax = get_couple_of_var(
+        climate_vars, "biologically_effective_degree_days"
+    )
+    tasmin = convert_units_to(tasmin, "degC")
+    tasmax = convert_units_to(tasmax, "degC")
+    daily = (((tasmax + tasmin) / 2) - 10).clip(min=0, max=9)
+    daily = daily.where(
+        _viticulture_season(tasmax) & tasmin.notnull() & tasmax.notnull()
+    )
+    bedd = daily.resample(time=resample_freq.pandas_freq).sum(min_count=1)
+    bedd.attrs["units"] = "degree_Celsius day"
+    return bedd
+
+
 def difference_of_extremes(
     climate_vars: list[ClimateVariable],
     resample_freq: Frequency,

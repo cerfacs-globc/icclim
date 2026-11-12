@@ -3,7 +3,10 @@
 from __future__ import annotations
 
 from icclim._core.constants import ECAD_ATBD, QUANTILE_BASED, REFERENCE_PERIOD_INDEX
-from icclim._core.generic.functions import huglin_index
+from icclim._core.generic.functions import (
+    biologically_effective_degree_days,
+    huglin_index,
+)
 from icclim._core.generic.indicator import GenericIndicator
 from icclim._core.model.index_group import IndexGroupRegistry
 from icclim._core.model.registry import Registry
@@ -29,6 +32,16 @@ HuglinIndex = GenericIndicator(
     definition="Huglin Index, ECA&D ATBD v11: sum from 1 April to 30 September of"
     " ((TG - 10) + (TX - 10)) / 2 * K, with K the daylength coefficient of the"
     " latitude.",
+    wmo_aggregation="sum",
+)
+
+
+BiologicallyEffectiveDegreeDays = GenericIndicator(
+    "biologically_effective_degree_days",
+    biologically_effective_degree_days,
+    check_vars=_check_couple_of_vars,
+    definition="Biologically Effective Degree Days, ECA&D ATBD v11: sum from 1 April"
+    " to 30 September of min(max((TX + TN) / 2 - 10, 0), 9).",
     wmo_aggregation="sum",
 )
 
@@ -838,6 +851,21 @@ class EcadIndexRegistry(Registry[StandardIndex]):
         group=IndexGroupRegistry.DROUGHT,
         input_variables=[
             StandardVariableRegistry.TAS,
+            StandardVariableRegistry.TAS_MAX,
+        ],
+        qualifiers=[],
+        output_unit="degree_Celsius day",
+    )
+    BEDD = StandardIndex(
+        reference=ECAD_REFERENCE,
+        indicator=BiologicallyEffectiveDegreeDays,
+        definition="Biologically Effective Degree Days (degree_Celsius day): sum "
+        "from 1 April to 30 September of min(max((TX + TN) / 2 - 10, 0), 9).",
+        source=ECAD_ATBD,
+        short_name="BEDD",
+        group=IndexGroupRegistry.DROUGHT,
+        input_variables=[
+            StandardVariableRegistry.TAS_MIN,
             StandardVariableRegistry.TAS_MAX,
         ],
         qualifiers=[],

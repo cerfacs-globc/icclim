@@ -173,8 +173,8 @@ Periodically
    15 s most mutants simply time out and tell us nothing), and treat every
    survivor as a missing test.
 #. **ECAD value coverage.** Keep an independent value test (see "oracles" above) for
-   every one of the 65 ECA&D indices, and extend it whenever an index is added. The
-   target is 65/65. Before the 7.3.1 audit it was 0/64: the existing tests only
+   every one of the 66 ECA&D indices, and extend it whenever an index is added. The
+   target is 66/66. Before the 7.3.1 audit it was 0/64: the existing tests only
    checked that, for example, TX90p or GSL ran and returned a result, not that the
    numbers matched the ECA&D definition.
 
