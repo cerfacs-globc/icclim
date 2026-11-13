@@ -20,6 +20,29 @@ Unreleased
    threshold are affected, the values exactly at a threshold in degrees Fahrenheit;
    data in K or in degC are not affected. All the indices with a temperature threshold
    are concerned, ``SU`` included. Affects the 7.x releases, not changed in 7.3.x.
+-  [fix] The DCSC indices ``PQ90`` and ``PQ99``, and the generic ``percentile``, no longer
+   have the placeholder ``"todo"`` as ``standard_name``, ``long_name`` and
+   ``cell_methods`` (issue #676). The ``standard_name`` is the one of the input variable
+   (``precipitation_flux``), as for the other statistics; the ``long_name`` is "Percentile
+   of the daily precipitation for each year." and the ``cell_methods`` is ``time:
+   percentile over days``. The template of ``difference_of_count_occurences``, which no
+   index uses, has no placeholder either. Metadata only: the values do not change.
+-  [Behaviour change] The DCSC index ``TRAV`` (mean of the daily thermal amplitude) is now
+   the absolute value of the mean of ``TX - TN`` (issue #668). It is always positive and
+   it does not depend on the order of ``var_name``. The results that were negative are now
+   positive: they were the calls without ``var_name`` (the inputs were declared as ``TN``,
+   ``TX``, so the sign has been reversed since 7.0.0) and the calls with
+   ``var_name=["tasmin", "tasmax"]``. The calls with ``var_name=["tasmax", "tasmin"]``
+   gave and still give the same result. The absolute value is taken on the mean of each
+   period, per grid point, not on each day; the data are not checked, so a ``TRAV``
+   computed on inconsistent data (``TX`` below ``TN`` everywhere) is positive and not
+   flagged. It uses the new generic function ``absolute_mean_of_difference``.
+-  [enh] New generic function ``icclim.absolute_mean_of_difference`` (and the generic index
+   ``absolute_mean_of_difference`` of ``icclim.index``): the absolute value of the
+   period mean of the daily difference of two variables, computed for each grid point on
+   the mean of the period, not on each day. The result is never negative and does not
+   depend on the order of the two variables. It is the function of the DCSC ``TRAV``
+   (issue #668). ``mean_of_difference`` is not changed.
 -  [fix] The DCSC index ``FFAV`` can compare the study period with a reference period
    taken from the same input series (issue #673). ``icclim.dcsc.ffav`` raised
    ``InvalidIcclimArgumentError`` ("It does not make sense to resample the reference

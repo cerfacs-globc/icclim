@@ -66,6 +66,7 @@ Package Contents
     max_of_rolling_average
     min_of_rolling_average
     mean_of_difference
+    absolute_mean_of_difference
     difference_of_extremes
     mean_of_absolute_one_time_step_difference
     difference_of_means
