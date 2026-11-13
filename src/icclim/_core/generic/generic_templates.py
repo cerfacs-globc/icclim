@@ -160,6 +160,16 @@ INDICATORS_TEMPLATES_EN: dict[str, IndicatorMetadata] = {
         "cell_methods":  "time: range within {{source_freq.units}}"
                          " time: mean over {{source_freq.units}}",
     },
+    "absolute_mean_of_difference": {
+        "standard_name": "range_between_{{climate_vars[0].standard_name}}"
+                         "_and_{{climate_vars[1].standard_name}}", # not CF
+        "long_name":     "Absolute value of the mean of difference between"
+                         " {{climate_vars[0].long_name}}"
+                         " and {{climate_vars[1].long_name}}"
+                         " for each {{output_freq.long_name}}.",
+        "cell_methods":  "time: range within {{source_freq.units}}"
+                         " time: mean over {{source_freq.units}}",
+    },
     "huglin_index": {
         "standard_name": "huglin_index",  # not CF
         "long_name":     "Huglin Index (heliothermal index) for each"
