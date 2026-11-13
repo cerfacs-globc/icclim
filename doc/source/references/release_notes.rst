@@ -6,6 +6,15 @@
 Unreleased
 **********
 
+-  [doc] The documentation states the positional order of ``var_name`` for the indices
+   with two variables whose result depends on it (issue #683): ``DTR`` (mean of
+   ``TX - TN``), ``ETR`` (``max(TX) - min(TN)``; swapped, a different quantity, not the
+   opposite), the generic ``mean_of_difference`` and ``difference_of_extremes``
+   (first and second variable), ``difference_of_means`` with two variables (study minus
+   reference), and ``CD``, ``CW``, ``WD`` and ``WW`` (temperature, then precipitation).
+   Each has its formula and an example call in its docstring and on the documentation
+   page. ``vDTR``, ``HI`` and ``BEDD`` do not depend on the order. No change of the
+   results.
 -  [doc] Document the run attribution of the periods that no run starts or ends in
    (issue #580). With ``run_index="first"`` or ``"last"`` a period without any event is
    ``0``, while a period wholly traversed by one continuous run attributed to another

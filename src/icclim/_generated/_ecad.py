@@ -135,6 +135,10 @@ def tg(
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
+        For the indices that take two variables, the order of the names is
+        positional: the first name is the first term of the formula (for example
+        ``var_name=["tasmax", "tasmin"]`` for ``DTR``, the mean of ``TX - TN``).
+        See the documentation of each index.
         Mandatory for the deprecated ``user_index`` bridge.
     slice_mode : FrequencyLike | Frequency, default="year"
         Type of temporal aggregation:
@@ -290,6 +294,10 @@ def tn(
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
+        For the indices that take two variables, the order of the names is
+        positional: the first name is the first term of the formula (for example
+        ``var_name=["tasmax", "tasmin"]`` for ``DTR``, the mean of ``TX - TN``).
+        See the documentation of each index.
         Mandatory for the deprecated ``user_index`` bridge.
     slice_mode : FrequencyLike | Frequency, default="year"
         Type of temporal aggregation:
@@ -445,6 +453,10 @@ def tx(
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
+        For the indices that take two variables, the order of the names is
+        positional: the first name is the first term of the formula (for example
+        ``var_name=["tasmax", "tasmin"]`` for ``DTR``, the mean of ``TX - TN``).
+        See the documentation of each index.
         Mandatory for the deprecated ``user_index`` bridge.
     slice_mode : FrequencyLike | Frequency, default="year"
         Type of temporal aggregation:
@@ -590,6 +602,14 @@ def dtr(
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
+    .. note::
+       ``var_name`` is positional: the order of its names is the order of the
+       formula. ``DTR`` is the mean of ``TX - TN``. The first name is the daily
+       maximum temperature (``TX``), the second name is the daily minimum
+       temperature (``TN``), for example ``icclim.dtr(ds, var_name=["tasmax",
+       "tasmin"])``. With the names in the other order, the result is the mean of
+       ``TN - TX``, negative.
+
 
     Parameters
     ----------
@@ -600,6 +620,10 @@ def dtr(
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
+        For the indices that take two variables, the order of the names is
+        positional: the first name is the first term of the formula (for example
+        ``var_name=["tasmax", "tasmin"]`` for ``DTR``, the mean of ``TX - TN``).
+        See the documentation of each index.
         Mandatory for the deprecated ``user_index`` bridge.
     slice_mode : FrequencyLike | Frequency, default="year"
         Type of temporal aggregation:
@@ -745,6 +769,15 @@ def etr(
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
+    .. note::
+       ``var_name`` is positional: the order of its names is the order of the
+       formula. ``ETR`` is ``max(TX) - min(TN)`` over each period. The first name is
+       the daily maximum temperature (``TX``), whose maximum is taken, the second
+       name is the daily minimum temperature (``TN``), whose minimum is taken, for
+       example ``icclim.etr(ds, var_name=["tasmax", "tasmin"])``. With the names in
+       the other order, the result is ``max(TN) - min(TX)``, a different quantity,
+       not the opposite of ``ETR``.
+
 
     Parameters
     ----------
@@ -755,6 +788,10 @@ def etr(
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
+        For the indices that take two variables, the order of the names is
+        positional: the first name is the first term of the formula (for example
+        ``var_name=["tasmax", "tasmin"]`` for ``DTR``, the mean of ``TX - TN``).
+        See the documentation of each index.
         Mandatory for the deprecated ``user_index`` bridge.
     slice_mode : FrequencyLike | Frequency, default="year"
         Type of temporal aggregation:
@@ -910,6 +947,10 @@ def vdtr(
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
+        For the indices that take two variables, the order of the names is
+        positional: the first name is the first term of the formula (for example
+        ``var_name=["tasmax", "tasmin"]`` for ``DTR``, the mean of ``TX - TN``).
+        See the documentation of each index.
         Mandatory for the deprecated ``user_index`` bridge.
     slice_mode : FrequencyLike | Frequency, default="year"
         Type of temporal aggregation:
@@ -1065,6 +1106,10 @@ def su(
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
+        For the indices that take two variables, the order of the names is
+        positional: the first name is the first term of the formula (for example
+        ``var_name=["tasmax", "tasmin"]`` for ``DTR``, the mean of ``TX - TN``).
+        See the documentation of each index.
         Mandatory for the deprecated ``user_index`` bridge.
     slice_mode : FrequencyLike | Frequency, default="year"
         Type of temporal aggregation:
@@ -1223,6 +1268,10 @@ def tr(
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
+        For the indices that take two variables, the order of the names is
+        positional: the first name is the first term of the formula (for example
+        ``var_name=["tasmax", "tasmin"]`` for ``DTR``, the mean of ``TX - TN``).
+        See the documentation of each index.
         Mandatory for the deprecated ``user_index`` bridge.
     slice_mode : FrequencyLike | Frequency, default="year"
         Type of temporal aggregation:
@@ -1386,6 +1435,10 @@ def wsdi(
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
+        For the indices that take two variables, the order of the names is
+        positional: the first name is the first term of the formula (for example
+        ``var_name=["tasmax", "tasmin"]`` for ``DTR``, the mean of ``TX - TN``).
+        See the documentation of each index.
         Mandatory for the deprecated ``user_index`` bridge.
     slice_mode : FrequencyLike | Frequency, default="year"
         Type of temporal aggregation:
@@ -1605,6 +1658,10 @@ def tg90p(
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
+        For the indices that take two variables, the order of the names is
+        positional: the first name is the first term of the formula (for example
+        ``var_name=["tasmax", "tasmin"]`` for ``DTR``, the mean of ``TX - TN``).
+        See the documentation of each index.
         Mandatory for the deprecated ``user_index`` bridge.
     slice_mode : FrequencyLike | Frequency, default="year"
         Type of temporal aggregation:
@@ -1799,6 +1856,10 @@ def tn90p(
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
+        For the indices that take two variables, the order of the names is
+        positional: the first name is the first term of the formula (for example
+        ``var_name=["tasmax", "tasmin"]`` for ``DTR``, the mean of ``TX - TN``).
+        See the documentation of each index.
         Mandatory for the deprecated ``user_index`` bridge.
     slice_mode : FrequencyLike | Frequency, default="year"
         Type of temporal aggregation:
@@ -1993,6 +2054,10 @@ def tx90p(
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
+        For the indices that take two variables, the order of the names is
+        positional: the first name is the first term of the formula (for example
+        ``var_name=["tasmax", "tasmin"]`` for ``DTR``, the mean of ``TX - TN``).
+        See the documentation of each index.
         Mandatory for the deprecated ``user_index`` bridge.
     slice_mode : FrequencyLike | Frequency, default="year"
         Type of temporal aggregation:
@@ -2183,6 +2248,10 @@ def txx(
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
+        For the indices that take two variables, the order of the names is
+        positional: the first name is the first term of the formula (for example
+        ``var_name=["tasmax", "tasmin"]`` for ``DTR``, the mean of ``TX - TN``).
+        See the documentation of each index.
         Mandatory for the deprecated ``user_index`` bridge.
     slice_mode : FrequencyLike | Frequency, default="year"
         Type of temporal aggregation:
@@ -2338,6 +2407,10 @@ def tnx(
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
+        For the indices that take two variables, the order of the names is
+        positional: the first name is the first term of the formula (for example
+        ``var_name=["tasmax", "tasmin"]`` for ``DTR``, the mean of ``TX - TN``).
+        See the documentation of each index.
         Mandatory for the deprecated ``user_index`` bridge.
     slice_mode : FrequencyLike | Frequency, default="year"
         Type of temporal aggregation:
@@ -2507,6 +2580,10 @@ def csu(
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
+        For the indices that take two variables, the order of the names is
+        positional: the first name is the first term of the formula (for example
+        ``var_name=["tasmax", "tasmin"]`` for ``DTR``, the mean of ``TX - TN``).
+        See the documentation of each index.
         Mandatory for the deprecated ``user_index`` bridge.
     slice_mode : FrequencyLike | Frequency, default="year"
         Type of temporal aggregation:
@@ -2690,6 +2767,10 @@ def gd4(
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
+        For the indices that take two variables, the order of the names is
+        positional: the first name is the first term of the formula (for example
+        ``var_name=["tasmax", "tasmin"]`` for ``DTR``, the mean of ``TX - TN``).
+        See the documentation of each index.
         Mandatory for the deprecated ``user_index`` bridge.
     slice_mode : FrequencyLike | Frequency, default="year"
         Type of temporal aggregation:
@@ -2848,6 +2929,10 @@ def fd(
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
+        For the indices that take two variables, the order of the names is
+        positional: the first name is the first term of the formula (for example
+        ``var_name=["tasmax", "tasmin"]`` for ``DTR``, the mean of ``TX - TN``).
+        See the documentation of each index.
         Mandatory for the deprecated ``user_index`` bridge.
     slice_mode : FrequencyLike | Frequency, default="year"
         Type of temporal aggregation:
@@ -3020,6 +3105,10 @@ def cfd(
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
+        For the indices that take two variables, the order of the names is
+        positional: the first name is the first term of the formula (for example
+        ``var_name=["tasmax", "tasmin"]`` for ``DTR``, the mean of ``TX - TN``).
+        See the documentation of each index.
         Mandatory for the deprecated ``user_index`` bridge.
     slice_mode : FrequencyLike | Frequency, default="year"
         Type of temporal aggregation:
@@ -3203,6 +3292,10 @@ def hd17(
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
+        For the indices that take two variables, the order of the names is
+        positional: the first name is the first term of the formula (for example
+        ``var_name=["tasmax", "tasmin"]`` for ``DTR``, the mean of ``TX - TN``).
+        See the documentation of each index.
         Mandatory for the deprecated ``user_index`` bridge.
     slice_mode : FrequencyLike | Frequency, default="year"
         Type of temporal aggregation:
@@ -3361,6 +3454,10 @@ def id(
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
+        For the indices that take two variables, the order of the names is
+        positional: the first name is the first term of the formula (for example
+        ``var_name=["tasmax", "tasmin"]`` for ``DTR``, the mean of ``TX - TN``).
+        See the documentation of each index.
         Mandatory for the deprecated ``user_index`` bridge.
     slice_mode : FrequencyLike | Frequency, default="year"
         Type of temporal aggregation:
@@ -3523,6 +3620,10 @@ def tg10p(
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
+        For the indices that take two variables, the order of the names is
+        positional: the first name is the first term of the formula (for example
+        ``var_name=["tasmax", "tasmin"]`` for ``DTR``, the mean of ``TX - TN``).
+        See the documentation of each index.
         Mandatory for the deprecated ``user_index`` bridge.
     slice_mode : FrequencyLike | Frequency, default="year"
         Type of temporal aggregation:
@@ -3717,6 +3818,10 @@ def tn10p(
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
+        For the indices that take two variables, the order of the names is
+        positional: the first name is the first term of the formula (for example
+        ``var_name=["tasmax", "tasmin"]`` for ``DTR``, the mean of ``TX - TN``).
+        See the documentation of each index.
         Mandatory for the deprecated ``user_index`` bridge.
     slice_mode : FrequencyLike | Frequency, default="year"
         Type of temporal aggregation:
@@ -3911,6 +4016,10 @@ def tx10p(
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
+        For the indices that take two variables, the order of the names is
+        positional: the first name is the first term of the formula (for example
+        ``var_name=["tasmax", "tasmin"]`` for ``DTR``, the mean of ``TX - TN``).
+        See the documentation of each index.
         Mandatory for the deprecated ``user_index`` bridge.
     slice_mode : FrequencyLike | Frequency, default="year"
         Type of temporal aggregation:
@@ -4101,6 +4210,10 @@ def txn(
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
+        For the indices that take two variables, the order of the names is
+        positional: the first name is the first term of the formula (for example
+        ``var_name=["tasmax", "tasmin"]`` for ``DTR``, the mean of ``TX - TN``).
+        See the documentation of each index.
         Mandatory for the deprecated ``user_index`` bridge.
     slice_mode : FrequencyLike | Frequency, default="year"
         Type of temporal aggregation:
@@ -4256,6 +4369,10 @@ def tnn(
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
+        For the indices that take two variables, the order of the names is
+        positional: the first name is the first term of the formula (for example
+        ``var_name=["tasmax", "tasmin"]`` for ``DTR``, the mean of ``TX - TN``).
+        See the documentation of each index.
         Mandatory for the deprecated ``user_index`` bridge.
     slice_mode : FrequencyLike | Frequency, default="year"
         Type of temporal aggregation:
@@ -4416,6 +4533,10 @@ def csdi(
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
+        For the indices that take two variables, the order of the names is
+        positional: the first name is the first term of the formula (for example
+        ``var_name=["tasmax", "tasmin"]`` for ``DTR``, the mean of ``TX - TN``).
+        See the documentation of each index.
         Mandatory for the deprecated ``user_index`` bridge.
     slice_mode : FrequencyLike | Frequency, default="year"
         Type of temporal aggregation:
@@ -4645,6 +4766,10 @@ def cdd(
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
+        For the indices that take two variables, the order of the names is
+        positional: the first name is the first term of the formula (for example
+        ``var_name=["tasmax", "tasmin"]`` for ``DTR``, the mean of ``TX - TN``).
+        See the documentation of each index.
         Mandatory for the deprecated ``user_index`` bridge.
     slice_mode : FrequencyLike | Frequency, default="year"
         Type of temporal aggregation:
@@ -4828,6 +4953,10 @@ def prcptot(
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
+        For the indices that take two variables, the order of the names is
+        positional: the first name is the first term of the formula (for example
+        ``var_name=["tasmax", "tasmin"]`` for ``DTR``, the mean of ``TX - TN``).
+        See the documentation of each index.
         Mandatory for the deprecated ``user_index`` bridge.
     slice_mode : FrequencyLike | Frequency, default="year"
         Type of temporal aggregation:
@@ -4986,6 +5115,10 @@ def rr1(
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
+        For the indices that take two variables, the order of the names is
+        positional: the first name is the first term of the formula (for example
+        ``var_name=["tasmax", "tasmin"]`` for ``DTR``, the mean of ``TX - TN``).
+        See the documentation of each index.
         Mandatory for the deprecated ``user_index`` bridge.
     slice_mode : FrequencyLike | Frequency, default="year"
         Type of temporal aggregation:
@@ -5144,6 +5277,10 @@ def sdii(
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
+        For the indices that take two variables, the order of the names is
+        positional: the first name is the first term of the formula (for example
+        ``var_name=["tasmax", "tasmin"]`` for ``DTR``, the mean of ``TX - TN``).
+        See the documentation of each index.
         Mandatory for the deprecated ``user_index`` bridge.
     slice_mode : FrequencyLike | Frequency, default="year"
         Type of temporal aggregation:
@@ -5316,6 +5453,10 @@ def cwd(
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
+        For the indices that take two variables, the order of the names is
+        positional: the first name is the first term of the formula (for example
+        ``var_name=["tasmax", "tasmin"]`` for ``DTR``, the mean of ``TX - TN``).
+        See the documentation of each index.
         Mandatory for the deprecated ``user_index`` bridge.
     slice_mode : FrequencyLike | Frequency, default="year"
         Type of temporal aggregation:
@@ -5499,6 +5640,10 @@ def rr(
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
+        For the indices that take two variables, the order of the names is
+        positional: the first name is the first term of the formula (for example
+        ``var_name=["tasmax", "tasmin"]`` for ``DTR``, the mean of ``TX - TN``).
+        See the documentation of each index.
         Mandatory for the deprecated ``user_index`` bridge.
     slice_mode : FrequencyLike | Frequency, default="year"
         Type of temporal aggregation:
@@ -5654,6 +5799,10 @@ def r10mm(
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
+        For the indices that take two variables, the order of the names is
+        positional: the first name is the first term of the formula (for example
+        ``var_name=["tasmax", "tasmin"]`` for ``DTR``, the mean of ``TX - TN``).
+        See the documentation of each index.
         Mandatory for the deprecated ``user_index`` bridge.
     slice_mode : FrequencyLike | Frequency, default="year"
         Type of temporal aggregation:
@@ -5812,6 +5961,10 @@ def r20mm(
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
+        For the indices that take two variables, the order of the names is
+        positional: the first name is the first term of the formula (for example
+        ``var_name=["tasmax", "tasmin"]`` for ``DTR``, the mean of ``TX - TN``).
+        See the documentation of each index.
         Mandatory for the deprecated ``user_index`` bridge.
     slice_mode : FrequencyLike | Frequency, default="year"
         Type of temporal aggregation:
@@ -5970,6 +6123,10 @@ def rx1day(
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
+        For the indices that take two variables, the order of the names is
+        positional: the first name is the first term of the formula (for example
+        ``var_name=["tasmax", "tasmin"]`` for ``DTR``, the mean of ``TX - TN``).
+        See the documentation of each index.
         Mandatory for the deprecated ``user_index`` bridge.
     slice_mode : FrequencyLike | Frequency, default="year"
         Type of temporal aggregation:
@@ -6125,6 +6282,10 @@ def rx5day(
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
+        For the indices that take two variables, the order of the names is
+        positional: the first name is the first term of the formula (for example
+        ``var_name=["tasmax", "tasmin"]`` for ``DTR``, the mean of ``TX - TN``).
+        See the documentation of each index.
         Mandatory for the deprecated ``user_index`` bridge.
     slice_mode : FrequencyLike | Frequency, default="year"
         Type of temporal aggregation:
@@ -6284,6 +6445,10 @@ def r75p(
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
+        For the indices that take two variables, the order of the names is
+        positional: the first name is the first term of the formula (for example
+        ``var_name=["tasmax", "tasmin"]`` for ``DTR``, the mean of ``TX - TN``).
+        See the documentation of each index.
         Mandatory for the deprecated ``user_index`` bridge.
     slice_mode : FrequencyLike | Frequency, default="year"
         Type of temporal aggregation:
@@ -6471,6 +6636,10 @@ def r75ptot(
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
+        For the indices that take two variables, the order of the names is
+        positional: the first name is the first term of the formula (for example
+        ``var_name=["tasmax", "tasmin"]`` for ``DTR``, the mean of ``TX - TN``).
+        See the documentation of each index.
         Mandatory for the deprecated ``user_index`` bridge.
     slice_mode : FrequencyLike | Frequency, default="year"
         Type of temporal aggregation:
@@ -6658,6 +6827,10 @@ def r95p(
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
+        For the indices that take two variables, the order of the names is
+        positional: the first name is the first term of the formula (for example
+        ``var_name=["tasmax", "tasmin"]`` for ``DTR``, the mean of ``TX - TN``).
+        See the documentation of each index.
         Mandatory for the deprecated ``user_index`` bridge.
     slice_mode : FrequencyLike | Frequency, default="year"
         Type of temporal aggregation:
@@ -6845,6 +7018,10 @@ def r95ptot(
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
+        For the indices that take two variables, the order of the names is
+        positional: the first name is the first term of the formula (for example
+        ``var_name=["tasmax", "tasmin"]`` for ``DTR``, the mean of ``TX - TN``).
+        See the documentation of each index.
         Mandatory for the deprecated ``user_index`` bridge.
     slice_mode : FrequencyLike | Frequency, default="year"
         Type of temporal aggregation:
@@ -7032,6 +7209,10 @@ def r99p(
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
+        For the indices that take two variables, the order of the names is
+        positional: the first name is the first term of the formula (for example
+        ``var_name=["tasmax", "tasmin"]`` for ``DTR``, the mean of ``TX - TN``).
+        See the documentation of each index.
         Mandatory for the deprecated ``user_index`` bridge.
     slice_mode : FrequencyLike | Frequency, default="year"
         Type of temporal aggregation:
@@ -7219,6 +7400,10 @@ def r99ptot(
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
+        For the indices that take two variables, the order of the names is
+        positional: the first name is the first term of the formula (for example
+        ``var_name=["tasmax", "tasmin"]`` for ``DTR``, the mean of ``TX - TN``).
+        See the documentation of each index.
         Mandatory for the deprecated ``user_index`` bridge.
     slice_mode : FrequencyLike | Frequency, default="year"
         Type of temporal aggregation:
@@ -7402,6 +7587,10 @@ def sd(
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
+        For the indices that take two variables, the order of the names is
+        positional: the first name is the first term of the formula (for example
+        ``var_name=["tasmax", "tasmin"]`` for ``DTR``, the mean of ``TX - TN``).
+        See the documentation of each index.
         Mandatory for the deprecated ``user_index`` bridge.
     slice_mode : FrequencyLike | Frequency, default="year"
         Type of temporal aggregation:
@@ -7557,6 +7746,10 @@ def sd1(
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
+        For the indices that take two variables, the order of the names is
+        positional: the first name is the first term of the formula (for example
+        ``var_name=["tasmax", "tasmin"]`` for ``DTR``, the mean of ``TX - TN``).
+        See the documentation of each index.
         Mandatory for the deprecated ``user_index`` bridge.
     slice_mode : FrequencyLike | Frequency, default="year"
         Type of temporal aggregation:
@@ -7715,6 +7908,10 @@ def sd5cm(
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
+        For the indices that take two variables, the order of the names is
+        positional: the first name is the first term of the formula (for example
+        ``var_name=["tasmax", "tasmin"]`` for ``DTR``, the mean of ``TX - TN``).
+        See the documentation of each index.
         Mandatory for the deprecated ``user_index`` bridge.
     slice_mode : FrequencyLike | Frequency, default="year"
         Type of temporal aggregation:
@@ -7873,6 +8070,10 @@ def sd50cm(
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
+        For the indices that take two variables, the order of the names is
+        positional: the first name is the first term of the formula (for example
+        ``var_name=["tasmax", "tasmin"]`` for ``DTR``, the mean of ``TX - TN``).
+        See the documentation of each index.
         Mandatory for the deprecated ``user_index`` bridge.
     slice_mode : FrequencyLike | Frequency, default="year"
         Type of temporal aggregation:
@@ -8025,6 +8226,16 @@ def cd(
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
+    .. note::
+       ``var_name`` is positional: the order of its names is the order of the
+       formula. ``CD`` counts the days when the temperature and the precipitation
+       are both beyond their percentile. The first name is the daily mean
+       temperature (``TG``), the second name is the daily precipitation (``pr``),
+       for example ``icclim.cd(ds, var_name=["tas", "pr"],
+       base_period_time_range=["1961-01-01", "1990-12-31"])``. The two variables are
+       not interchangeable: with the names in the other order, the temperature is
+       compared with a precipitation threshold, which fails on the units.
+
 
     Parameters
     ----------
@@ -8035,6 +8246,10 @@ def cd(
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
+        For the indices that take two variables, the order of the names is
+        positional: the first name is the first term of the formula (for example
+        ``var_name=["tasmax", "tasmin"]`` for ``DTR``, the mean of ``TX - TN``).
+        See the documentation of each index.
         Mandatory for the deprecated ``user_index`` bridge.
     slice_mode : FrequencyLike | Frequency, default="year"
         Type of temporal aggregation:
@@ -8225,6 +8440,16 @@ def cw(
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
+    .. note::
+       ``var_name`` is positional: the order of its names is the order of the
+       formula. ``CW`` counts the days when the temperature and the precipitation
+       are both beyond their percentile. The first name is the daily mean
+       temperature (``TG``), the second name is the daily precipitation (``pr``),
+       for example ``icclim.cw(ds, var_name=["tas", "pr"],
+       base_period_time_range=["1961-01-01", "1990-12-31"])``. The two variables are
+       not interchangeable: with the names in the other order, the temperature is
+       compared with a precipitation threshold, which fails on the units.
+
 
     Parameters
     ----------
@@ -8235,6 +8460,10 @@ def cw(
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
+        For the indices that take two variables, the order of the names is
+        positional: the first name is the first term of the formula (for example
+        ``var_name=["tasmax", "tasmin"]`` for ``DTR``, the mean of ``TX - TN``).
+        See the documentation of each index.
         Mandatory for the deprecated ``user_index`` bridge.
     slice_mode : FrequencyLike | Frequency, default="year"
         Type of temporal aggregation:
@@ -8425,6 +8654,16 @@ def wd(
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
+    .. note::
+       ``var_name`` is positional: the order of its names is the order of the
+       formula. ``WD`` counts the days when the temperature and the precipitation
+       are both beyond their percentile. The first name is the daily mean
+       temperature (``TG``), the second name is the daily precipitation (``pr``),
+       for example ``icclim.wd(ds, var_name=["tas", "pr"],
+       base_period_time_range=["1961-01-01", "1990-12-31"])``. The two variables are
+       not interchangeable: with the names in the other order, the temperature is
+       compared with a precipitation threshold, which fails on the units.
+
 
     Parameters
     ----------
@@ -8435,6 +8674,10 @@ def wd(
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
+        For the indices that take two variables, the order of the names is
+        positional: the first name is the first term of the formula (for example
+        ``var_name=["tasmax", "tasmin"]`` for ``DTR``, the mean of ``TX - TN``).
+        See the documentation of each index.
         Mandatory for the deprecated ``user_index`` bridge.
     slice_mode : FrequencyLike | Frequency, default="year"
         Type of temporal aggregation:
@@ -8625,6 +8868,16 @@ def ww(
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
+    .. note::
+       ``var_name`` is positional: the order of its names is the order of the
+       formula. ``WW`` counts the days when the temperature and the precipitation
+       are both beyond their percentile. The first name is the daily mean
+       temperature (``TG``), the second name is the daily precipitation (``pr``),
+       for example ``icclim.ww(ds, var_name=["tas", "pr"],
+       base_period_time_range=["1961-01-01", "1990-12-31"])``. The two variables are
+       not interchangeable: with the names in the other order, the temperature is
+       compared with a precipitation threshold, which fails on the units.
+
 
     Parameters
     ----------
@@ -8635,6 +8888,10 @@ def ww(
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
+        For the indices that take two variables, the order of the names is
+        positional: the first name is the first term of the formula (for example
+        ``var_name=["tasmax", "tasmin"]`` for ``DTR``, the mean of ``TX - TN``).
+        See the documentation of each index.
         Mandatory for the deprecated ``user_index`` bridge.
     slice_mode : FrequencyLike | Frequency, default="year"
         Type of temporal aggregation:
@@ -8831,6 +9088,10 @@ def fxx(
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
+        For the indices that take two variables, the order of the names is
+        positional: the first name is the first term of the formula (for example
+        ``var_name=["tasmax", "tasmin"]`` for ``DTR``, the mean of ``TX - TN``).
+        See the documentation of each index.
         Mandatory for the deprecated ``user_index`` bridge.
     slice_mode : FrequencyLike | Frequency, default="year"
         Type of temporal aggregation:
@@ -8986,6 +9247,10 @@ def fg6bft(
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
+        For the indices that take two variables, the order of the names is
+        positional: the first name is the first term of the formula (for example
+        ``var_name=["tasmax", "tasmin"]`` for ``DTR``, the mean of ``TX - TN``).
+        See the documentation of each index.
         Mandatory for the deprecated ``user_index`` bridge.
     slice_mode : FrequencyLike | Frequency, default="year"
         Type of temporal aggregation:
@@ -9144,6 +9409,10 @@ def fgcalm(
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
+        For the indices that take two variables, the order of the names is
+        positional: the first name is the first term of the formula (for example
+        ``var_name=["tasmax", "tasmin"]`` for ``DTR``, the mean of ``TX - TN``).
+        See the documentation of each index.
         Mandatory for the deprecated ``user_index`` bridge.
     slice_mode : FrequencyLike | Frequency, default="year"
         Type of temporal aggregation:
@@ -9302,6 +9571,10 @@ def fg(
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
+        For the indices that take two variables, the order of the names is
+        positional: the first name is the first term of the formula (for example
+        ``var_name=["tasmax", "tasmin"]`` for ``DTR``, the mean of ``TX - TN``).
+        See the documentation of each index.
         Mandatory for the deprecated ``user_index`` bridge.
     slice_mode : FrequencyLike | Frequency, default="year"
         Type of temporal aggregation:
@@ -9457,6 +9730,10 @@ def ddnorth(
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
+        For the indices that take two variables, the order of the names is
+        positional: the first name is the first term of the formula (for example
+        ``var_name=["tasmax", "tasmin"]`` for ``DTR``, the mean of ``TX - TN``).
+        See the documentation of each index.
         Mandatory for the deprecated ``user_index`` bridge.
     slice_mode : FrequencyLike | Frequency, default="year"
         Type of temporal aggregation:
@@ -9615,6 +9892,10 @@ def ddeast(
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
+        For the indices that take two variables, the order of the names is
+        positional: the first name is the first term of the formula (for example
+        ``var_name=["tasmax", "tasmin"]`` for ``DTR``, the mean of ``TX - TN``).
+        See the documentation of each index.
         Mandatory for the deprecated ``user_index`` bridge.
     slice_mode : FrequencyLike | Frequency, default="year"
         Type of temporal aggregation:
@@ -9773,6 +10054,10 @@ def ddsouth(
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
+        For the indices that take two variables, the order of the names is
+        positional: the first name is the first term of the formula (for example
+        ``var_name=["tasmax", "tasmin"]`` for ``DTR``, the mean of ``TX - TN``).
+        See the documentation of each index.
         Mandatory for the deprecated ``user_index`` bridge.
     slice_mode : FrequencyLike | Frequency, default="year"
         Type of temporal aggregation:
@@ -9931,6 +10216,10 @@ def ddwest(
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
+        For the indices that take two variables, the order of the names is
+        positional: the first name is the first term of the formula (for example
+        ``var_name=["tasmax", "tasmin"]`` for ``DTR``, the mean of ``TX - TN``).
+        See the documentation of each index.
         Mandatory for the deprecated ``user_index`` bridge.
     slice_mode : FrequencyLike | Frequency, default="year"
         Type of temporal aggregation:
@@ -10089,6 +10378,10 @@ def gsl(
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
+        For the indices that take two variables, the order of the names is
+        positional: the first name is the first term of the formula (for example
+        ``var_name=["tasmax", "tasmin"]`` for ``DTR``, the mean of ``TX - TN``).
+        See the documentation of each index.
         Mandatory for the deprecated ``user_index`` bridge.
     slice_mode : FrequencyLike | Frequency, default="year"
         Type of temporal aggregation:
@@ -10245,6 +10538,10 @@ def spi6(
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
+        For the indices that take two variables, the order of the names is
+        positional: the first name is the first term of the formula (for example
+        ``var_name=["tasmax", "tasmin"]`` for ``DTR``, the mean of ``TX - TN``).
+        See the documentation of each index.
         Mandatory for the deprecated ``user_index`` bridge.
     slice_mode : FrequencyLike | Frequency, default="year"
         Type of temporal aggregation:
@@ -10416,6 +10713,10 @@ def spi3(
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
+        For the indices that take two variables, the order of the names is
+        positional: the first name is the first term of the formula (for example
+        ``var_name=["tasmax", "tasmin"]`` for ``DTR``, the mean of ``TX - TN``).
+        See the documentation of each index.
         Mandatory for the deprecated ``user_index`` bridge.
     slice_mode : FrequencyLike | Frequency, default="year"
         Type of temporal aggregation:
@@ -10586,6 +10887,10 @@ def pp(
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
+        For the indices that take two variables, the order of the names is
+        positional: the first name is the first term of the formula (for example
+        ``var_name=["tasmax", "tasmin"]`` for ``DTR``, the mean of ``TX - TN``).
+        See the documentation of each index.
         Mandatory for the deprecated ``user_index`` bridge.
     slice_mode : FrequencyLike | Frequency, default="year"
         Type of temporal aggregation:
@@ -10741,6 +11046,10 @@ def ss(
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
+        For the indices that take two variables, the order of the names is
+        positional: the first name is the first term of the formula (for example
+        ``var_name=["tasmax", "tasmin"]`` for ``DTR``, the mean of ``TX - TN``).
+        See the documentation of each index.
         Mandatory for the deprecated ``user_index`` bridge.
     slice_mode : FrequencyLike | Frequency, default="year"
         Type of temporal aggregation:
@@ -10896,6 +11205,10 @@ def rh(
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
+        For the indices that take two variables, the order of the names is
+        positional: the first name is the first term of the formula (for example
+        ``var_name=["tasmax", "tasmin"]`` for ``DTR``, the mean of ``TX - TN``).
+        See the documentation of each index.
         Mandatory for the deprecated ``user_index`` bridge.
     slice_mode : FrequencyLike | Frequency, default="year"
         Type of temporal aggregation:
@@ -11051,6 +11364,10 @@ def hi(
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
+        For the indices that take two variables, the order of the names is
+        positional: the first name is the first term of the formula (for example
+        ``var_name=["tasmax", "tasmin"]`` for ``DTR``, the mean of ``TX - TN``).
+        See the documentation of each index.
         Mandatory for the deprecated ``user_index`` bridge.
     slice_mode : FrequencyLike | Frequency, default="year"
         Type of temporal aggregation:
@@ -11206,6 +11523,10 @@ def bedd(
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
+        For the indices that take two variables, the order of the names is
+        positional: the first name is the first term of the formula (for example
+        ``var_name=["tasmax", "tasmin"]`` for ``DTR``, the mean of ``TX - TN``).
+        See the documentation of each index.
         Mandatory for the deprecated ``user_index`` bridge.
     slice_mode : FrequencyLike | Frequency, default="year"
         Type of temporal aggregation:
