@@ -1,10 +1,11 @@
 """
-Guard for time-contiguous chunks of dask-backed inputs.
+Notice for time-contiguous chunks of dask-backed inputs.
 
 icclim keeps the chunks given by the user, except when the largest chunk is below 1/8
-of dask's ``array.chunk-size`` (rechunked to "auto") or above 8 times it (the time axis
-is rechunked to "auto" and a notice is printed once per process). Rechunking never
-changes the values.
+of dask's ``array.chunk-size`` (rechunked to "auto"). When the largest chunk is above 8
+times ``array.chunk-size`` along time (a single time chunk, or a few very long ones),
+the chunks are kept as they are and a notice advising other chunks is printed once per
+process.
 """
 
 from __future__ import annotations
@@ -17,21 +18,20 @@ import pytest
 import xarray as xr
 
 import icclim
-from icclim._core import input_parsing
 from icclim._core.input_parsing import (
     _chunk_eager_data,
     _largest_chunk_nbytes,
-    _reset_time_rechunk_notice,
+    _reset_time_chunks_notice,
 )
 
-NOTICE = "icclim rechunked the time axis of the input"
+NOTICE = "icclim: the input has one chunk, or very long chunks, along time"
 
 
 @pytest.fixture(autouse=True)
 def _fresh_notice():
-    _reset_time_rechunk_notice()
+    _reset_time_chunks_notice()
     yield
-    _reset_time_rechunk_notice()
+    _reset_time_chunks_notice()
 
 
 def _array(chunks, shape=(10957, 128, 256), dtype="float32") -> xr.DataArray:
@@ -45,32 +45,38 @@ def _array(chunks, shape=(10957, 128, 256), dtype="float32") -> xr.DataArray:
 # With dask's default chunk-size (128 MiB): small below 16 MiB, large above 1 GiB.
 
 
-def test_a_single_time_chunk_of_30_years_is_rechunked_with_a_notice(capsys) -> None:
-    data = _array((10957, 128, 256))
+@pytest.mark.parametrize("years", [30, 165])
+def test_a_single_time_chunk_prints_the_notice_and_is_kept(years: int, capsys) -> None:
+    n = int(years * 365.25)
+    data = _array((n, 128, 256), shape=(n, 128, 256))
     assert _largest_chunk_nbytes(data) > 2**30
     out = _chunk_eager_data(data)
-    assert len(out.chunks[0]) > 1
-    assert out.chunks[1] == data.chunks[1]
-    assert out.chunks[2] == data.chunks[2]
-    assert _largest_chunk_nbytes(out) <= 128 * 2**20
-    assert sum(out.chunks[0]) == 10957
-    assert capsys.readouterr().out.count(NOTICE) == 1
+    assert out.chunks == data.chunks
+    assert out is data
+    printed = capsys.readouterr().out
+    assert printed.count(NOTICE) == 1
+    assert "GiB" in printed
+    assert 'chunks="auto"' in printed
+    assert 'chunks={"time": 1024}' in printed
 
 
-def test_a_single_time_chunk_of_165_years_is_rechunked(capsys) -> None:
-    out = _chunk_eager_data(_array((60265, 128, 256), shape=(60265, 128, 256)))
-    assert max(out.chunks[0]) <= 1024
+def test_a_few_very_long_time_chunks_print_the_notice(capsys) -> None:
+    data = _array((9000, 128, 256))
+    out = _chunk_eager_data(data)
+    assert out.chunks == data.chunks
     assert capsys.readouterr().out.count(NOTICE) == 1
 
 
 @pytest.mark.parametrize("days", [365, 1024])
-def test_chunks_between_the_limits_are_untouched(days: int, capsys) -> None:
+def test_chunks_between_the_limits_are_untouched_without_notice(
+    days: int, capsys
+) -> None:
     data = _array((days, 128, 256))
     assert _chunk_eager_data(data).chunks == data.chunks
     assert capsys.readouterr().out == ""
 
 
-def test_small_chunks_keep_the_existing_rule(capsys) -> None:
+def test_small_chunks_keep_the_existing_rule_without_notice(capsys) -> None:
     data = _array((1, 128, 256))
     out = _chunk_eager_data(data)
     assert out.chunks == data.chunk("auto").chunks
@@ -78,14 +84,13 @@ def test_small_chunks_keep_the_existing_rule(capsys) -> None:
     assert capsys.readouterr().out == ""
 
 
-def test_numpy_data_is_untouched_by_the_guard(capsys) -> None:
+def test_numpy_data_is_untouched_without_notice(capsys) -> None:
     data = xr.DataArray(
         np.zeros((400, 8, 8), dtype="float32"),
         dims=("time", "lat", "lon"),
         coords={"time": pd.date_range("2000-01-01", periods=400)},
     )
     out = _chunk_eager_data(data)
-    assert out.chunks is not None  # numpy data is chunked "auto", as before
     assert len(out.chunks[0]) == 1
     assert capsys.readouterr().out == ""
 
@@ -96,7 +101,7 @@ def test_the_notice_is_printed_once(capsys) -> None:
     assert capsys.readouterr().out.count(NOTICE) == 1
 
 
-# Computations on a small case, with a small chunk-size so that the guard acts.
+# Computations on a small case, with a small chunk-size so that the notice applies.
 
 
 def _dataset(chunks) -> xr.Dataset:
@@ -132,51 +137,20 @@ def _su(ds):
     return icclim.su(ds, **OPTIONS).SU
 
 
-def _txx_date(ds):
-    return icclim.txx(ds, date_event=True, **OPTIONS)["TXx"]
-
-
-def _tx90p(ds):
-    return icclim.tx90p(
-        ds, base_period_time_range=["2000-01-01", "2002-12-31"], **OPTIONS
-    ).TX90p
-
-
 def _count(ds):
     return icclim.count_occurrences(
         ds, var_name="tasmax", threshold="> 20 degC", **OPTIONS
     ).count_occurrences
 
 
-def _rolling(ds):
-    return icclim.max_of_rolling_sum(
-        ds, var_name="tasmax", rolling_window_width=5, **OPTIONS
-    ).max_of_rolling_sum
-
-
-CASES = {"count": _count, "rolling": _rolling, "date": _txx_date, "percentile": _tx90p}
-
-
-@pytest.mark.parametrize("name", list(CASES))
-def test_results_are_identical_with_and_without_the_guard(
-    name: str, monkeypatch: pytest.MonkeyPatch, capsys
-) -> None:
-    compute = CASES[name]
+def test_the_result_does_not_depend_on_the_notice(capsys) -> None:
+    """The notice only advises: the result of a single chunk equals the in-memory one."""
     ds = _dataset(SINGLE)
     with dask.config.set({"array.chunk-size": "2KiB"}):
-        monkeypatch.setattr(input_parsing, "_MAX_PRESERVED_CHUNK_MULTIPLE", 10**9)
-        unguarded = compute(ds).compute()
-        assert NOTICE not in capsys.readouterr().out
-        monkeypatch.setattr(input_parsing, "_MAX_PRESERVED_CHUNK_MULTIPLE", 8)
-        guarded = compute(ds).compute()
-        assert NOTICE in capsys.readouterr().out
-    if name == "count" or guarded.dtype.kind == "M":
-        np.testing.assert_array_equal(guarded.values, unguarded.values)
-    else:
-        # float32 sums depend on the order of the chunks: 1e-5 is far above 1 ULP.
-        np.testing.assert_allclose(
-            guarded.values, unguarded.values, rtol=1e-5, equal_nan=True
-        )
+        chunked = _count(ds).compute()
+    assert NOTICE in capsys.readouterr().out
+    in_memory = _count(ds.compute()).compute()
+    np.testing.assert_array_equal(chunked.values, in_memory.values)
 
 
 def test_two_indices_and_two_variables_print_one_notice(capsys) -> None:

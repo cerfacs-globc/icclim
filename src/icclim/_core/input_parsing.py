@@ -590,60 +590,57 @@ def build_studied_data(
 # slower and heavier, e.g. one chunk per daily file from ``open_mfdataset``.
 _MIN_PRESERVED_CHUNK_FRACTION = 8
 
-# Dask-backed inputs whose largest chunk is above this multiple of the configured
-# ``array.chunk-size`` have their time axis rechunked to "auto". A time chunk that
-# holds the whole period (or a few very long ones) makes the per-period loops load
-# the whole period at once: memory and time grow with the length of the period.
+# A Dask-backed input whose largest chunk is above this multiple of the configured
+# ``array.chunk-size`` (a single time chunk, or a few very long ones) triggers a notice:
+# on real data such inputs needed far more memory and time than chunks of 1024 days.
+# The input is not modified.
 _MAX_PRESERVED_CHUNK_MULTIPLE = 8
 
-_TIME_RECHUNK_NOTICE_SHOWN = False
+_TIME_CHUNKS_NOTICE_SHOWN = False
 
 
-def _reset_time_rechunk_notice() -> None:
-    """Forget that the time rechunk notice was printed (for tests)."""
-    global _TIME_RECHUNK_NOTICE_SHOWN  # noqa: PLW0603
-    _TIME_RECHUNK_NOTICE_SHOWN = False
+def _reset_time_chunks_notice() -> None:
+    """Forget that the time chunks notice was printed (for tests)."""
+    global _TIME_CHUNKS_NOTICE_SHOWN  # noqa: PLW0603
+    _TIME_CHUNKS_NOTICE_SHOWN = False
 
 
 def _chunk_eager_data(data: DataArray) -> DataArray:
     """Choose chunks for the studied data.
 
     Eager data is chunked automatically. Dask-backed data keeps the caller's
-    chunks, unless:
-
-    - they are so small (largest chunk below 1/8 of dask's ``array.chunk-size``)
-      that they would make computations needlessly slow: they are rechunked
-      automatically;
-    - they are so large (largest chunk above 8 times ``array.chunk-size``) that
-      the time axis is held in a few chunks: the time axis is rechunked
-      automatically, the other dimensions are kept, and a notice is printed once
-      per process.
+    chunks, unless they are so small (largest chunk below 1/8 of dask's
+    ``array.chunk-size``) that they would make computations needlessly slow, in which
+    case they are rechunked automatically. If the largest chunk is above 8 times
+    ``array.chunk-size`` along time, the chunks are kept and a notice advising other
+    chunks is printed once per process.
     """
     if data.chunks is None:
         return data.chunk("auto")
     largest = _largest_chunk_nbytes(data)
     if largest < _min_preserved_chunk_nbytes():
         return data.chunk("auto")
-    if largest > _max_preserved_chunk_nbytes() and "time" in data.dims:
-        rechunked = data.chunk({"time": "auto"})
-        if rechunked.chunks != data.chunks:
-            _print_time_rechunk_notice(largest, _largest_chunk_nbytes(rechunked))
-            return rechunked
+    if largest > _max_preserved_chunk_nbytes() and _has_long_time_chunks(data):
+        _print_time_chunks_notice(largest)
     return data
 
 
-def _print_time_rechunk_notice(before: int, after: int) -> None:
-    global _TIME_RECHUNK_NOTICE_SHOWN  # noqa: PLW0603
-    if _TIME_RECHUNK_NOTICE_SHOWN:
+def _has_long_time_chunks(data: DataArray) -> bool:
+    return "time" in data.dims and max(data.chunks[data.get_axis_num("time")]) > 1
+
+
+def _print_time_chunks_notice(largest: int) -> None:
+    global _TIME_CHUNKS_NOTICE_SHOWN  # noqa: PLW0603
+    if _TIME_CHUNKS_NOTICE_SHOWN:
         return
-    _TIME_RECHUNK_NOTICE_SHOWN = True
+    _TIME_CHUNKS_NOTICE_SHOWN = True
     sys.stdout.write(
-        "icclim rechunked the time axis of the input: its largest chunk was "
-        f"{before / 2**30:.1f} GiB, above the {_max_preserved_chunk_nbytes() / 2**30:.1f} "
-        f"GiB limit (8 times dask's array.chunk-size), and it is now {after / 2**20:.0f} "
-        "MiB. Time chunks that hold the whole period make the memory grow with the "
-        "length of the period. The values are not changed. To choose the chunks "
-        "yourself, open the data with time chunks of at most that size.\n"
+        "icclim: the input has one chunk, or very long chunks, along time: its largest "
+        f"chunk is {largest / 2**30:.1f} GiB, above 8 times dask's array.chunk-size "
+        f"({_max_preserved_chunk_nbytes() / 2**30:.1f} GiB). On CMIP6 data such inputs "
+        "used 18 to 31 GiB and took about 1,700 s where chunks of 1024 days took under "
+        '90 s. The input is used as it is. Reopen the data with chunks="auto" or '
+        'chunks={"time": 1024}.\n'
     )
 
 

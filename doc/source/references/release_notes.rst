@@ -78,18 +78,18 @@ date: TBD
    the number of years outside the base period: on a full 128x256 grid, about 45 minutes
    for 60 years and 2.2 hours for 165 years (annual ``TX90p``, 30-year base period,
    auto-sized chunks).
--  [perf] A Dask-backed input whose largest chunk is above eight times dask's
-   ``array.chunk-size`` (1 GiB with the default), typically one chunk holding the whole
-   period along time, now has its time axis rechunked to auto-sized chunks, and a notice is
-   printed once per process (PR #685). The other dimensions are kept, the results are
-   identical up to floating-point rounding (counts and dates are exact, and a float32 sum
-   can differ by about 2e-7 relative because the order of summation follows the chunks), and chunks between 1/8 and 8 times ``array.chunk-size`` are still kept as they
-   are; numpy input is not concerned. There is no option to switch it off.
+-  [enh] A notice is printed once per process when a Dask-backed input has one chunk, or
+   very long chunks, along time: its largest chunk is above eight times dask's
+   ``array.chunk-size`` (1 GiB with the default) (PR #685). On CMIP6 data (128x256 grid,
+   daily) such inputs used 18 to 31 GiB and took about 1,700 s where chunks of 1024 days
+   took under 90 s. The notice advises reopening the data with ``chunks="auto"`` or
+   ``chunks={"time": 1024}``. The input and its chunks are not modified, and there is no
+   new parameter: rechunking the time axis did not reduce the time or the memory.
 -  [doc] The page "Chunk data and parallelize computation" states what icclim does with the
-   chunks of the input (rechunk below 1/8 of ``array.chunk-size``, keep, rechunk the time
-   axis above 8 times), which chunks ``chunks={}`` and ``chunks="auto"`` give, the
-   measured trade-off between time and memory (RAM is the hard limit), and the cost of
-   time-contiguous chunks (PR #685).
+   chunks of the input (rechunk below 1/8 of ``array.chunk-size``, keep, keep with a notice
+   above 8 times), the measured time and memory of ``chunks="auto"``, ``chunks={"time":
+   1024}`` and the native chunks (RAM is the hard limit), and the cost of time-contiguous
+   chunks (PR #685).
 -  [doc] The memory budget of the percentile bootstrap, ``ICCLIM_BOOTSTRAP_SAFE_TILE_MEMORY``
    (default ``2GB``), is a budget given to the estimator, not a cap: the measured peak was
    13.4 GiB for a 30-year study period equal to the base period (6.7 times the budget),
