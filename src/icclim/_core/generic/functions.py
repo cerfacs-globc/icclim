@@ -579,8 +579,7 @@ def sum_of_spell_lengths(
     )
     cropped_rle = rle.where(rle >= min_spell_length, other=0)
     result = cropped_rle.resample(time=resample_freq.pandas_freq).sum(dim="time")
-    if split_runs:
-        result = _transpose_like_study(result, climate_vars[0].studied_data)
+    result = _transpose_like_study(result, climate_vars[0].studied_data)
     freq = check_freq(climate_vars[0].studied_data, dim="time")
     return _safe_to_agg_units(
         result, climate_vars[0].studied_data, "count", deffreq=freq

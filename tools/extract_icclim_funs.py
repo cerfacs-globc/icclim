@@ -284,7 +284,9 @@ def _get_typical_index_declaration(index: StandardIndex, registry: Registry) -> 
         )
     elif _can_have_reference_period(index):
         index_args = _get_arguments(
-            STANDARD_INDEX_POP_ARGS + NON_REFERENCE_FIELDS + _split_runs_pop_args(index)
+            _reference_period_pop_args(index)
+            + NON_REFERENCE_FIELDS
+            + _split_runs_pop_args(index)
         )
     else:
         index_args = _get_arguments(
@@ -293,9 +295,15 @@ def _get_typical_index_declaration(index: StandardIndex, registry: Registry) -> 
             + _split_runs_pop_args(index)
         )
     _set_run_index_default(index_args, index)
+    _set_reference_sampling_method_default(index_args, index)
     fun_signature_args = _build_fun_signature_args(index_args)
     doc_string = icclim_index.__doc__ or ""
     args_docs = _get_params_docstring(list(index_args.keys()), doc_string)
+    if _is_difference_of_means(index):
+        args_docs = args_docs.replace(
+            '(default: "resample")',
+            '(default: "groupby_ref_and_resample_study")',
+        )
     args = [f"{arg}={arg}" for arg in index_args]
     thresh_arg = _get_threshold_argument(index)
     output_unit_arg = _get_output_unit_argument(index)
@@ -464,6 +472,35 @@ def _set_run_index_default(
     indicator = getattr(index, "indicator", index)
     if indicator is not GenericIndicatorRegistry.MaxConsecutiveOccurrence:
         arguments["run_index"] = arguments["run_index"].replace(default="first")
+
+
+def _is_difference_of_means(index: StandardIndex) -> bool:
+    from icclim.generic.registry import GenericIndicatorRegistry
+
+    return (
+        getattr(index, "indicator", None) is GenericIndicatorRegistry.DifferenceOfMeans
+    )
+
+
+def _reference_period_pop_args(index: StandardIndex) -> list[str]:
+    """The difference of means, unlike the other reference-period indices, takes a
+    sampling method."""
+    if _is_difference_of_means(index):
+        return [arg for arg in STANDARD_INDEX_POP_ARGS if arg != "sampling_method"]
+    return STANDARD_INDEX_POP_ARGS
+
+
+def _set_reference_sampling_method_default(
+    arguments: dict[str, inspect.Parameter],
+    index: StandardIndex,
+) -> None:
+    """Compare the study to a reference taken from it with the method that accepts it."""
+    from icclim._core.constants import GROUP_BY_REF_AND_RESAMPLE_STUDY_METHOD
+
+    if _is_difference_of_means(index) and "sampling_method" in arguments:
+        arguments["sampling_method"] = arguments["sampling_method"].replace(
+            default=GROUP_BY_REF_AND_RESAMPLE_STUDY_METHOD
+        )
 
 
 def _is_compared_to_normal(index: StandardIndex) -> bool:
