@@ -6,6 +6,13 @@
 Unreleased
 **********
 
+-  [fix] The DCSC indices ``PQ90`` and ``PQ99``, and the generic ``percentile``, no longer
+   have the placeholder ``"todo"`` as ``standard_name``, ``long_name`` and
+   ``cell_methods`` (issue #676). The ``standard_name`` is the one of the input variable
+   (``precipitation_flux``), as for the other statistics; the ``long_name`` is "Percentile
+   of the daily precipitation for each year." and the ``cell_methods`` is ``time:
+   percentile over days``. The template of ``difference_of_count_occurences``, which no
+   index uses, has no placeholder either. Metadata only: the values do not change.
 -  [Behaviour change] The DCSC index ``TRAV`` (mean of the daily thermal amplitude) is now
    the absolute value of the mean of ``TX - TN`` (issue #668). It is always positive and
    it does not depend on the order of ``var_name``. The results that were negative are now

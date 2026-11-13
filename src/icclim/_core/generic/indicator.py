@@ -203,7 +203,7 @@ class GenericIndicator(Indicator):
         en_indicator_templates = deepcopy(INDICATORS_TEMPLATES_EN[name])
         self.name = name
         self.process = process
-        self.standard_name = en_indicator_templates["standard_name"]
+        self.standard_name = en_indicator_templates.get("standard_name", "")
         self.cell_methods = en_indicator_templates["cell_methods"]
         self.long_name = en_indicator_templates["long_name"]
         self.check_vars = check_vars
@@ -310,7 +310,7 @@ class GenericIndicator(Indicator):
                 climate_var.studied_data = coef * climate_var.studied_data
         return climate_vars
 
-    def postprocess(  # noqa: C901
+    def postprocess(
         self,
         result: DataArray,
         climate_vars: list[ClimateVariable],
@@ -432,11 +432,17 @@ class GenericIndicator(Indicator):
                     ),
                 )
 
-        for prop in self.templated_properties:
-            result.attrs[prop] = getattr(self, prop)
+        self._set_templated_attributes(result)
         result.attrs.update(completeness_policy.metadata())
         result.attrs["history"] = ""
         return result
+
+    def _set_templated_attributes(self, result: DataArray) -> None:
+        for prop in self.templated_properties:
+            value = getattr(self, prop)
+            if prop == "standard_name" and not value:
+                continue  # no CF standard name for this indicator
+            result.attrs[prop] = value
 
     def _annotate_temperature_semantics(self, result: DataArray) -> DataArray:
         """Record whether a temperature result is on-scale or a difference."""
