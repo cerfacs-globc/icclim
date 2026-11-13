@@ -173,7 +173,10 @@ def test_results_are_identical_with_and_without_the_guard(
     if name == "count" or guarded.dtype.kind == "M":
         np.testing.assert_array_equal(guarded.values, unguarded.values)
     else:
-        np.testing.assert_allclose(guarded.values, unguarded.values, equal_nan=True)
+        # float32 sums depend on the order of the chunks: 1e-5 is far above 1 ULP.
+        np.testing.assert_allclose(
+            guarded.values, unguarded.values, rtol=1e-5, equal_nan=True
+        )
 
 
 def test_two_indices_and_two_variables_print_one_notice(capsys) -> None:
