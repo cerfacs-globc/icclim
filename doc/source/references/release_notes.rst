@@ -15,6 +15,23 @@ Unreleased
    Each has its formula and an example call in its docstring and on the documentation
    page. ``vDTR``, ``HI`` and ``BEDD`` do not depend on the order. No change of the
    results.
+-  [fix] The DCSC index ``FFAV`` can compare the study period with a reference period
+   taken from the same input series (issue #673). ``icclim.dcsc.ffav`` raised
+   ``InvalidIcclimArgumentError`` ("It does not make sense to resample the reference
+   variable...") because it did not expose ``sampling_method``, and the default
+   ``"resample"`` is refused for a reference period. ``sampling_method`` is now an
+   argument of ``ffav``, and its default is ``"groupby_ref_and_resample_study"``, the
+   method that accepts a reference period. For yearly output the result is the mean of
+   the year minus the mean of the reference period. For monthly and seasonal output the
+   method compares each month or season with the mean of the same month or season of the
+   reference period; whether this is the convention of DRIAS is not decided here. No
+   result changes for the calls that already worked.
+-  [fix] ``TNCWD`` and ``TXHWD`` (DCSC), and ``WSDI`` and ``CSDI`` (ECA&D), return their
+   dimensions in the order of the input, with ``time`` where the input has it, as the
+   other spell indices do (issue #669, after issues #542 and #550). They moved ``time``
+   behind the spatial dimensions, whatever the order of the input. Layout change only:
+   the values do not change, and code that selects the results by axis position has to be
+   updated. Not changed in 7.3.x.
 -  [doc] Document the run attribution of the periods that no run starts or ends in
    (issue #580). With ``run_index="first"`` or ``"last"`` a period without any event is
    ``0``, while a period wholly traversed by one continuous run attributed to another
