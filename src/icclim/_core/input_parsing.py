@@ -640,7 +640,10 @@ def _print_time_chunks_notice(largest: int) -> None:
         f"({_max_preserved_chunk_nbytes() / 2**30:.1f} GiB). On CMIP6 data such inputs "
         "used 18 to 31 GiB and took about 1,700 s where chunks of 1024 days took under "
         '90 s. The input is used as it is. Reopen the data with chunks="auto" or '
-        'chunks={"time": 1024}.\n'
+        'chunks={"time": 1024}. If one chunk is needed, select the period before '
+        "chunking: selecting 30 years after chunking a 165-year file took 1,855 s and "
+        '18.1 GiB, selecting them first took 342 s and 7.5 GiB, and chunks="auto" took '
+        "13.7 s and 1.95 GiB.\n"
     )
 
 

@@ -180,9 +180,45 @@ A chunk that holds the whole period along time is the worst layout. On CMIP6 dat
 (CNRM-CM6-1, 128x256 grid, daily, one file), the count, rolling and date indices needed
 18 to 31 GiB and took about 1,700 to 1,820 s with one time chunk, against 13 to 51 s with
 auto-sized chunks. The annual bootstrap percentile index (165 years) with one time chunk
-was killed after 11 h 06 min at 27.7 GiB. The 1,700 s do not depend on the length of the
-study period (30, 60 and 165 years took about the same time), and this is not explained
-yet.
+was killed after 11 h 06 min at 27.7 GiB.
+
+The cost follows the time extent of the chunked file, not the study period. Diagnosis
+(count index, 30 years, full grid, one time chunk, CNRM-CM6-1 file of 60,265 time steps,
+warm page cache; physical reads were not measured):
+
+.. list-table::
+   :header-rows: 1
+   :widths: 46 18 16 20
+
+   * - Input
+     - Time
+     - Peak memory
+     - Logical read, tasks
+   * - the whole file chunked in one time chunk, then the 30 years selected
+     - 1,855 s
+     - 18.1 GiB
+     - 213 GB, 8,032 tasks
+   * - the 30 years selected, then chunked in one time chunk
+     - 342 s
+     - 7.5 GiB
+     - 38.7 GB, 3,039 tasks
+   * - ``chunks="auto"``
+     - 13.7 s
+     - 1.95 GiB
+     - not measured
+
+The ratio of the logical reads (5.51) matches the ratio of the numbers of time steps
+(5.50) and of the times (5.42): a time selection on one big chunk still reads the whole
+chunk. This is also why the runs with one time chunk took about 1,700 s for 30, 60 and 165
+years alike: the chunked file was the same. The profile shows the main thread waiting on a
+lock while the tasks run; no cause is established for that wait.
+
+icclim cannot undo this: it receives data that are already chunked, and a time selection
+on one big chunk reads the whole chunk. The advice, in this order:
+
+#. open the data with ``chunks="auto"`` or ``chunks={"time": 1024}``;
+#. if one chunk is needed, select the period **before** chunking (``ds.sel(time=...)``
+   on the unchunked data, then ``.chunk(...)``).
 
 icclim does not rechunk such an input, because rechunking the time axis did not help.
 Time and peak memory, measured with and without a rechunk of the time axis to chunks of

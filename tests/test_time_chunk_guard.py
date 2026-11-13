@@ -58,6 +58,8 @@ def test_a_single_time_chunk_prints_the_notice_and_is_kept(years: int, capsys) -
     assert "GiB" in printed
     assert 'chunks="auto"' in printed
     assert 'chunks={"time": 1024}' in printed
+    assert "select the period before chunking" in printed
+    assert "1,855 s" in printed
 
 
 def test_a_few_very_long_time_chunks_print_the_notice(capsys) -> None:

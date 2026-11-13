@@ -83,8 +83,10 @@ date: TBD
    ``array.chunk-size`` (1 GiB with the default) (PR #685). On CMIP6 data (128x256 grid,
    daily) such inputs used 18 to 31 GiB and took about 1,700 s where chunks of 1024 days
    took under 90 s. The notice advises reopening the data with ``chunks="auto"`` or
-   ``chunks={"time": 1024}``. The input and its chunks are not modified, and there is no
-   new parameter: rechunking the time axis did not reduce the time or the memory.
+   ``chunks={"time": 1024}``, or, if one chunk is needed, selecting the period before
+   chunking (30 years selected after chunking a 165-year file: 1,855 s; selected first: 342
+   s; ``chunks="auto"``: 13.7 s). The input and its chunks are not modified, and there is
+   no new parameter: rechunking the time axis did not reduce the time or the memory.
 -  [doc] The page "Chunk data and parallelize computation" states what icclim does with the
    chunks of the input (rechunk below 1/8 of ``array.chunk-size``, keep, keep with a notice
    above 8 times), the measured time and memory of ``chunks="auto"``, ``chunks={"time":
