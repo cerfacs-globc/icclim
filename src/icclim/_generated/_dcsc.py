@@ -5282,6 +5282,7 @@ def ffav(
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
+    sampling_method: SamplingMethodLike = "groupby_ref_and_resample_study",
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] | None = None,
     completeness: CompletenessLike = None,
@@ -5378,6 +5379,14 @@ def ffav(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
+    sampling_method : str
+        Choose whether the output sampling configured in `slice_mode` is a
+        `groupby` operation or a `resample` operation (as per xarray definitions).
+        Possible values:
+        ``{"groupby", "resample", "groupby_ref_and_resample_study"}``
+        (default: "groupby_ref_and_resample_study")
+        `groupby_ref_and_resample_study` may only be used when computing the
+        `difference_of_means` (a.k.a the anomaly).
     allow_partial_seasons : bool | "start" | "end", default=False
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
@@ -5432,6 +5441,7 @@ def ffav(
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
+        sampling_method=sampling_method,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
         completeness=completeness,

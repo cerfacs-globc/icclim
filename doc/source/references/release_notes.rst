@@ -6,6 +6,17 @@
 Unreleased
 **********
 
+-  [fix] The DCSC index ``FFAV`` can compare the study period with a reference period
+   taken from the same input series (issue #673). ``icclim.dcsc.ffav`` raised
+   ``InvalidIcclimArgumentError`` ("It does not make sense to resample the reference
+   variable...") because it did not expose ``sampling_method``, and the default
+   ``"resample"`` is refused for a reference period. ``sampling_method`` is now an
+   argument of ``ffav``, and its default is ``"groupby_ref_and_resample_study"``, the
+   method that accepts a reference period. For yearly output the result is the mean of
+   the year minus the mean of the reference period. For monthly and seasonal output the
+   method compares each month or season with the mean of the same month or season of the
+   reference period; whether this is the convention of DRIAS is not decided here. No
+   result changes for the calls that already worked.
 -  [fix] ``TNCWD`` and ``TXHWD`` (DCSC), and ``WSDI`` and ``CSDI`` (ECA&D), return their
    dimensions in the order of the input, with ``time`` where the input has it, as the
    other spell indices do (issue #669, after issues #542 and #550). They moved ``time``
