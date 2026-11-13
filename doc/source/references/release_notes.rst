@@ -52,10 +52,15 @@ date: TBD
    affected by the SciPy 1.18.1 behaviour change described in the 7.3.5 notes.
 -  [compat] Validation: the results on CMIP6 data are identical to those of 7.3.3 and
    7.3.6, with xclim 0.60 and 1.0, except for the changes above (see "How the indices are
-   validated", PR #657). This comparison will be repeated on the release candidate before
-   the tag.
-
-   .. CHECK: rerun this comparison on the 7.4.0 candidate before the tag.
+   validated", PR #657). The comparison was repeated on real data for the candidate
+   19b40a3f (CNRM-CM6-1 ``tasmax`` and ``tasmin``, ACCESS-CM2 precipitation, full grid,
+   1976-2014, xclim 0.60.0 and 1.0.0): 104 comparisons of 7.3.6 against the candidate, 96
+   bit-identical and 8 different as expected (``CDD`` and ``CWD``, year and month, in both
+   environments, from the ``run_index`` default), none unexpected. ``TRAV`` equals the
+   absolute value of the previous ``TRAV``, ``HI`` and ``BEDD`` agree between the two
+   environments, and the speed of the yearly ``SU`` is unchanged (median 47.3 s for 7.3.6,
+   45.9 s for the candidate). The later changes, the time-chunk guard and the version
+   bump, only concern the chunk handling of time-contiguous input and the version string.
 -  [perf] The speed of the ordinary indices on a full CMIP6 grid is unchanged since 7.3.3
    (59 s against 62 s for the yearly ``TG``, 45 s against 44 s for ``rx5day``, same input
    and node).
@@ -76,8 +81,9 @@ date: TBD
 -  [perf] A Dask-backed input whose largest chunk is above eight times dask's
    ``array.chunk-size`` (1 GiB with the default), typically one chunk holding the whole
    period along time, now has its time axis rechunked to auto-sized chunks, and a notice is
-   printed once per process (PR #685). The other dimensions are kept, the values do not
-   change, and chunks between 1/8 and 8 times ``array.chunk-size`` are still kept as they
+   printed once per process (PR #685). The other dimensions are kept, the results are
+   identical up to floating-point rounding (counts and dates are exact, and a float32 sum
+   can differ by about 2e-7 relative because the order of summation follows the chunks), and chunks between 1/8 and 8 times ``array.chunk-size`` are still kept as they
    are; numpy input is not concerned. There is no option to switch it off.
 -  [doc] The page "Chunk data and parallelize computation" states what icclim does with the
    chunks of the input (rechunk below 1/8 of ``array.chunk-size``, keep, rechunk the time
