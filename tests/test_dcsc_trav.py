@@ -7,12 +7,16 @@ reference calculation below is written with numpy only.
 
 from __future__ import annotations
 
+import subprocess
+import sys
+
 import numpy as np
 import pandas as pd
 import pytest
 import xarray as xr
 
 import icclim
+from icclim.main import _reset_input_order_notices
 
 TEMPERATURE_UNITS = {
     "degC": lambda values: values,
@@ -161,3 +165,108 @@ def test_the_order_of_the_variables_gives_the_sign() -> None:
     np.testing.assert_array_equal(trav(var_name=["tasmax", "tasmin"]), [10.0])
     # With var_name the order is the one given: the first name is the minuend.
     np.testing.assert_array_equal(trav(var_name=["tasmin", "tasmax"]), [-10.0])
+
+
+NOTICE = (
+    "TRAV = {first} - {second} (first input minus second; "
+    "pass var_name=['tasmax', 'tasmin'] to control the order)\n"
+)
+
+
+@pytest.fixture(autouse=True)
+def _forget_the_input_order_notices() -> None:
+    """The notice is printed once per process: start every test afresh."""
+    _reset_input_order_notices()
+
+
+def _two_variables(low: str = "tasmin", high: str = "tasmax") -> xr.Dataset:
+    time = pd.date_range("2001-01-01", periods=3)
+
+    def series(value: float, name: str) -> xr.DataArray:
+        return xr.DataArray(
+            [value] * 3,
+            dims="time",
+            coords={"time": time},
+            name=name,
+            attrs={"units": "degC"},
+        )
+
+    return xr.merge([series(0.0, low), series(10.0, high)])
+
+
+def _call_trav(source: xr.Dataset, **kwargs) -> np.ndarray:
+    return icclim.dcsc.trav(
+        source, out_file=None, completeness="none", **kwargs
+    ).TRAV.values
+
+
+def test_the_notice_is_printed_once_per_process(
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    source = _two_variables()
+    _call_trav(source)
+    assert capsys.readouterr().out == NOTICE.format(first="tasmax", second="tasmin")
+    _call_trav(source)
+    _call_trav(source, var_name=["tasmin", "tasmax"])
+    assert capsys.readouterr().out == ""
+
+
+def test_resetting_the_state_prints_the_notice_again(
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    source = _two_variables()
+    _call_trav(source)
+    capsys.readouterr()
+    _reset_input_order_notices()
+    _call_trav(source)
+    assert capsys.readouterr().out.startswith("TRAV = ")
+
+
+@pytest.mark.parametrize(
+    ("var_name", "first", "second", "sign"),
+    [
+        (["tasmax", "tasmin"], "tasmax", "tasmin", 10.0),
+        (["tasmin", "tasmax"], "tasmin", "tasmax", -10.0),
+        (None, "tasmax", "tasmin", 10.0),
+    ],
+    ids=["tx-first", "tn-first", "without-var_name"],
+)
+def test_the_notice_gives_the_variables_that_are_used_and_the_sign(
+    var_name: list[str] | None,
+    first: str,
+    second: str,
+    sign: float,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    kwargs = {} if var_name is None else {"var_name": var_name}
+    result = _call_trav(_two_variables(), **kwargs)
+    assert capsys.readouterr().out == NOTICE.format(first=first, second=second)
+    np.testing.assert_array_equal(result, [sign])
+
+
+def test_the_notice_uses_the_names_of_the_variables_of_the_dataset(
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    source = _two_variables(low="lowT", high="highT")
+    result = _call_trav(source, var_name=["highT", "lowT"])
+    assert capsys.readouterr().out == NOTICE.format(first="highT", second="lowT")
+    np.testing.assert_array_equal(result, [10.0])
+
+
+def test_the_other_indices_print_no_notice(
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    source = _two_variables()
+    icclim.dtr(source, out_file=None, completeness="none")
+    icclim.dcsc.txav(source, var_name="tasmax", out_file=None, completeness="none")
+    assert capsys.readouterr().out == ""
+
+
+def test_nothing_is_printed_when_icclim_is_imported() -> None:
+    completed = subprocess.run(
+        [sys.executable, "-c", "import icclim"],
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    assert "TRAV" not in completed.stdout

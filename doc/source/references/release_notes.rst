@@ -8,11 +8,20 @@ Unreleased
 
 -  [Behaviour change] The DCSC index ``TRAV`` (mean of the daily thermal amplitude) now
    returns the mean of ``TX - TN``, as the ECA&D ``DTR``, instead of its opposite (issue
-   #668). Its inputs were declared in the order ``TN``, ``TX``, so the result has had the
-   wrong sign since 7.0.0 when the variables are found in the dataset. ``var_name`` is
-   positional: its first name is the minuend. ``var_name=["tasmax", "tasmin"]`` gave and
-   still gives ``TX - TN``, and ``var_name=["tasmin", "tasmax"]`` gave and still gives
-   ``TN - TX``; only the calls without ``var_name`` change sign.
+   #668). The default order of its inputs changed: they were declared as ``TN``, ``TX``,
+   so, since 7.0.0, the calls without ``var_name`` returned the wrong sign, and they now
+   return ``TX - TN``. The calls with an explicit ``var_name`` are unchanged: ``var_name``
+   is positional, its first name is the minuend (``TX``) and its second name is the
+   subtrahend (``TN``), whatever the names of the variables. ``var_name=["tasmax",
+   "tasmin"]`` gave and still gives ``TX - TN``, and ``var_name=["tasmin", "tasmax"]`` gave
+   and still gives ``TN - TX``. The documentation of ``icclim.dcsc.trav`` and of the DCSC
+   indices gives the explicit call and an example.
+-  [enh] The first time ``TRAV`` is computed in a process, icclim prints on stdout, once,
+   what it computes with the variables that are used, for example ``TRAV = tasmax -
+   tasmin (first input minus second; pass var_name=['tasmax', 'tasmin'] to control the
+   order)``. When ``tasmin`` is first, the notice makes the negative sign evident. Like
+   the ``run_index`` notice, it is not sent through the logger, so ``logs_verbosity`` does
+   not silence it.
 -  [doc] Document the run attribution of the periods that no run starts or ends in
    (issue #580). With ``run_index="first"`` or ``"last"`` a period without any event is
    ``0``, while a period wholly traversed by one continuous run attributed to another

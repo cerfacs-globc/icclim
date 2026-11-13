@@ -73,7 +73,7 @@ class DcscIndexRegistry(Registry[StandardIndex]):
         reference=DCSC_REFERENCE,
         indicator=GenericIndicatorRegistry.MeanOfDifference,
         output_unit="degree_Celsius",
-        definition="Moyenne de l'amplitude thermique.",
+        definition="Moyenne de l'amplitude thermique (Tx - Tn).",
         source=DCSC_SOURCE,
         short_name="TRAV",
         group=IndexGroupRegistry.TEMPERATURE,

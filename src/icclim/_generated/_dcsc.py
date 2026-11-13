@@ -395,11 +395,22 @@ def trav(
     allow_missing_periods: bool | None = None,
     allow_partial_final_period: bool = False,
 ) -> Dataset:
-    """Moyenne de l'amplitude thermique.
+    """Moyenne de l'amplitude thermique (Tx - Tn).
 
-    TRAV: Moyenne de l'amplitude thermique.
+    TRAV: Moyenne de l'amplitude thermique (Tx - Tn).
     Source: Portail DRIAS, DCSC, MeteoFrance.
 
+
+    .. note::
+       ``TRAV`` is the mean of ``TX - TN``, the daily maximum minus the daily
+       minimum temperature. ``var_name`` is positional: its FIRST name is the
+       minuend (``TX``) and its SECOND name is the subtrahend (``TN``), whatever
+       the names of the variables. To get ``TX - TN``, call
+       ``icclim.dcsc.trav(ds, var_name=["tasmax", "tasmin"])``.
+       ``var_name=["tasmin", "tasmax"]`` gives ``TN - TX``, a negative amplitude.
+       Without ``var_name`` the variables are found in the dataset and the result
+       is ``TX - TN``. A notice with the variables that are used is printed once
+       per process.
 
 
     Parameters
