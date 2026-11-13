@@ -29,8 +29,11 @@ reasonably large: the largest chunk must be at least one eighth of the
 configured ``array.chunk-size`` (16 MiB with the default). Smaller chunks, such
 as one chunk per daily file from ``open_mfdataset``, are rechunked
 automatically because many tiny chunks make rolling windows, spells, bootstrap
-and date-event computations much slower and heavier. Automatic chunking is also
-applied when an eager array is supplied.
+and date-event computations much slower and heavier. Time chunks that are too
+large (the largest chunk above eight times ``array.chunk-size``, 1 GiB with the
+default, for example a single chunk along time) are kept, with a notice that advises
+other chunks. Automatic chunking is also applied when an eager array is supplied. See :ref:`dask_chunk_policy` for the
+details and the measurements.
 
 Prepared percentile thresholds are an exception. They retain an internal
 automatic rechunk after ``percentile_doy`` because preserving the generated
@@ -129,6 +132,213 @@ configuration:
 .. code:: python
 
    dask.config.set({"array.slicing.split_large_chunks": True})
+
+.. _dask_chunk_policy:
+
+**************************************
+ What icclim does with the chunks
+**************************************
+
+icclim looks at the largest chunk of a Dask-backed input, that is the product of
+the largest chunk length of each dimension, times the size of one value. The limits
+follow dask's ``array.chunk-size`` (128 MiB by default). The numbers below are for the
+default and for daily ``float32`` data on a 128x256 grid, where one time step is
+128 KiB.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 30 40
+
+   * - Largest chunk
+     - What icclim does
+     - Example (30 years of daily data, 1.34 GiB in all)
+   * - below 16 MiB (1/8 of ``array.chunk-size``)
+     - rechunks all the dimensions with dask's ``"auto"``
+     - one time step per chunk (``chunks={}`` on files that store one time step per
+       chunk): rechunked to 11 chunks of 1024 days (717 for the last one), 128 MiB each
+   * - 16 MiB to 1 GiB
+     - keeps the chunks as they are, without notice
+     - chunks of 365 or 366 days (46 MiB), chunks of 1024 days (128 MiB)
+   * - above 1 GiB (8 times ``array.chunk-size``)
+     - keeps the chunks as they are and prints a notice that advises other chunks
+     - one chunk along time (1.34 GiB for 30 years, 7.4 GiB for 165 years)
+   * - data in memory (numpy)
+     - chunks it with ``"auto"``, as before
+     - no notice
+
+The limits scale with ``array.chunk-size``: setting it to ``"64 MiB"`` moves the limits
+to 8 MiB and 512 MiB. The notice is printed on the standard output once per Python
+process, whatever ``logs_verbosity``, and starts with "icclim: the input has one chunk, or
+very long chunks, along time". It only advises: the data and its chunks are not modified,
+and there is no parameter. To act on it, reopen the data with ``chunks="auto"`` or
+``chunks={"time": 1024}``.
+
+Time-contiguous chunks
+======================
+
+A chunk that holds the whole period along time is the worst layout. On CMIP6 data
+(CNRM-CM6-1, 128x256 grid, daily, one file), the count, rolling and date indices needed
+18 to 31 GiB and took about 1,700 to 1,820 s with one time chunk, against 13 to 51 s with
+auto-sized chunks. The annual bootstrap percentile index (165 years) with one time chunk
+was killed after 11 h 06 min at 27.7 GiB.
+
+The cost follows the time extent of the chunked file, not the study period. Diagnosis
+(count index, 30 years, full grid, one time chunk, CNRM-CM6-1 file of 60,265 time steps,
+warm page cache; physical reads were not measured):
+
+.. list-table::
+   :header-rows: 1
+   :widths: 46 18 16 20
+
+   * - Input
+     - Time
+     - Peak memory
+     - Logical read, tasks
+   * - the whole file chunked in one time chunk, then the 30 years selected
+     - 1,855 s
+     - 18.1 GiB
+     - 213 GB, 8,032 tasks
+   * - the 30 years selected, then chunked in one time chunk
+     - 342 s
+     - 7.5 GiB
+     - 38.7 GB, 3,039 tasks
+   * - ``chunks="auto"``
+     - 13.7 s
+     - 1.95 GiB
+     - not measured
+
+The ratio of the logical reads (5.51) matches the ratio of the numbers of time steps
+(5.50) and of the times (5.42): a time selection on one big chunk still reads the whole
+chunk. This is also why the runs with one time chunk took about 1,700 s for 30, 60 and 165
+years alike: the chunked file was the same. The profile shows the main thread waiting on a
+lock while the tasks run; no cause is established for that wait.
+
+icclim cannot undo this: it receives data that are already chunked, and a time selection
+on one big chunk reads the whole chunk. The advice, in this order:
+
+#. open the data with ``chunks="auto"`` or ``chunks={"time": 1024}``;
+#. if one chunk is needed, select the period **before** chunking (``ds.sel(time=...)``
+   on the unchunked data, then ``.chunk(...)``).
+
+icclim does not rechunk such an input, because rechunking the time axis did not help.
+Time and peak memory, measured with and without a rechunk of the time axis to chunks of
+1024 days:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 36 32 32
+
+   * - Index and period
+     - with the rechunk
+     - without the rechunk
+   * - ``count``, 30 years
+     - 1,769 s, 18.0 GiB
+     - 1,697 s, 18.4 GiB
+   * - rolling sum over 5 days, 30 years
+     - 1,810 s, 18.0 GiB
+     - not measured
+   * - date index, 30 years
+     - 1,698 s, 18.0 GiB
+     - not measured
+   * - bootstrap percentile index, 30 years
+     - 1,692 s, 30.8 GiB
+     - 1,760 s, 31.7 GiB
+   * - ``count``, 165 years
+     - 1,793 s, 30.7 GiB
+     - 1,705 s, 31.4 GiB
+
+The rechunk gave no gain in time or memory, and it changed the float32 sums, whose order
+follows the chunks (rolling sum over 5 days: 40,607 of 983,040 values differed, by at
+most 8.5e-4 in absolute value). The remedy is to open the data with other chunks, not to
+rechunk afterwards: chunks defined as one huge chunk cannot be split into a stream of small
+chunks once the data is opened.
+
+Auto versus native chunks
+=========================
+
+Opening the data with ``chunks="auto"`` and with ``chunks={}`` (the chunks stored in the
+file, called native here) can give different timings and memory, even when icclim ends up
+computing on nearly the same chunks.
+
+Measurement (validation on CMIP6 data, master). The input is the daily ``tasmax`` of
+CNRM-CM6-1, one file for 1850-2014 (60,265 time steps), 128x256 grid, ``float32``,
+zlib-compressed and stored with one time step per chunk. It is not a set of yearly files.
+One node, full grid:
+
+- opened with ``chunks={}``: chunks of one time step, which icclim rechunks to chunks of
+  1024 days;
+- opened with ``chunks="auto"``: chunks of 1024 days;
+- opened with ``chunks={"time": 1024}``: chunks of 1024 days.
+
+The chunks that icclim computes on are identical for native and ``"auto"`` at 165 years
+(59 time chunks), and differ by one chunk at 30 years (11 against 12). Yet the measured time
+and memory differ:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 34 22 22 22
+
+   * - Index and period
+     - ``chunks="auto"``
+     - ``chunks={"time": 1024}``
+     - ``chunks={}`` (native)
+   * - ``count``, 30 years
+     - 11.4 s, 2.0 GiB
+     - 12.5 s, 1.95 GiB
+     - 22.4 s, 1.34 GiB
+   * - ``count``, 165 years
+     - 43.9 s, 3.9 GiB
+     - 44.8 s, 3.79 GiB
+     - 70.0 s, 1.65 GiB
+   * - rolling sum over 5 days, 165 years
+     - 47.1 s, 4.8 GiB
+     - not measured
+     - 74.3 s, 2.5 GiB
+   * - date index, 165 years
+     - 88.4 s, 5.9 GiB
+     - not measured
+     - 125.8 s, 4.7 GiB
+
+Chunks of 1024 days given explicitly behave like ``"auto"``. The native chunks are slower
+and use less memory, and their memory is almost flat with the length of the period, while
+the memory of ``"auto"`` grows. Repeated runs vary: the native ``count`` took 19.1 s and
+73.3 s in another run, and used 1.4 and 1.7 GiB.
+
+This is a measurement under these conditions (one file, one time step per chunk). The
+mechanism is not established. A likely reading is that rechunking many tiny chunks lets
+dask stream them, while a chunk that is huge from the start cannot be split afterwards;
+this has not been shown. Try ``"auto"`` and the native chunks on your own data, and pick
+the one that needs less memory when RAM is the limit.
+
+Synthetic example, not from the validation: with one file per year (30 files, 128x256
+grid, native chunk of one time step), ``chunks={}`` gives 10957 chunks of one time step
+that icclim rechunks to 1024 days (128 MiB), while xarray's ``chunks="auto"`` follows the
+files and gives chunks of 365 or 366 days (46 MiB). With files stored in one contiguous
+block per year, ``chunks={}`` and ``chunks="auto"`` give the same chunks (365 or 366
+days).
+
+RAM is the hard limit and time is the soft one: a computation that is too slow
+finishes, a computation that needs more memory than the machine has is killed. If you
+run out of memory, prefer the option that needs less memory, such as the native chunks in
+the measurement above, or a smaller ``array.chunk-size``, even if it is slower.
+
+Memory budget of the bootstrap
+==============================
+
+The percentile indices with a bootstrap over the years outside the base period tile the
+grid so that the estimated memory of a tile stays within a budget,
+``ICCLIM_BOOTSTRAP_SAFE_TILE_MEMORY`` (default: ``2GB``). It is a budget given to the
+estimator, **not a cap** on the memory used by the process. Measured peak memory against
+the 2 GiB budget: 13.4 GiB for a
+study period of 30 years equal to the base period, about 6.7 times the budget; 1.05 to
+1.5 times for 60 years; 1.2 to 2.2 times for 165 years. The 30-year case is not explained
+yet and is being investigated: do not rely on the budget to bound the memory, and set
+the Dask workers' memory limits to your machine.
+
+The time of the bootstrap grows with the number of grid points and with the number of
+years outside the base period. As measured, an annual ``TX90p`` on a full CMIP6 grid took
+about 45 minutes for 60 years and 2.2 hours for 165 years, with auto-sized chunks. These
+are measurements, not a rule.
 
 *****************
  On performances

@@ -52,10 +52,15 @@ date: TBD
    affected by the SciPy 1.18.1 behaviour change described in the 7.3.5 notes.
 -  [compat] Validation: the results on CMIP6 data are identical to those of 7.3.3 and
    7.3.6, with xclim 0.60 and 1.0, except for the changes above (see "How the indices are
-   validated", PR #657). This comparison will be repeated on the release candidate before
-   the tag.
-
-   .. CHECK: rerun this comparison on the 7.4.0 candidate before the tag.
+   validated", PR #657). The comparison was repeated on real data for the candidate
+   19b40a3f (CNRM-CM6-1 ``tasmax`` and ``tasmin``, ACCESS-CM2 precipitation, full grid,
+   1976-2014, xclim 0.60.0 and 1.0.0): 104 comparisons of 7.3.6 against the candidate, 96
+   bit-identical and 8 different as expected (``CDD`` and ``CWD``, year and month, in both
+   environments, from the ``run_index`` default), none unexpected. ``TRAV`` equals the
+   absolute value of the previous ``TRAV``, ``HI`` and ``BEDD`` agree between the two
+   environments, and the speed of the yearly ``SU`` is unchanged (median 47.3 s for 7.3.6,
+   45.9 s for the candidate). The later changes, the time-chunk guard and the version
+   bump, only concern the chunk handling of time-contiguous input and the version string.
 -  [perf] The speed of the ordinary indices on a full CMIP6 grid is unchanged since 7.3.3
    (59 s against 62 s for the yearly ``TG``, 45 s against 44 s for ``rx5day``, same input
    and node).
@@ -73,9 +78,25 @@ date: TBD
    the number of years outside the base period: on a full 128x256 grid, about 45 minutes
    for 60 years and 2.2 hours for 165 years (annual ``TX90p``, 30-year base period,
    auto-sized chunks).
--  [perf] Memory guard and chunk policy: to be decided before the release.
-
-   .. CHECK: any memory guard or change of the chunk policy is not decided for 7.4.0.
+-  [enh] A notice is printed once per process when a Dask-backed input has one chunk, or
+   very long chunks, along time: its largest chunk is above eight times dask's
+   ``array.chunk-size`` (1 GiB with the default) (PR #685). On CMIP6 data (128x256 grid,
+   daily) such inputs used 18 to 31 GiB and took about 1,700 s where chunks of 1024 days
+   took under 90 s. The notice advises reopening the data with ``chunks="auto"`` or
+   ``chunks={"time": 1024}``, or, if one chunk is needed, selecting the period before
+   chunking (30 years selected after chunking a 165-year file: 1,855 s; selected first: 342
+   s; ``chunks="auto"``: 13.7 s). The input and its chunks are not modified, and there is
+   no new parameter: rechunking the time axis did not reduce the time or the memory.
+-  [doc] The page "Chunk data and parallelize computation" states what icclim does with the
+   chunks of the input (rechunk below 1/8 of ``array.chunk-size``, keep, keep with a notice
+   above 8 times), the measured time and memory of ``chunks="auto"``, ``chunks={"time":
+   1024}`` and the native chunks (RAM is the hard limit), and the cost of time-contiguous
+   chunks (PR #685).
+-  [doc] The memory budget of the percentile bootstrap, ``ICCLIM_BOOTSTRAP_SAFE_TILE_MEMORY``
+   (default ``2GB``), is a budget given to the estimator, not a cap: the measured peak was
+   13.4 GiB for a 30-year study period equal to the base period (6.7 times the budget),
+   1.05 to 1.5 times for 60 years and 1.2 to 2.2 times for 165 years. The 30-year case is
+   not explained yet and is being investigated (PR #685).
 -  [test] Independent reference calculations now cover all 66 implemented indices (PR #539
    and the following pull requests); a registry-wide test checks the equivalence of
    inputs in K, degC and degF, and in kg m-2 s-1 and mm/day (PR #642).
