@@ -6,6 +6,81 @@
 Unreleased
 **********
 
+*****
+7.4.0
+*****
+
+date: TBD
+
+
+-  [Behaviour change] Run-length indices now credit a run to the period where it ends.
+   ``CDD``, ``CWD``, ``CFD``, ``CSU``, ``PXCDD``, ``PXCWD`` and
+   ``max_consecutive_occurrence`` default to ``run_index="last"``. Until 7.3.x a run was
+   credited to the period where it starts. For ``CDD`` and ``CWD`` this follows the ECA&D
+   ATBD v11 (section 5.1) and the ETCCDI definitions; for ``CFD``, ``CSU`` and the
+   generic function it is icclim's own convention, applied for consistency (issue #580).
+   ``run_index="first"`` gives the previous behaviour, and
+   ``split_runs_at_period_boundary=True`` cuts the runs at the period boundaries. A
+   notice is printed once per process and per index (PR #633).
+-  [Behaviour change] Size of the change, on CMIP6 data (1976-2014, global grid;
+   ACCESS-CM2 for ``CDD`` and ``CWD``, CNRM-CM6-1 for ``CFD`` and ``CSU``): the share of
+   values that differ between ``"first"`` and ``"last"`` is, for yearly and monthly
+   output, 22% and 46% for ``CDD``, 5% and 19% for ``CWD``, 28% and 10% for ``CFD``, and
+   12% and 11% for ``CSU`` and ``max_consecutive_occurrence``. Between 80% and 99% of the
+   changed values differ by more than one day.
+-  [Behaviour change] Periods wholly crossed by a run: a period with no event is 0; a
+   period entirely covered by a run credited to another period is ``NaN`` with
+   ``"first"`` and ``"last"`` (as in ETCCDI for ``CDD`` and ``CWD``); with the split
+   option every period has a value. With ``"first"`` and ``"last"`` a value can be longer
+   than its period: at a polar grid point with frost on every day of 1976-2014, ``CFD``
+   is a single run of 14,245 days credited to one period, while with the split option it
+   is 365 days per year (366 in a leap year). The share of values longer than their
+   period is, for yearly and monthly output, 0.75% and 7.9% for ``CDD``, 2.9% and 3.7%
+   for ``CFD``, and 1.3% and 4.2% for ``CSU`` (PR #661).
+-  [change] Python 3.10 is no longer supported (``requires-python >=3.11``). The new
+   minimum versions are numpy 1.24, pandas 2.2.0, xarray 2024.11.0, xclim 0.56.0, dask
+   2024.11.1, zarr 2.12.0, cftime 1.6.2, dateparser 1.1.4, typing-extensions 4.5.0 and
+   pint 0.25 (PR #630).
+-  [enh] ``HI`` and ``BEDD`` follow the ATBD v11: they sum from 1 April to 30 September,
+   and the coefficient of ``HI`` is 1.00 up to 40 N and 1.02 to 1.06 for each band of two
+   degrees up to 50 N, with a missing result above 50 N and below the equator (PRs #640,
+   #641 and #655). 66 of the 75 ECA&D indices are implemented; the others are followed in
+   issue #204.
+-  [compat] Tested with xclim 0.56 (lowest), 0.60 and 1.0, xarray 2026.2 or later, and
+   pint 0.25 or later (PR #631). SciPy is not a direct dependency; with
+   ``ICCLIM_BOOTSTRAP_MODE=default``, the bootstrap interpolation of xclim is still
+   affected by the SciPy 1.18.1 behaviour change described in the 7.3.5 notes.
+-  [compat] Validation: the results on CMIP6 data are identical to those of 7.3.3 and
+   7.3.6, with xclim 0.60 and 1.0, except for the changes above (see "How the indices are
+   validated", PR #657). This comparison will be repeated on the release candidate before
+   the tag.
+
+   .. CHECK: rerun this comparison on the 7.4.0 candidate before the tag.
+-  [perf] The speed of the ordinary indices on a full CMIP6 grid is unchanged since 7.3.3
+   (59 s against 62 s for the yearly ``TG``, 45 s against 44 s for ``rx5day``, same input
+   and node).
+-  [perf] Peak memory and speed depend on how the input is opened. On a 128x256 grid of
+   daily data, on one node, for 30 to 165 years: opening the files with their own chunks
+   (one time step each in this test, ``chunks={}``; icclim then rechunks them to auto-sized
+   chunks) used less memory and was 1.4 to 1.7 times slower than opening them with
+   ``chunks="auto"``, and the difference in memory grows with the length of the series
+   (count index, 165 years: 44 s and 3.9 GiB with ``"auto"``, 73 s and 1.7 GiB with the
+   file chunks). Input held in a single chunk along time is left as it is by icclim and
+   needed 18 to 32 GiB; the count, rolling and date indices took about 30 minutes, against
+   less than 90 s with ``"auto"``.
+-  [perf] Percentile indices with a bootstrap over the years outside the base period are
+   the slowest case. The time is proportional to the number of grid points and grows with
+   the number of years outside the base period: on a full 128x256 grid, about 45 minutes
+   for 60 years and 2.2 hours for 165 years (annual ``TX90p``, 30-year base period,
+   auto-sized chunks).
+-  [perf] Memory guard and chunk policy: to be decided before the release.
+
+   .. CHECK: any memory guard or change of the chunk policy is not decided for 7.4.0.
+-  [test] Independent reference calculations now cover all 66 implemented indices (PR #539
+   and the following pull requests); a registry-wide test checks the equivalence of
+   inputs in K, degC and degF, and in kg m-2 s-1 and mm/day (PR #642).
+-  [meta] ``environment.yml`` and the installation notes match ``pyproject.toml`` (PR
+   #664); citation metadata and the concept DOI badge (PRs #588, #591, #592 and #593).
 -  [doc] The documentation states the positional order of ``var_name`` for the indices
    with two variables whose result depends on it (issue #683): ``DTR`` (mean of
    ``TX - TN``), ``ETR`` (``max(TX) - min(TN)``; swapped, a different quantity, not the
@@ -211,82 +286,6 @@ Unreleased
    the first dimension whatever the order of the input. Code that selects these
    results by axis position instead of by dimension name has to be updated.
    Affected: 7.1.10, 7.2.0, 7.3.1 and 7.3.3 (run with xclim 0.60.0), and 7.3.4.
-
-*****
-7.4.0
-*****
-
-date: TBD
-
-
--  [Behaviour change] Run-length indices now credit a run to the period where it ends.
-   ``CDD``, ``CWD``, ``CFD``, ``CSU``, ``PXCDD``, ``PXCWD`` and
-   ``max_consecutive_occurrence`` default to ``run_index="last"``. Until 7.3.x a run was
-   credited to the period where it starts. For ``CDD`` and ``CWD`` this follows the ECA&D
-   ATBD v11 (section 5.1) and the ETCCDI definitions; for ``CFD``, ``CSU`` and the
-   generic function it is icclim's own convention, applied for consistency (issue #580).
-   ``run_index="first"`` gives the previous behaviour, and
-   ``split_runs_at_period_boundary=True`` cuts the runs at the period boundaries. A
-   notice is printed once per process and per index (PR #633).
--  [Behaviour change] Size of the change, on CMIP6 data (1976-2014, global grid;
-   ACCESS-CM2 for ``CDD`` and ``CWD``, CNRM-CM6-1 for ``CFD`` and ``CSU``): the share of
-   values that differ between ``"first"`` and ``"last"`` is, for yearly and monthly
-   output, 22% and 46% for ``CDD``, 5% and 19% for ``CWD``, 28% and 10% for ``CFD``, and
-   12% and 11% for ``CSU`` and ``max_consecutive_occurrence``. Between 80% and 99% of the
-   changed values differ by more than one day.
--  [Behaviour change] Periods wholly crossed by a run: a period with no event is 0; a
-   period entirely covered by a run credited to another period is ``NaN`` with
-   ``"first"`` and ``"last"`` (as in ETCCDI for ``CDD`` and ``CWD``); with the split
-   option every period has a value. With ``"first"`` and ``"last"`` a value can be longer
-   than its period: at a polar grid point with frost on every day of 1976-2014, ``CFD``
-   is a single run of 14,245 days credited to one period, while with the split option it
-   is 365 days per year (366 in a leap year). The share of values longer than their
-   period is, for yearly and monthly output, 0.75% and 7.9% for ``CDD``, 2.9% and 3.7%
-   for ``CFD``, and 1.3% and 4.2% for ``CSU`` (PR #661).
--  [change] Python 3.10 is no longer supported (``requires-python >=3.11``). The new
-   minimum versions are numpy 1.24, pandas 2.2.0, xarray 2024.11.0, xclim 0.56.0, dask
-   2024.11.1, zarr 2.12.0, cftime 1.6.2, dateparser 1.1.4, typing-extensions 4.5.0 and
-   pint 0.25 (PR #630).
--  [enh] ``HI`` and ``BEDD`` follow the ATBD v11: they sum from 1 April to 30 September,
-   and the coefficient of ``HI`` is 1.00 up to 40 N and 1.02 to 1.06 for each band of two
-   degrees up to 50 N, with a missing result above 50 N and below the equator (PRs #640,
-   #641 and #655). 66 of the 75 ECA&D indices are implemented; the others are followed in
-   issue #204.
--  [compat] Tested with xclim 0.56 (lowest), 0.60 and 1.0, xarray 2026.2 or later, and
-   pint 0.25 or later (PR #631). SciPy is not a direct dependency; with
-   ``ICCLIM_BOOTSTRAP_MODE=default``, the bootstrap interpolation of xclim is still
-   affected by the SciPy 1.18.1 behaviour change described in the 7.3.5 notes.
--  [compat] Validation: the results on CMIP6 data are identical to those of 7.3.3 and
-   7.3.6, with xclim 0.60 and 1.0, except for the changes above (see "How the indices are
-   validated", PR #657). This comparison will be repeated on the release candidate before
-   the tag.
-
-   .. CHECK: rerun this comparison on the 7.4.0 candidate before the tag.
--  [perf] The speed of the ordinary indices on a full CMIP6 grid is unchanged since 7.3.3
-   (59 s against 62 s for the yearly ``TG``, 45 s against 44 s for ``rx5day``, same input
-   and node).
--  [perf] Peak memory and speed depend on how the input is opened. On a 128x256 grid of
-   daily data, on one node, for 30 to 165 years: opening the files with their own chunks
-   (one time step each in this test, ``chunks={}``; icclim then rechunks them to auto-sized
-   chunks) used less memory and was 1.4 to 1.7 times slower than opening them with
-   ``chunks="auto"``, and the difference in memory grows with the length of the series
-   (count index, 165 years: 44 s and 3.9 GiB with ``"auto"``, 73 s and 1.7 GiB with the
-   file chunks). Input held in a single chunk along time is left as it is by icclim and
-   needed 18 to 32 GiB; the count, rolling and date indices took about 30 minutes, against
-   less than 90 s with ``"auto"``.
--  [perf] Percentile indices with a bootstrap over the years outside the base period are
-   the slowest case. The time is proportional to the number of grid points and grows with
-   the number of years outside the base period: on a full 128x256 grid, about 45 minutes
-   for 60 years and 2.2 hours for 165 years (annual ``TX90p``, 30-year base period,
-   auto-sized chunks).
--  [perf] Memory guard and chunk policy: to be decided before the release.
-
-   .. CHECK: any memory guard or change of the chunk policy is not decided for 7.4.0.
--  [test] Independent reference calculations now cover all 66 implemented indices (PR #539
-   and the following pull requests); a registry-wide test checks the equivalence of
-   inputs in K, degC and degF, and in kg m-2 s-1 and mm/day (PR #642).
--  [meta] ``environment.yml`` and the installation notes match ``pyproject.toml`` (PR
-   #664); citation metadata and the concept DOI badge (PRs #588, #591, #592 and #593).
 
 *****
 7.3.7
