@@ -24,7 +24,7 @@ from icclim._core.model.threshold import (
     Threshold,
     ThresholdValueType,
 )
-from icclim._core.utils import is_number_sequence
+from icclim._core.utils import is_number_sequence, snap_converted_temperature
 from icclim.exception import InvalidIcclimArgumentError
 
 if TYPE_CHECKING:
@@ -93,7 +93,9 @@ class BasicThreshold(Threshold):
                 from xclim.core.units import convert_units_to  # noqa: PLC0415
 
                 try:
-                    self.value = convert_units_to(v, unit, context="hydro")
+                    self.value = snap_converted_temperature(
+                        convert_units_to(v, unit, context="hydro")
+                    )
                 except pint.errors.DimensionalityError as e:
                     msg = (
                         f"Cannot convert threshold's unit ({v.attrs.get(UNITS_KEY)}) to "
@@ -315,6 +317,10 @@ class BasicThreshold(Threshold):
         will be used to compute the threshold exceedance.
 
         """
+        # The data are compared with a threshold that is not computed from them: a
+        # temperature that the conversion to degree_Celsius left 5.7e-14 above its
+        # exact value must be equal to the threshold.
+        comparison_data = snap_converted_temperature(comparison_data)
         if override_op is not None:
             return override_op(comparison_data, cast("DataArray", self.value))
         return cast("Operator", self.operator).compute(
@@ -351,7 +357,9 @@ class BasicThreshold(Threshold):
         if unit is not None:
             from xclim.core.units import convert_units_to  # noqa: PLC0415
 
-            built_value = convert_units_to(built_value, unit, context="hydro")
+            built_value = snap_converted_temperature(
+                convert_units_to(built_value, unit, context="hydro")
+            )
         self.is_ready = True
         return built_value
 

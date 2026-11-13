@@ -149,6 +149,17 @@ GENERIC_VAR_NAME_ORDER_NOTES = {
         "With the names in the other order, the result is the opposite anomaly.",
     ),
 }
+TRAV_NOTE = """
+    .. note::
+       ``TRAV`` is the absolute value of the mean of ``TX - TN``, the daily maximum
+       minus the daily minimum temperature: the daily differences are averaged over
+       each period, then the absolute value is taken for each grid point. It is
+       always positive and it does not depend on the order of ``var_name``:
+       ``icclim.dcsc.trav(ds, var_name=["tasmax", "tasmin"])`` and
+       ``icclim.dcsc.trav(ds, var_name=["tasmin", "tasmax"])`` give the same result.
+       The data are not checked: if ``TX`` is below ``TN`` everywhere, the result is
+       positive all the same and it is not flagged.
+"""
 
 RELATIVE_ROOT = Path(__file__).parent.parent
 DEFAULT_OUTPUT_PATH = RELATIVE_ROOT / "src/icclim/_generated"
@@ -399,7 +410,7 @@ def {index.short_name.lower()}(
     {index.short_name}: {index.definition}
     Source: {index.source}.
 
-    {_get_run_attribution_note(index)}{_get_var_name_order_note(index)}
+    {_get_run_attribution_note(index)}{_get_trav_note(index)}{_get_var_name_order_note(index)}
     {args_docs}
     {END_NOTE}
     \"\"\"  # noqa: D401
@@ -531,6 +542,10 @@ def _get_var_name_order_note(index: StandardIndex | GenericIndicator) -> str:
     if hasattr(index, "short_name"):
         return VAR_NAME_ORDER_NOTES.get(index.short_name, "")
     return GENERIC_VAR_NAME_ORDER_NOTES.get(index.name, "")
+
+
+def _get_trav_note(index: StandardIndex) -> str:
+    return TRAV_NOTE if index.short_name == "TRAV" else ""
 
 
 def _set_run_index_default(
