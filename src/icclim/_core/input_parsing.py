@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+import sys
 import warnings
 from collections.abc import Hashable, Sequence
 from datetime import datetime
@@ -589,19 +590,61 @@ def build_studied_data(
 # slower and heavier, e.g. one chunk per daily file from ``open_mfdataset``.
 _MIN_PRESERVED_CHUNK_FRACTION = 8
 
+# Dask-backed inputs whose largest chunk is above this multiple of the configured
+# ``array.chunk-size`` have their time axis rechunked to "auto". A time chunk that
+# holds the whole period (or a few very long ones) makes the per-period loops load
+# the whole period at once: memory and time grow with the length of the period.
+_MAX_PRESERVED_CHUNK_MULTIPLE = 8
+
+_TIME_RECHUNK_NOTICE_SHOWN = False
+
+
+def _reset_time_rechunk_notice() -> None:
+    """Forget that the time rechunk notice was printed (for tests)."""
+    global _TIME_RECHUNK_NOTICE_SHOWN  # noqa: PLW0603
+    _TIME_RECHUNK_NOTICE_SHOWN = False
+
 
 def _chunk_eager_data(data: DataArray) -> DataArray:
     """Choose chunks for the studied data.
 
     Eager data is chunked automatically. Dask-backed data keeps the caller's
-    chunks, unless they are so small that they would make computations
-    needlessly slow, in which case they are rechunked automatically.
+    chunks, unless:
+
+    - they are so small (largest chunk below 1/8 of dask's ``array.chunk-size``)
+      that they would make computations needlessly slow: they are rechunked
+      automatically;
+    - they are so large (largest chunk above 8 times ``array.chunk-size``) that
+      the time axis is held in a few chunks: the time axis is rechunked
+      automatically, the other dimensions are kept, and a notice is printed once
+      per process.
     """
     if data.chunks is None:
         return data.chunk("auto")
-    if _largest_chunk_nbytes(data) < _min_preserved_chunk_nbytes():
+    largest = _largest_chunk_nbytes(data)
+    if largest < _min_preserved_chunk_nbytes():
         return data.chunk("auto")
+    if largest > _max_preserved_chunk_nbytes() and "time" in data.dims:
+        rechunked = data.chunk({"time": "auto"})
+        if rechunked.chunks != data.chunks:
+            _print_time_rechunk_notice(largest, _largest_chunk_nbytes(rechunked))
+            return rechunked
     return data
+
+
+def _print_time_rechunk_notice(before: int, after: int) -> None:
+    global _TIME_RECHUNK_NOTICE_SHOWN  # noqa: PLW0603
+    if _TIME_RECHUNK_NOTICE_SHOWN:
+        return
+    _TIME_RECHUNK_NOTICE_SHOWN = True
+    sys.stdout.write(
+        "icclim rechunked the time axis of the input: its largest chunk was "
+        f"{before / 2**30:.1f} GiB, above the {_max_preserved_chunk_nbytes() / 2**30:.1f} "
+        f"GiB limit (8 times dask's array.chunk-size), and it is now {after / 2**20:.0f} "
+        "MiB. Time chunks that hold the whole period make the memory grow with the "
+        "length of the period. The values are not changed. To choose the chunks "
+        "yourself, open the data with time chunks of at most that size.\n"
+    )
 
 
 def _largest_chunk_nbytes(data: DataArray) -> int:
@@ -611,12 +654,19 @@ def _largest_chunk_nbytes(data: DataArray) -> int:
     return n_elements * data.dtype.itemsize
 
 
-def _min_preserved_chunk_nbytes() -> int:
+def _chunk_size_target_nbytes() -> int:
     from dask import config as dask_config  # noqa: PLC0415
     from dask.utils import parse_bytes  # noqa: PLC0415
 
-    target = parse_bytes(dask_config.get("array.chunk-size"))
-    return target // _MIN_PRESERVED_CHUNK_FRACTION
+    return parse_bytes(dask_config.get("array.chunk-size"))
+
+
+def _min_preserved_chunk_nbytes() -> int:
+    return _chunk_size_target_nbytes() // _MIN_PRESERVED_CHUNK_FRACTION
+
+
+def _max_preserved_chunk_nbytes() -> int:
+    return _chunk_size_target_nbytes() * _MAX_PRESERVED_CHUNK_MULTIPLE
 
 
 def _subset_to_requested_time_range(

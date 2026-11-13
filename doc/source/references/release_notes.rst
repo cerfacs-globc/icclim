@@ -73,9 +73,22 @@ date: TBD
    the number of years outside the base period: on a full 128x256 grid, about 45 minutes
    for 60 years and 2.2 hours for 165 years (annual ``TX90p``, 30-year base period,
    auto-sized chunks).
--  [perf] Memory guard and chunk policy: to be decided before the release.
-
-   .. CHECK: any memory guard or change of the chunk policy is not decided for 7.4.0.
+-  [perf] A Dask-backed input whose largest chunk is above eight times dask's
+   ``array.chunk-size`` (1 GiB with the default), typically one chunk holding the whole
+   period along time, now has its time axis rechunked to auto-sized chunks, and a notice is
+   printed once per process (PR #NNN). The other dimensions are kept, the values do not
+   change, and chunks between 1/8 and 8 times ``array.chunk-size`` are still kept as they
+   are; numpy input is not concerned. There is no option to switch it off.
+-  [doc] The page "Chunk data and parallelize computation" states what icclim does with the
+   chunks of the input (rechunk below 1/8 of ``array.chunk-size``, keep, rechunk the time
+   axis above 8 times), which chunks ``chunks={}`` and ``chunks="auto"`` give, the
+   measured trade-off between time and memory (RAM is the hard limit), and the cost of
+   time-contiguous chunks (PR #NNN).
+-  [doc] The memory budget of the percentile bootstrap, ``ICCLIM_BOOTSTRAP_SAFE_TILE_MEMORY``
+   (default ``2GB``), is a budget given to the estimator, not a cap: the measured peak was
+   13.4 GiB for a 30-year study period equal to the base period (6.7 times the budget),
+   1.05 to 1.5 times for 60 years and 1.2 to 2.2 times for 165 years. The 30-year case is
+   not explained yet and is being investigated (PR #NNN).
 -  [test] Independent reference calculations now cover all 66 implemented indices (PR #539
    and the following pull requests); a registry-wide test checks the equivalence of
    inputs in K, degC and degF, and in kg m-2 s-1 and mm/day (PR #642).

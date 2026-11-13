@@ -29,8 +29,11 @@ reasonably large: the largest chunk must be at least one eighth of the
 configured ``array.chunk-size`` (16 MiB with the default). Smaller chunks, such
 as one chunk per daily file from ``open_mfdataset``, are rechunked
 automatically because many tiny chunks make rolling windows, spells, bootstrap
-and date-event computations much slower and heavier. Automatic chunking is also
-applied when an eager array is supplied.
+and date-event computations much slower and heavier. Time chunks that are too
+large (the largest chunk above eight times ``array.chunk-size``, 1 GiB with the
+default) are rechunked along time, with a notice. Automatic chunking is also
+applied when an eager array is supplied. See :ref:`dask_chunk_policy` for the
+details and the measurements.
 
 Prepared percentile thresholds are an exception. They retain an internal
 automatic rechunk after ``percentile_doy`` because preserving the generated
@@ -129,6 +132,118 @@ configuration:
 .. code:: python
 
    dask.config.set({"array.slicing.split_large_chunks": True})
+
+.. _dask_chunk_policy:
+
+**************************************
+ What icclim does with the chunks
+**************************************
+
+icclim looks at the largest chunk of a Dask-backed input, that is the product of
+the largest chunk length of each dimension, times the size of one value. The limits
+follow dask's ``array.chunk-size`` (128 MiB by default). The numbers below are for the
+default and for daily ``float32`` data on a 128x256 grid, where one time step is
+128 KiB.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 30 40
+
+   * - Largest chunk
+     - What icclim does
+     - Example (30 years of daily data, 1.34 GiB in all)
+   * - below 16 MiB (1/8 of ``array.chunk-size``)
+     - rechunks all the dimensions with dask's ``"auto"``
+     - one time step per chunk (``chunks={}`` on files that store one time step per
+       chunk): rechunked to 11 chunks of 1024 days (717 for the last one), 128 MiB each
+   * - 16 MiB to 1 GiB
+     - keeps the chunks as they are, without notice
+     - chunks of 365 or 366 days (46 MiB), chunks of 1024 days (128 MiB)
+   * - above 1 GiB (8 times ``array.chunk-size``)
+     - rechunks the **time axis only** with ``"auto"``, keeps the other dimensions,
+       and prints a notice
+     - one chunk along time (1.34 GiB for 30 years, 7.4 GiB for 165 years): rechunked
+       to chunks of at most 1024 days
+   * - data in memory (numpy)
+     - chunks it with ``"auto"``, as before
+     - not concerned by the notice
+
+The limits scale with ``array.chunk-size``: setting it to ``"64 MiB"`` moves the limits
+to 8 MiB and 512 MiB. The notice is printed on the standard output once per Python
+process, whatever ``logs_verbosity``, and starts with "icclim rechunked the time axis of
+the input". The values of the results do not change with the chunks. There is no option
+to switch the guard off: to choose the chunks yourself, open the data with time chunks
+below the limit.
+
+Auto versus native chunks
+=========================
+
+Opening the files with ``chunks="auto"`` and with ``chunks={}`` (the chunks of the
+files, called native here) does not give the chunks that icclim chooses when it
+rechunks, so the two inputs are not equivalent. On files with one year each and a native
+chunk of one time step (128x256 grid, 30 files):
+
+.. list-table::
+   :header-rows: 1
+   :widths: 24 38 38
+
+   * - Opened with
+     - Chunks the user gives
+     - Chunks used by icclim
+   * - ``chunks={}``
+     - 10957 chunks of one time step (0.1 MiB)
+     - rechunked by icclim to 1024 days (128 MiB)
+   * - ``chunks="auto"``
+     - xarray's ``"auto"``: chunks of one file, 365 or 366 days (46 MiB)
+     - kept as they are
+   * - files stored in one contiguous block per year, ``chunks={}`` or ``"auto"``
+     - 365 or 366 days (46 MiB), the same for both
+     - kept as they are
+
+The ``"auto"`` of xarray follows how the data is stored in the files, the ``"auto"`` that
+icclim applies to small chunks only follows dask's ``array.chunk-size``. The result
+is the same set of values, in chunks of other sizes.
+
+Measured on CMIP6 data (CNRM-CM6-1, 128x256 grid, daily data, master, one node), with
+the count index for 165 years: ``chunks="auto"`` took 44 s and 3.9 GiB, the native chunks
+of one time step (rechunked by icclim to 1024 days) took 73 s and 1.7 GiB. Opening the
+data with ``chunks="auto"`` was 1.4 to 1.7 times faster for 30 to 165 years and used
+more memory, a memory that grows with the length of the period; with the native chunks
+the memory was almost flat. These numbers come from one dataset and one node: benchmark
+your own input.
+
+RAM is the hard limit and time is the soft one: a computation that is too slow
+finishes, a computation that needs more memory than the machine has is killed. If you
+run out of memory, prefer the smaller chunks (the native chunks, or a smaller
+``array.chunk-size``) even if they are slower.
+
+Time-contiguous chunks
+======================
+
+A chunk that holds the whole period along time is the worst layout. On the same inputs
+(128x256 grid, 30 to 165 years), the count, rolling and date indices needed 18 to 32 GiB
+and took about 1,700 to 1,820 s with one time chunk, against less than 90 s with
+auto-sized chunks. The annual bootstrap percentile index (165 years) with one time chunk
+was killed after 11 h 06 min at 27.7 GiB. This is the reason of the guard above: from
+this version, such an input is rechunked along time with a notice instead of being kept.
+
+Memory budget of the bootstrap
+==============================
+
+The percentile indices with a bootstrap over the years outside the base period tile the
+grid so that the estimated memory of a tile stays within a budget,
+``ICCLIM_BOOTSTRAP_SAFE_TILE_MEMORY`` (default: ``2GB``). It is a budget given to the
+estimator, **not a cap** on the memory used by the process. Measured peak memory against
+the 2 GiB budget: 13.4 GiB for a
+study period of 30 years equal to the base period, about 6.7 times the budget; 1.05 to
+1.5 times for 60 years; 1.2 to 2.2 times for 165 years. The 30-year case is not explained
+yet and is being investigated: do not rely on the budget to bound the memory, and set
+the Dask workers' memory limits to your machine.
+
+The time of the bootstrap grows with the number of grid points and with the number of
+years outside the base period. As measured, an annual ``TX90p`` on a full CMIP6 grid took
+about 45 minutes for 60 years and 2.2 hours for 165 years, with auto-sized chunks. These
+are measurements, not a rule.
 
 *****************
  On performances
