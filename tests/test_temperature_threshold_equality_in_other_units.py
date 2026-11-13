@@ -13,6 +13,7 @@ import numpy as np
 import pandas as pd
 import pytest
 import xarray as xr
+from xclim.core.units import convert_units_to
 
 import icclim
 from icclim._core.generic.threshold.basic import BasicThreshold
@@ -197,3 +198,26 @@ def test_float64_k_and_degc_results_are_those_of_a_plain_comparison(unit: str) -
     np.testing.assert_array_equal(
         actual.transpose("time", "lat", "lon").values, expected
     )
+
+
+@pytest.mark.parametrize("dtype", ["int32", "int64"])
+@pytest.mark.parametrize("operator", [">", "<="])
+def test_integer_degf_77_is_equal_to_25_degc(dtype: str, operator: str) -> None:
+    """Integer data are converted to float64 by pint, then snapped like float64 data."""
+    source = _series(25.0, "tasmax", "degF").astype(dtype)
+    assert source.dtype == dtype
+    actual = icclim.count_occurrences(
+        source,
+        threshold=f"{operator} 25 degC",
+        slice_mode="year",
+        out_file=None,
+        completeness="none",
+        logs_verbosity="SILENT",
+    ).count_occurrences.values
+    np.testing.assert_array_equal(actual, [0 if operator == ">" else 3])
+
+
+@pytest.mark.parametrize("dtype", ["int32", "int64"])
+def test_integer_degf_is_float64_after_the_conversion_to_degc(dtype: str) -> None:
+    source = _series(25.0, "tasmax", "degF").astype(dtype)
+    assert convert_units_to(source, "degC").dtype == np.float64
