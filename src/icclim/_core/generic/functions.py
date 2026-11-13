@@ -1596,6 +1596,8 @@ def mean_of_difference(
     Notes
     -----
     This is a generification of ECAD's DTR climate index.
+    The order of the two variables is the order of ``var_name``: the result is the mean
+    of ``first - second``, so the opposite of the result with the variables swapped.
     """
     study, ref = get_couple_of_var(climate_vars, "mean_of_difference")
     mean_of_diff = (study - ref).resample(time=resample_freq.pandas_freq).mean()
@@ -1834,6 +1836,9 @@ def difference_of_extremes(
     Finally, for each chunk, it calculates the differences of theses maximum and
     minimum values.
     This is a generification of ECAD's ETR climate index.
+    The order of the two variables is the order of ``var_name``: the result is
+    ``max(first) - min(second)``. With the variables swapped it is ``max(second) -
+    min(first)``, a different quantity, not the opposite.
     """
     study, ref = get_couple_of_var(climate_vars, "difference_of_extremes")
     max_study = study.resample(time=resample_freq.pandas_freq).max()
@@ -1935,6 +1940,10 @@ def difference_of_means(
     Notes
     -----
     This is a generification of the anomaly climate index.
+    When two variables are given, their order is the order of ``var_name``: the first
+    one is the study and the second one is the reference, so the result is the mean of
+    the study minus the mean of the reference, and the opposite anomaly with the
+    variables swapped.
     """
     study = climate_vars[0].studied_data
     ref = climate_vars[1].studied_data

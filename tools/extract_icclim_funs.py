@@ -11,6 +11,7 @@ from __future__ import annotations
 import copy
 import inspect
 import sys
+import textwrap
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -67,6 +68,87 @@ RUN_ATTRIBUTION_NOTE = """
        consistency; the ATBD does not require it for those indices.
 """
 
+
+def _var_name_order_note(
+    formula: str, first: str, second: str, example: str, other_order: str
+) -> str:
+    text = (
+        "``var_name`` is positional: the order of its names is the order of the"
+        f" formula. {formula} The first name is {first}, the second name is"
+        f" {second}, for example ``{example}``. {other_order}"
+    )
+    indent = TAB + "   "
+    paragraph = textwrap.fill(
+        text,
+        width=84,
+        initial_indent=indent,
+        subsequent_indent=indent,
+        break_long_words=False,
+        break_on_hyphens=False,
+    )
+    return f"\n{TAB}.. note::\n{paragraph}\n"
+
+
+# Indices with two variables whose result depends on the order of ``var_name``.
+VAR_NAME_ORDER_NOTES = {
+    "DTR": _var_name_order_note(
+        "``DTR`` is the mean of ``TX - TN``.",
+        "the daily maximum temperature (``TX``)",
+        "the daily minimum temperature (``TN``)",
+        'icclim.dtr(ds, var_name=["tasmax", "tasmin"])',
+        "With the names in the other order, the result is the mean of ``TN - TX``,"
+        " negative.",
+    ),
+    "ETR": _var_name_order_note(
+        "``ETR`` is ``max(TX) - min(TN)`` over each period.",
+        "the daily maximum temperature (``TX``), whose maximum is taken",
+        "the daily minimum temperature (``TN``), whose minimum is taken",
+        'icclim.etr(ds, var_name=["tasmax", "tasmin"])',
+        "With the names in the other order, the result is ``max(TN) - min(TX)``, a"
+        " different quantity, not the opposite of ``ETR``.",
+    ),
+}
+for _compound in ("CD", "CW", "WD", "WW"):
+    VAR_NAME_ORDER_NOTES[_compound] = _var_name_order_note(
+        f"``{_compound}`` counts the days when the temperature and the precipitation"
+        " are both beyond their percentile.",
+        "the daily mean temperature (``TG``)",
+        "the daily precipitation (``pr``)",
+        f'icclim.{_compound.lower()}(ds, var_name=["tas", "pr"],'
+        ' base_period_time_range=["1961-01-01", "1990-12-31"])',
+        "The two variables are not interchangeable: with the names in the other"
+        " order, the temperature is compared with a precipitation threshold, which"
+        " fails on the units.",
+    )
+
+# Generic indicators with two variables whose result depends on the order of
+# ``var_name``.
+GENERIC_VAR_NAME_ORDER_NOTES = {
+    "mean_of_difference": _var_name_order_note(
+        "``mean_of_difference`` is the mean of ``first - second``.",
+        "the minuend",
+        "the subtrahend",
+        'icclim.mean_of_difference(ds, var_name=["tasmax", "tasmin"])',
+        "With the names in the other order, the result is the opposite.",
+    ),
+    "difference_of_extremes": _var_name_order_note(
+        "``difference_of_extremes`` is ``max(first) - min(second)`` over each period.",
+        "the variable whose maximum is taken",
+        "the variable whose minimum is taken",
+        'icclim.difference_of_extremes(ds, var_name=["tasmax", "tasmin"])',
+        "With the names in the other order, the result is ``max(second) -"
+        " min(first)``, a different quantity, not the opposite.",
+    ),
+    "difference_of_means": _var_name_order_note(
+        "When two variables are given, ``difference_of_means`` is the mean of the"
+        " study minus the mean of the reference over each period, an anomaly: the"
+        " order is part of the definition.",
+        "the study",
+        "the reference",
+        'icclim.difference_of_means(ds, var_name=["tas_scenario", "tas_reference"])',
+        "With the names in the other order, the result is the opposite anomaly.",
+    ),
+}
 TRAV_NOTE = """
     .. note::
        ``TRAV`` is the absolute value of the mean of ``TX - TN``, the daily maximum
@@ -328,7 +410,7 @@ def {index.short_name.lower()}(
     {index.short_name}: {index.definition}
     Source: {index.source}.
 
-    {_get_run_attribution_note(index)}{_get_trav_note(index)}
+    {_get_run_attribution_note(index)}{_get_trav_note(index)}{_get_var_name_order_note(index)}
     {args_docs}
     {END_NOTE}
     \"\"\"  # noqa: D401
@@ -454,6 +536,12 @@ def _get_run_attribution_note(index: StandardIndex | GenericIndicator) -> str:
         if indicator is GenericIndicatorRegistry.MaxConsecutiveOccurrence
         else ""
     )
+
+
+def _get_var_name_order_note(index: StandardIndex | GenericIndicator) -> str:
+    if hasattr(index, "short_name"):
+        return VAR_NAME_ORDER_NOTES.get(index.short_name, "")
+    return GENERIC_VAR_NAME_ORDER_NOTES.get(index.name, "")
 
 
 def _get_trav_note(index: StandardIndex) -> str:
@@ -589,7 +677,7 @@ def {index.name.lower()}(
 
     {index.name}: {index.definition}
 
-    {_get_run_attribution_note(index)}
+    {_get_run_attribution_note(index)}{_get_var_name_order_note(index)}
     {args_docs}
     {END_NOTE}
     \"\"\"

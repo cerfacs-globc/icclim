@@ -182,3 +182,32 @@ reason was to interface eventually with the `OpenClimateGIS
    The index is defined for the northern hemisphere only: the result is missing at
    latitudes below 0 (southern hemisphere) and above 50 degrees north. The latitude is
    read from the coordinates of the data. The daily terms are not clipped at 0.
+
+.. _two_variable_indices_order:
+
+******************************************************
+Indices with two variables: the order of ``var_name``
+******************************************************
+
+For the indices that take two variables, the order of the names of ``var_name`` is
+positional: the first name is the first term of the formula. The result of the
+following indices depends on it:
+
+- ``DTR`` is the mean of ``TX - TN``: the first name is the daily maximum temperature,
+  the second one is the daily minimum temperature,
+  ``icclim.dtr(ds, var_name=["tasmax", "tasmin"])``. With the names in the other order
+  the result is the mean of ``TN - TX``, negative.
+- ``ETR`` is ``max(TX) - min(TN)`` over each period,
+  ``icclim.etr(ds, var_name=["tasmax", "tasmin"])``. With the names in the other order
+  it is ``max(TN) - min(TX)``, a different quantity, not the opposite.
+- ``CD``, ``CW``, ``WD`` and ``WW`` take the daily mean temperature first and the daily
+  precipitation second, ``icclim.cd(ds, var_name=["tas", "pr"],
+  base_period_time_range=["1961-01-01", "1990-12-31"])``. The two variables are not
+  interchangeable: swapped, the temperature is compared with a precipitation threshold
+  and the units do not match.
+
+``vDTR``, ``HI`` and ``BEDD`` do not depend on the order of their two variables. The
+same rule holds for the generic indices ``mean_of_difference`` and
+``difference_of_extremes`` (the first and the second variable, see
+:ref:`generic_indices_recipes`), and for ``difference_of_means`` with two variables (the
+study first, then the reference).
