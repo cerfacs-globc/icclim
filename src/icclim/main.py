@@ -715,7 +715,6 @@ def index(
             normalized_request=normalized_request,
         )
         run_index = _resolve_run_index(config, run_index)
-        _announce_input_order(config)
         provenance_user_parameters = _build_index_provenance_user_parameters(
             index_name=index_name,
             var_name=var_name,
@@ -787,36 +786,6 @@ def _resolve_run_index(config: IndexConfig, requested: str | None) -> str:
             "split_runs_at_period_boundary=True to cut the run at each boundary.\n"
         )
     return "last"
-
-
-# Indices that subtract their second input from their first: the order of the
-# variables gives the sign of the result.
-_ORDERED_DIFFERENCE_INDICES = frozenset({"TRAV"})
-
-# Names of the indices whose input order notice was already printed in this process
-# (the notice is printed once per index, as the run_index one).
-_INPUT_ORDER_NOTICE_SHOWN: set[str] = set()
-
-
-def _reset_input_order_notices() -> None:
-    """Forget which indices already printed the input order notice (for tests)."""
-    _INPUT_ORDER_NOTICE_SHOWN.clear()
-
-
-def _announce_input_order(config: IndexConfig) -> None:
-    """Print once per process what the index computes, with the variables used."""
-    index_name = config.indicator_name
-    if (
-        index_name not in _ORDERED_DIFFERENCE_INDICES
-        or index_name in _INPUT_ORDER_NOTICE_SHOWN
-    ):
-        return
-    _INPUT_ORDER_NOTICE_SHOWN.add(index_name)
-    first, second = (climate_var.name for climate_var in config.climate_variables[:2])
-    sys.stdout.write(
-        f"{index_name} = {first} - {second} (first input minus second; pass "
-        "var_name=['tasmax', 'tasmin'] to control the order)\n"
-    )
 
 
 def _reemit_actionable_warnings(captured_warnings: list[Any]) -> None:

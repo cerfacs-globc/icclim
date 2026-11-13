@@ -11,6 +11,7 @@ from icclim._core.constants import (
     RESAMPLE_METHOD,
 )
 from icclim._core.generic.functions import (
+    absolute_mean_of_difference,
     average,
     count_occurrences,
     deficit,
@@ -182,6 +183,16 @@ class GenericIndicatorRegistry(Registry[GenericIndicator]):
         definition="Average of the difference between two variables"
         ", or one variable and it's reference period values"
         " (e.g. DTR: `mean(tasmax - tasmin)`).",
+        qualifiers=("compute_diff",),
+        wmo_aggregation="mean",
+    )
+    AbsoluteMeanOfDifference = GenericIndicator(
+        "absolute_mean_of_difference",
+        absolute_mean_of_difference,
+        check_vars=_check_couple_of_vars,
+        definition="Absolute value of the average of the difference between two"
+        " variables, independent of their order (e.g. TRAV:"
+        " `abs(mean(tasmax - tasmin))`).",
         qualifiers=("compute_diff",),
         wmo_aggregation="mean",
     )

@@ -1,14 +1,12 @@
 """
-DCSC TRAV, the mean of the daily thermal amplitude (issue #668).
+DCSC TRAV, the absolute value of the mean of the daily thermal amplitude (issue #668).
 
-The DRIAS definition is the mean of ``TX - TN``, as for the ECA&D ``DTR``. The
-reference calculation below is written with numpy only.
+The index is the absolute value, for each grid point, of the mean over the period of
+``TX - TN``. It is never negative and it does not depend on the order of ``var_name``.
+The reference calculation below is written with numpy only.
 """
 
 from __future__ import annotations
-
-import subprocess
-import sys
 
 import numpy as np
 import pandas as pd
@@ -16,13 +14,14 @@ import pytest
 import xarray as xr
 
 import icclim
-from icclim.main import _reset_input_order_notices
 
 TEMPERATURE_UNITS = {
     "degC": lambda values: values,
     "K": lambda values: values + 273.15,
     "degF": lambda values: values * 9.0 / 5.0 + 32.0,
 }
+VAR_NAMES = [["tasmax", "tasmin"], ["tasmin", "tasmax"], None]
+VAR_NAMES_IDS = ["tx-first", "tn-first", "without-var_name"]
 
 
 def _cube() -> xr.Dataset:
@@ -55,7 +54,7 @@ def _cube() -> xr.Dataset:
 
 
 def _reference(source: xr.Dataset) -> np.ndarray:
-    """Yearly mean of TX - TN over the days where both are known."""
+    """Absolute value of the yearly mean of TX - TN, over the days with both."""
     years = np.asarray(source.time.dt.year.values)
     outputs = []
     for year in np.unique(years):
@@ -63,7 +62,7 @@ def _reference(source: xr.Dataset) -> np.ndarray:
         amplitude = (
             source["tasmax"].values[selected] - source["tasmin"].values[selected]
         )
-        outputs.append(np.nanmean(amplitude, axis=0))
+        outputs.append(np.abs(np.nanmean(amplitude, axis=0)))
     return np.stack(outputs)
 
 
@@ -75,39 +74,86 @@ def _in_unit(source: xr.Dataset, unit: str) -> xr.Dataset:
     return converted
 
 
-def _trav(source: xr.Dataset, **kwargs) -> xr.DataArray:
-    return icclim.dcsc.trav(
-        source,
-        var_name=["tasmax", "tasmin"],
-        slice_mode="year",
-        out_file=None,
-        completeness="none",
-        logs_verbosity="SILENT",
-        **kwargs,
-    ).TRAV.compute()
+def _trav(source: xr.Dataset, var_name=None, **kwargs) -> xr.DataArray:
+    options = {
+        "slice_mode": "year",
+        "out_file": None,
+        "completeness": "none",
+        "logs_verbosity": "SILENT",
+    }
+    options.update(kwargs)
+    if var_name is not None:
+        options["var_name"] = var_name
+    return icclim.dcsc.trav(source, **options).TRAV.compute()
 
 
+def _two_variables(low: float, high: float) -> xr.Dataset:
+    """Three days of tasmin = low and tasmax = high, the reproducer of the issue."""
+    time = pd.date_range("2001-01-01", periods=3)
+
+    def series(value: float, name: str) -> xr.DataArray:
+        return xr.DataArray(
+            [value] * 3,
+            dims="time",
+            coords={"time": time},
+            name=name,
+            attrs={"units": "degC"},
+        )
+
+    return xr.merge([series(low, "tasmin"), series(high, "tasmax")])
+
+
+@pytest.mark.parametrize("var_name", VAR_NAMES, ids=VAR_NAMES_IDS)
+def test_both_orders_of_var_name_give_the_reproducer_of_issue_668(
+    var_name: list[str] | None,
+) -> None:
+    actual = _trav(_two_variables(0.0, 10.0), var_name)
+    np.testing.assert_array_equal(actual.values, [10.0])
+
+
+@pytest.mark.parametrize("var_name", VAR_NAMES, ids=VAR_NAMES_IDS)
+def test_trav_is_positive_when_tx_is_below_tn_everywhere(
+    var_name: list[str] | None,
+) -> None:
+    """Inconsistent data (TX below TN) are not flagged: the result is positive."""
+    actual = _trav(_two_variables(low=10.0, high=0.0), var_name)
+    np.testing.assert_array_equal(actual.values, [10.0])
+    cube = _cube()
+    inverted = cube.rename({"tasmin": "tasmax", "tasmax": "tasmin"})
+    values = _trav(inverted, var_name)
+    assert (values.values[~np.isnan(values.values)] > 0).all()
+    np.testing.assert_allclose(
+        values.transpose("time", "lat", "lon").values,
+        _reference(cube),
+        equal_nan=True,
+    )
+
+
+@pytest.mark.parametrize("var_name", VAR_NAMES, ids=VAR_NAMES_IDS)
 @pytest.mark.parametrize(
     "chunk_size", [None, 1, 7, -1], ids=["eager", "time1", "time7", "full"]
 )
-def test_trav_is_the_mean_of_tx_minus_tn(chunk_size: int | None) -> None:
+def test_trav_is_the_absolute_value_of_the_mean_of_tx_minus_tn(
+    chunk_size: int | None, var_name: list[str] | None
+) -> None:
     source = _cube()
     if chunk_size is not None:
         size = source.sizes["time"] if chunk_size == -1 else chunk_size
         source = source.chunk({"time": size})
-    actual = _trav(source)
-    expected = _reference(_cube())
+    actual = _trav(source, var_name)
     np.testing.assert_allclose(
-        actual.transpose("time", "lat", "lon").values, expected, equal_nan=True
+        actual.transpose("time", "lat", "lon").values,
+        _reference(_cube()),
+        equal_nan=True,
     )
-    assert (actual.values > 0).all()
+    assert (actual.values[~np.isnan(actual.values)] >= 0).all()
     assert actual.attrs["units"]
 
 
 @pytest.mark.parametrize("unit", ["K", "degF"])
 def test_trav_gives_the_same_amplitude_in_other_units(unit: str) -> None:
     """The inputs are converted to degree_Celsius, the unit of the output."""
-    actual = _trav(_in_unit(_cube(), unit))
+    actual = _trav(_in_unit(_cube(), unit), ["tasmin", "tasmax"])
     np.testing.assert_allclose(
         actual.transpose("time", "lat", "lon").values,
         _reference(_cube()),
@@ -116,157 +162,77 @@ def test_trav_gives_the_same_amplitude_in_other_units(unit: str) -> None:
     )
 
 
-def test_trav_of_a_dataset_with_tasmin_and_tasmax_is_positive() -> None:
-    """Reproducer of issue 668 without var_name: the variables are found by name."""
-    time = pd.date_range("2001-01-01", periods=3)
-
-    def series(value: float, name: str) -> xr.DataArray:
-        return xr.DataArray(
-            [value] * 3,
-            dims="time",
-            coords={"time": time},
-            name=name,
-            attrs={"units": "degC"},
-        )
-
-    source = xr.merge([series(0.0, "tasmin"), series(10.0, "tasmax")])
-    actual = icclim.dcsc.trav(
-        source, out_file=None, completeness="none", logs_verbosity="SILENT"
-    ).TRAV
-    np.testing.assert_array_equal(actual.values, [10.0])
-
-
-def test_the_order_of_the_variables_gives_the_sign() -> None:
-    """The first variable is TX: with var_name the first name is, whatever its name."""
-    time = pd.date_range("2001-01-01", periods=3)
-
-    def series(value: float, name: str) -> xr.DataArray:
-        return xr.DataArray(
-            [value] * 3,
-            dims="time",
-            coords={"time": time},
-            name=name,
-            attrs={"units": "degC"},
-        )
-
-    source = xr.merge([series(0.0, "tasmin"), series(10.0, "tasmax")])
-
-    def trav(**kwargs) -> np.ndarray:
-        return icclim.dcsc.trav(
-            source,
-            out_file=None,
-            completeness="none",
-            logs_verbosity="SILENT",
-            **kwargs,
-        ).TRAV.values
-
-    # Variables found in the dataset: TX - TN, as the ECA&D DTR.
-    np.testing.assert_array_equal(trav(), [10.0])
-    np.testing.assert_array_equal(trav(var_name=["tasmax", "tasmin"]), [10.0])
-    # With var_name the order is the one given: the first name is the minuend.
-    np.testing.assert_array_equal(trav(var_name=["tasmin", "tasmax"]), [-10.0])
-
-
-NOTICE = (
-    "TRAV = {first} - {second} (first input minus second; "
-    "pass var_name=['tasmax', 'tasmin'] to control the order)\n"
-)
-
-
-@pytest.fixture(autouse=True)
-def _forget_the_input_order_notices() -> None:
-    """The notice is printed once per process: start every test afresh."""
-    _reset_input_order_notices()
-
-
-def _two_variables(low: str = "tasmin", high: str = "tasmax") -> xr.Dataset:
-    time = pd.date_range("2001-01-01", periods=3)
-
-    def series(value: float, name: str) -> xr.DataArray:
-        return xr.DataArray(
-            [value] * 3,
-            dims="time",
-            coords={"time": time},
-            name=name,
-            attrs={"units": "degC"},
-        )
-
-    return xr.merge([series(0.0, low), series(10.0, high)])
-
-
-def _call_trav(source: xr.Dataset, **kwargs) -> np.ndarray:
-    return icclim.dcsc.trav(
-        source, out_file=None, completeness="none", **kwargs
-    ).TRAV.values
-
-
-def test_the_notice_is_printed_once_per_process(
-    capsys: pytest.CaptureFixture[str],
+@pytest.mark.parametrize("completeness", ["none", "strict", "ecad"])
+@pytest.mark.parametrize("var_name", VAR_NAMES, ids=VAR_NAMES_IDS)
+def test_missing_values_and_completeness_are_those_of_the_mean_of_difference(
+    completeness: str, var_name: list[str] | None
 ) -> None:
-    source = _two_variables()
-    _call_trav(source)
-    assert capsys.readouterr().out == NOTICE.format(first="tasmax", second="tasmin")
-    _call_trav(source)
-    _call_trav(source, var_name=["tasmin", "tasmax"])
-    assert capsys.readouterr().out == ""
+    """TRAV is the absolute value of DTR, with the same NaN and the same masks."""
+    source = _cube()
+    actual = _trav(source, var_name, completeness=completeness)
+    dtr = icclim.dtr(
+        source,
+        var_name=["tasmax", "tasmin"],
+        slice_mode="year",
+        out_file=None,
+        completeness=completeness,
+        logs_verbosity="SILENT",
+    ).DTR.compute()
+    np.testing.assert_array_equal(np.isnan(actual.values), np.isnan(dtr.values))
+    np.testing.assert_allclose(actual.values, np.abs(dtr.values), equal_nan=True)
 
 
-def test_resetting_the_state_prints_the_notice_again(
-    capsys: pytest.CaptureFixture[str],
-) -> None:
-    source = _two_variables()
-    _call_trav(source)
-    capsys.readouterr()
-    _reset_input_order_notices()
-    _call_trav(source)
-    assert capsys.readouterr().out.startswith("TRAV = ")
+def test_strict_completeness_masks_the_periods_with_a_missing_day() -> None:
+    source = _cube()
+    strict = _trav(source, completeness="strict")
+    complete = _trav(source, completeness="none")
+    # 2001-05-11 of the grid point (45.0, 2.0) and 2002-06-12 of (46.0, 1.0) are missing.
+    assert np.isnan(strict.sel(lat=45.0, lon=2.0).values[1])
+    assert np.isnan(strict.sel(lat=46.0, lon=1.0).values[2])
+    assert not np.isnan(complete.values).any()
 
 
-@pytest.mark.parametrize(
-    ("var_name", "first", "second", "sign"),
-    [
-        (["tasmax", "tasmin"], "tasmax", "tasmin", 10.0),
-        (["tasmin", "tasmax"], "tasmin", "tasmax", -10.0),
-        (None, "tasmax", "tasmin", 10.0),
-    ],
-    ids=["tx-first", "tn-first", "without-var_name"],
-)
-def test_the_notice_gives_the_variables_that_are_used_and_the_sign(
-    var_name: list[str] | None,
-    first: str,
-    second: str,
-    sign: float,
-    capsys: pytest.CaptureFixture[str],
-) -> None:
-    kwargs = {} if var_name is None else {"var_name": var_name}
-    result = _call_trav(_two_variables(), **kwargs)
-    assert capsys.readouterr().out == NOTICE.format(first=first, second=second)
-    np.testing.assert_array_equal(result, [sign])
+def test_a_grid_point_without_any_data_is_missing() -> None:
+    source = _cube().copy(deep=True)
+    source["tasmin"].loc[{"lat": 45.0, "lon": 1.0}] = np.nan
+    actual = _trav(source)
+    assert actual.sel(lat=45.0, lon=1.0).isnull().all()
+    assert not actual.sel(lat=46.0, lon=2.0).isnull().any()
 
 
-def test_the_notice_uses_the_names_of_the_variables_of_the_dataset(
-    capsys: pytest.CaptureFixture[str],
-) -> None:
-    source = _two_variables(low="lowT", high="highT")
-    result = _call_trav(source, var_name=["highT", "lowT"])
-    assert capsys.readouterr().out == NOTICE.format(first="highT", second="lowT")
-    np.testing.assert_array_equal(result, [10.0])
-
-
-def test_the_other_indices_print_no_notice(
-    capsys: pytest.CaptureFixture[str],
-) -> None:
-    source = _two_variables()
-    icclim.dtr(source, out_file=None, completeness="none")
-    icclim.dcsc.txav(source, var_name="tasmax", out_file=None, completeness="none")
-    assert capsys.readouterr().out == ""
-
-
-def test_nothing_is_printed_when_icclim_is_imported() -> None:
-    completed = subprocess.run(
-        [sys.executable, "-c", "import icclim"],
-        capture_output=True,
-        text=True,
-        check=True,
+def test_the_generic_function_takes_the_absolute_value_of_the_period_mean() -> None:
+    """The mean of the differences is taken first, not the mean of their absolute."""
+    time = pd.date_range("2001-01-01", periods=4)
+    first = xr.DataArray(
+        [10.0, 0.0, 10.0, 0.0],
+        dims="time",
+        coords={"time": time},
+        name="tasmax",
+        attrs={"units": "degC"},
     )
-    assert "TRAV" not in completed.stdout
+    second = xr.DataArray(
+        [0.0, 10.0, 0.0, 10.0],
+        dims="time",
+        coords={"time": time},
+        name="tasmin",
+        attrs={"units": "degC"},
+    )
+    source = xr.merge([first, second])
+    # The differences are 10 and -10 in turn: their mean is 0, the mean of their
+    # absolute values would be 10.
+    actual = icclim.dcsc.trav(
+        source,
+        var_name=["tasmax", "tasmin"],
+        out_file=None,
+        completeness="none",
+        logs_verbosity="SILENT",
+    ).TRAV
+    np.testing.assert_array_equal(actual.values, [0.0])
+    generic = icclim.absolute_mean_of_difference(
+        source,
+        var_name=["tasmax", "tasmin"],
+        out_file=None,
+        completeness="none",
+        logs_verbosity="SILENT",
+    ).absolute_mean_of_difference
+    np.testing.assert_array_equal(generic.values, [0.0])

@@ -6,22 +6,16 @@
 Unreleased
 **********
 
--  [Behaviour change] The DCSC index ``TRAV`` (mean of the daily thermal amplitude) now
-   returns the mean of ``TX - TN``, as the ECA&D ``DTR``, instead of its opposite (issue
-   #668). The default order of its inputs changed: they were declared as ``TN``, ``TX``,
-   so, since 7.0.0, the calls without ``var_name`` returned the wrong sign, and they now
-   return ``TX - TN``. The calls with an explicit ``var_name`` are unchanged: ``var_name``
-   is positional, its first name is the minuend (``TX``) and its second name is the
-   subtrahend (``TN``), whatever the names of the variables. ``var_name=["tasmax",
-   "tasmin"]`` gave and still gives ``TX - TN``, and ``var_name=["tasmin", "tasmax"]`` gave
-   and still gives ``TN - TX``. The documentation of ``icclim.dcsc.trav`` and of the DCSC
-   indices gives the explicit call and an example.
--  [enh] The first time ``TRAV`` is computed in a process, icclim prints on stdout, once,
-   what it computes with the variables that are used, for example ``TRAV = tasmax -
-   tasmin (first input minus second; pass var_name=['tasmax', 'tasmin'] to control the
-   order)``. When ``tasmin`` is first, the notice makes the negative sign evident. Like
-   the ``run_index`` notice, it is not sent through the logger, so ``logs_verbosity`` does
-   not silence it.
+-  [Behaviour change] The DCSC index ``TRAV`` (mean of the daily thermal amplitude) is now
+   the absolute value of the mean of ``TX - TN`` (issue #668). It is always positive and
+   it does not depend on the order of ``var_name``. The results that were negative are now
+   positive: they were the calls without ``var_name`` (the inputs were declared as ``TN``,
+   ``TX``, so the sign has been reversed since 7.0.0) and the calls with
+   ``var_name=["tasmin", "tasmax"]``. The calls with ``var_name=["tasmax", "tasmin"]``
+   gave and still give the same result. The absolute value is taken on the mean of each
+   period, per grid point, not on each day; the data are not checked, so a ``TRAV``
+   computed on inconsistent data (``TX`` below ``TN`` everywhere) is positive and not
+   flagged. The new generic function ``absolute_mean_of_difference`` is the one used.
 -  [doc] Document the run attribution of the periods that no run starts or ends in
    (issue #580). With ``run_index="first"`` or ``"last"`` a period without any event is
    ``0``, while a period wholly traversed by one continuous run attributed to another

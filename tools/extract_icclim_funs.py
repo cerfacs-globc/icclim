@@ -67,17 +67,16 @@ RUN_ATTRIBUTION_NOTE = """
        consistency; the ATBD does not require it for those indices.
 """
 
-TRAV_INPUT_ORDER_NOTE = """
+TRAV_NOTE = """
     .. note::
-       ``TRAV`` is the mean of ``TX - TN``, the daily maximum minus the daily
-       minimum temperature. ``var_name`` is positional: its FIRST name is the
-       minuend (``TX``) and its SECOND name is the subtrahend (``TN``), whatever
-       the names of the variables. To get ``TX - TN``, call
-       ``icclim.dcsc.trav(ds, var_name=["tasmax", "tasmin"])``.
-       ``var_name=["tasmin", "tasmax"]`` gives ``TN - TX``, a negative amplitude.
-       Without ``var_name`` the variables are found in the dataset and the result
-       is ``TX - TN``. A notice with the variables that are used is printed once
-       per process.
+       ``TRAV`` is the absolute value of the mean of ``TX - TN``, the daily maximum
+       minus the daily minimum temperature: the daily differences are averaged over
+       each period, then the absolute value is taken for each grid point. It is
+       always positive and it does not depend on the order of ``var_name``:
+       ``icclim.dcsc.trav(ds, var_name=["tasmax", "tasmin"])`` and
+       ``icclim.dcsc.trav(ds, var_name=["tasmin", "tasmax"])`` give the same result.
+       The data are not checked: if ``TX`` is below ``TN`` everywhere, the result is
+       positive all the same and it is not flagged.
 """
 
 RELATIVE_ROOT = Path(__file__).parent.parent
@@ -321,7 +320,7 @@ def {index.short_name.lower()}(
     {index.short_name}: {index.definition}
     Source: {index.source}.
 
-    {_get_run_attribution_note(index)}{_get_input_order_note(index)}
+    {_get_run_attribution_note(index)}{_get_trav_note(index)}
     {args_docs}
     {END_NOTE}
     \"\"\"  # noqa: D401
@@ -449,8 +448,8 @@ def _get_run_attribution_note(index: StandardIndex | GenericIndicator) -> str:
     )
 
 
-def _get_input_order_note(index: StandardIndex) -> str:
-    return TRAV_INPUT_ORDER_NOTE if index.short_name == "TRAV" else ""
+def _get_trav_note(index: StandardIndex) -> str:
+    return TRAV_NOTE if index.short_name == "TRAV" else ""
 
 
 def _set_run_index_default(

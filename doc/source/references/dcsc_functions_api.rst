@@ -24,48 +24,35 @@ Usage
         ),
    summer_days = icclim.count_occurrences(tas, threshold=threshold)
 
-.. _dcsc_trav_order:
+.. _dcsc_trav:
 
-********************************************
-TRAV: the order of the variables of var_name
-********************************************
+*****************************************
+TRAV: always positive, whatever the order
+*****************************************
 
-``TRAV``, the mean of the daily thermal amplitude, is the mean of ``TX - TN``, the
-daily maximum minus the daily minimum temperature. ``var_name`` is positional: its
-**first** name is the minuend (``TX``) and its **second** name is the subtrahend
-(``TN``), whatever the names of the variables. To get ``TX - TN``, call
-``icclim.dcsc.trav(ds, var_name=["tasmax", "tasmin"])``.
+``TRAV``, the mean of the daily thermal amplitude, is the **absolute value** of the
+mean of ``TX - TN``, the daily maximum minus the daily minimum temperature. The daily
+differences are averaged over each period, then the absolute value is taken for each
+grid point. The result is **always positive** and it **does not depend on the order of
+``var_name``**: the two calls below give the same result.
 
 .. code:: python
 
    import icclim
 
    # ds has tasmin = 0 degC and tasmax = 10 degC every day.
-
-   # TX - TN: the first name is the maximum.
    icclim.dcsc.trav(ds, var_name=["tasmax", "tasmin"]).TRAV   # 10
-
-   # TN - TX: the first name is the minimum, the amplitude is negative.
-   icclim.dcsc.trav(ds, var_name=["tasmin", "tasmax"]).TRAV   # -10
-
-   # Without var_name the variables are found in the dataset: TX - TN.
+   icclim.dcsc.trav(ds, var_name=["tasmin", "tasmax"]).TRAV   # 10
    icclim.dcsc.trav(ds).TRAV                                   # 10
 
-====================================================  =========  ==================
-Call                                                  Computes   Result for 0 and 10
-====================================================  =========  ==================
-``var_name=["tasmax", "tasmin"]``                     TX - TN    ``10``
-``var_name=["tasmin", "tasmax"]``                     TN - TX    ``-10``
-no ``var_name`` (variables found by name)             TX - TN    ``10``
-====================================================  =========  ==================
+The absolute value is taken on the mean of the period, not on each day: when the sign
+of ``TX - TN`` changes within a period, the result is not the mean of the daily
+amplitudes.
 
-The first time ``TRAV`` is computed in a process, icclim prints on stdout what it
-computes, with the variables that are used, for example::
+The data are not checked. A ``TRAV`` computed on inconsistent data, where ``TX`` is
+below ``TN`` everywhere, is positive all the same and it is not flagged.
 
-   TRAV = tasmax - tasmin (first input minus second; pass var_name=['tasmax', 'tasmin'] to control the order)
-
-Until 7.3.x, the variables found in the dataset were used in the order ``TN``,
-``TX``, so the result had the wrong sign when ``var_name`` was not given. The
-calls with a ``var_name`` have always followed its order.
+Until 7.3.x the result was ``TN - TX``, negative, when ``var_name`` was not given or
+was ``["tasmin", "tasmax"]``.
 
 See :ref:`dcsc api` for the full API.
