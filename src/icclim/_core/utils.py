@@ -59,7 +59,10 @@ def snap_converted_temperature(converted: DataArray) -> DataArray:
     counted as above it (or not as below it). The temperatures compared with a threshold
     that is not computed from them, and the converted thresholds, are rounded to
     ``TEMPERATURE_SNAP_DECIMALS`` decimals, far below the precision of any temperature.
-    Anything that is not a floating-point temperature is returned as it is: the
+    Only float64 temperatures are rounded: the noise is a float64 effect (K and float32
+    conversions are exact in the cases checked) and rounding float32 values to 10
+    decimals would change about 8% of them by one ULP. Anything else, a float32
+    temperature or a quantity that is not a temperature, is returned as it is: the
     rounding is absolute and would destroy a small quantity such as a precipitation
     flux.
 
@@ -71,12 +74,12 @@ def snap_converted_temperature(converted: DataArray) -> DataArray:
     Returns
     -------
     DataArray
-        The same data, rounded when it is a floating-point temperature.
+        The same data, rounded when it is a float64 temperature.
     """
     from xclim.core.units import units2pint  # noqa: PLC0415
 
     unit = converted.attrs.get("units")
-    if unit is None or converted.dtype.kind != "f":
+    if unit is None or converted.dtype != "float64":
         return converted
     try:
         is_temperature = "[temperature]" in units2pint(unit).dimensionality

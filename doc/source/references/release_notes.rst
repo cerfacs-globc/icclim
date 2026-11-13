@@ -15,9 +15,11 @@ Unreleased
    ``FD``, ``CFD`` and ``ID``, the DCSC ``SD``, ``TX35``, ``TR``, ``TNFD`` and ``TXFD``,
    and the generic indices with a threshold. The temperatures compared with such a
    threshold, and the converted thresholds, are rounded to 10 decimals; the percentile
-   thresholds are not changed. Only the values exactly at a threshold in degrees
-   Fahrenheit change; data in K or in degC are not affected. Affects the 7.x releases, not
-   changed in 7.3.x.
+   thresholds are not changed. The rounding applies to float64 temperatures only (float32
+   data and float32 thresholds are not modified) and only values within 5e-11 of a
+   threshold are affected, the values exactly at a threshold in degrees Fahrenheit;
+   data in K or in degC are not affected. All the indices with a temperature threshold
+   are concerned, ``SU`` included. Affects the 7.x releases, not changed in 7.3.x.
 -  [doc] Document the run attribution of the periods that no run starts or ends in
    (issue #580). With ``run_index="first"`` or ``"last"`` a period without any event is
    ``0``, while a period wholly traversed by one continuous run attributed to another

@@ -15,6 +15,8 @@ import pytest
 import xarray as xr
 
 import icclim
+from icclim._core.generic.threshold.basic import BasicThreshold
+from icclim._core.utils import snap_converted_temperature
 
 TIME = pd.date_range("2001-01-01", periods=3)
 TO_UNIT = {
@@ -116,3 +118,82 @@ def test_a_value_just_above_the_threshold_is_still_counted() -> None:
         logs_verbosity="SILENT",
     )
     np.testing.assert_array_equal(result.count_occurrences.values, [3])
+
+
+# The snapping applies to float64 temperatures only (issue #675).
+
+
+def _random_cube(dtype: str, unit: str) -> xr.DataArray:
+    rng = np.random.default_rng(675)
+    celsius = rng.uniform(-10, 45, (400, 3, 4))
+    values = TO_UNIT[unit](celsius).astype(dtype)
+    return xr.DataArray(
+        values,
+        dims=("time", "lat", "lon"),
+        coords={"time": pd.date_range("2000-01-01", periods=400)},
+        name="tasmax",
+        attrs={"units": unit},
+    )
+
+
+@pytest.mark.parametrize("unit", ["degC", "K", "degF"])
+def test_float32_temperatures_are_returned_bit_identical(unit: str) -> None:
+    data = _random_cube("float32", unit)
+    snapped = snap_converted_temperature(data)
+    assert snapped.dtype == np.float32
+    np.testing.assert_array_equal(
+        snapped.values.view(np.uint32), data.values.view(np.uint32)
+    )
+    assert snapped.attrs == data.attrs
+
+
+@pytest.mark.parametrize("unit", ["degC", "K", "degF"])
+def test_float32_data_compared_with_a_threshold_are_not_modified(unit: str) -> None:
+    data = _random_cube("float32", unit)
+    threshold = BasicThreshold(operator=">", value=25.0, unit="degC")
+    seen = []
+
+    def spy(left: xr.DataArray, right: object) -> xr.DataArray:
+        seen.append(left)
+        return left > 0
+
+    threshold.compute(data, override_op=spy)
+    assert seen[0].dtype == np.float32
+    np.testing.assert_array_equal(
+        seen[0].values.view(np.uint32), data.values.view(np.uint32)
+    )
+
+
+@pytest.mark.parametrize("operator", [">", "<="])
+def test_float64_degf_77_is_equal_to_25_degc(operator: str) -> None:
+    source = _series(25.0, "tasmax", "degF")
+    assert source.dtype == np.float64
+    actual = icclim.count_occurrences(
+        source,
+        threshold=f"{operator} 25 degC",
+        slice_mode="year",
+        out_file=None,
+        completeness="none",
+        logs_verbosity="SILENT",
+    ).count_occurrences.values
+    np.testing.assert_array_equal(actual, [0 if operator == ">" else 3])
+
+
+@pytest.mark.parametrize("unit", ["degC", "K"])
+def test_float64_k_and_degc_results_are_those_of_a_plain_comparison(unit: str) -> None:
+    data = _random_cube("float64", unit)
+    celsius = _random_cube("float64", "degC").values
+    actual = icclim.su(
+        data,
+        slice_mode="year",
+        out_file=None,
+        completeness="none",
+        logs_verbosity="SILENT",
+    ).SU.compute()
+    years = data.time.dt.year.values
+    expected = np.stack(
+        [(celsius[years == y] > 25).sum(axis=0) for y in np.unique(years)]
+    )
+    np.testing.assert_array_equal(
+        actual.transpose("time", "lat", "lon").values, expected
+    )
