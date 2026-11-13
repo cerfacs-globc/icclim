@@ -191,8 +191,10 @@ class GenericIndicatorRegistry(Registry[GenericIndicator]):
         absolute_mean_of_difference,
         check_vars=_check_couple_of_vars,
         definition="Absolute value of the average of the difference between two"
-        " variables, independent of their order (e.g. TRAV:"
-        " `abs(mean(tasmax - tasmin))`).",
+        " variables: the mean of the daily differences is taken for each period,"
+        " then its absolute value for each grid point. The result is always"
+        " non-negative and does not depend on the order of the two variables"
+        " (e.g. TRAV: `abs(mean(tasmax - tasmin))`).",
         qualifiers=("compute_diff",),
         wmo_aggregation="mean",
     )

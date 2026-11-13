@@ -15,7 +15,13 @@ Unreleased
    gave and still give the same result. The absolute value is taken on the mean of each
    period, per grid point, not on each day; the data are not checked, so a ``TRAV``
    computed on inconsistent data (``TX`` below ``TN`` everywhere) is positive and not
-   flagged. The new generic function ``absolute_mean_of_difference`` is the one used.
+   flagged. It uses the new generic function ``absolute_mean_of_difference``.
+-  [enh] New generic function ``icclim.absolute_mean_of_difference`` (and the generic index
+   ``absolute_mean_of_difference`` of ``icclim.index``): the absolute value of the
+   period mean of the daily difference of two variables, computed for each grid point on
+   the mean of the period, not on each day. The result is never negative and does not
+   depend on the order of the two variables. It is the function of the DCSC ``TRAV``
+   (issue #668). ``mean_of_difference`` is not changed.
 -  [doc] Document the run attribution of the periods that no run starts or ends in
    (issue #580). With ``run_index="first"`` or ``"last"`` a period without any event is
    ``0``, while a period wholly traversed by one continuous run attributed to another

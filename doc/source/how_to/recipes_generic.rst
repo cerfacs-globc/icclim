@@ -525,6 +525,29 @@ File-based via ``icclim.index``:
        var_name=["tmax", "tmin"],
    ).mean_of_difference.compute()
 
+*******************************
+ Absolute mean of difference
+*******************************
+
+Absolute value of the mean daily difference between two variables, as the DCSC
+``TRAV``. The daily differences are averaged over each period, then the absolute
+value is taken for each grid point. The result is never negative and does not depend
+on the order of the two variables:
+
+.. code:: python
+
+   # In-memory example
+   spread = icclim.absolute_mean_of_difference(
+       in_files=xr.Dataset({"tasmax": tas, "tasmin": tasmin}),
+       var_name=["tasmax", "tasmin"],
+   ).absolute_mean_of_difference.compute()
+
+   # The same values with the names in the other order
+   same_spread = icclim.absolute_mean_of_difference(
+       in_files=xr.Dataset({"tasmax": tas, "tasmin": tasmin}),
+       var_name=["tasmin", "tasmax"],
+   ).absolute_mean_of_difference.compute()
+
 ************************
  Difference of extremes
 ************************

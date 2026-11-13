@@ -236,3 +236,49 @@ def test_the_generic_function_takes_the_absolute_value_of_the_period_mean() -> N
         logs_verbosity="SILENT",
     ).absolute_mean_of_difference
     np.testing.assert_array_equal(generic.values, [0.0])
+
+
+@pytest.mark.parametrize("chunked", [False, True], ids=["eager", "chunked"])
+def test_the_public_generic_function_gives_the_same_values_in_both_orders(
+    chunked: bool,
+) -> None:
+    """icclim.absolute_mean_of_difference: never negative, independent of the order."""
+    source = _cube()
+    if chunked:
+        source = source.chunk({"time": 30})
+    options = {
+        "slice_mode": "year",
+        "out_file": None,
+        "completeness": "none",
+        "logs_verbosity": "SILENT",
+    }
+    tx_first = icclim.absolute_mean_of_difference(
+        source, var_name=["tasmax", "tasmin"], **options
+    ).absolute_mean_of_difference.compute()
+    tn_first = icclim.absolute_mean_of_difference(
+        source, var_name=["tasmin", "tasmax"], **options
+    ).absolute_mean_of_difference.compute()
+    expected = _reference(_cube())
+    np.testing.assert_allclose(
+        tx_first.transpose("time", "lat", "lon").values, expected, equal_nan=True
+    )
+    np.testing.assert_allclose(tn_first.values, tx_first.values, equal_nan=True)
+    assert (tx_first.values[~np.isnan(tx_first.values)] >= 0).all()
+    assert tx_first.attrs["units"]
+    assert tx_first.attrs["long_name"].startswith(
+        "Absolute value of the mean of difference between"
+    )
+
+
+def test_the_generic_function_is_available_from_the_index_entry_point() -> None:
+    source = _two_variables(low=0.0, high=10.0)
+    for var_name in (["tasmax", "tasmin"], ["tasmin", "tasmax"]):
+        result = icclim.index(
+            in_files=source,
+            index_name="absolute_mean_of_difference",
+            var_name=var_name,
+            out_file=None,
+            completeness="none",
+            logs_verbosity="SILENT",
+        ).absolute_mean_of_difference
+        np.testing.assert_array_equal(result.values, [10.0])

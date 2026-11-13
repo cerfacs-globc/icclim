@@ -2888,9 +2888,9 @@ def absolute_mean_of_difference(
     allow_missing_periods: bool | None = None,
     allow_partial_final_period: bool = False,
 ) -> Dataset:
-    """Absolute value of the average of the difference between two variables, independent of their order (e.g. TRAV: `abs(mean(tasmax - tasmin))`).
+    """Absolute value of the average of the difference between two variables: the mean of the daily differences is taken for each period, then its absolute value for each grid point. The result is always non-negative and does not depend on the order of the two variables (e.g. TRAV: `abs(mean(tasmax - tasmin))`).
 
-    absolute_mean_of_difference: Absolute value of the average of the difference between two variables, independent of their order (e.g. TRAV: `abs(mean(tasmax - tasmin))`).
+    absolute_mean_of_difference: Absolute value of the average of the difference between two variables: the mean of the daily differences is taken for each period, then its absolute value for each grid point. The result is always non-negative and does not depend on the order of the two variables (e.g. TRAV: `abs(mean(tasmax - tasmin))`).
 
 
 
