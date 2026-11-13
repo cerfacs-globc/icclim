@@ -414,6 +414,10 @@ def index(
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
+        For the indices that take two variables, the order of the names is
+        positional: the first name is the first term of the formula (for example
+        ``var_name=["tasmax", "tasmin"]`` for ``DTR``, the mean of ``TX - TN``).
+        See the documentation of each index.
         Mandatory for the deprecated ``user_index`` bridge.
     slice_mode: FrequencyLike | Frequency
         Type of temporal aggregation:

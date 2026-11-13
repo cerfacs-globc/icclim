@@ -4,7 +4,7 @@
 
 .. note::
 
-   Make sure you have **Python 3.10+**.
+   Make sure you have **Python 3.11+**.
 
 ****************************
  Installation (Linux, OS X)

@@ -579,8 +579,7 @@ def sum_of_spell_lengths(
     )
     cropped_rle = rle.where(rle >= min_spell_length, other=0)
     result = cropped_rle.resample(time=resample_freq.pandas_freq).sum(dim="time")
-    if split_runs:
-        result = _transpose_like_study(result, climate_vars[0].studied_data)
+    result = _transpose_like_study(result, climate_vars[0].studied_data)
     freq = check_freq(climate_vars[0].studied_data, dim="time")
     return _safe_to_agg_units(
         result, climate_vars[0].studied_data, "count", deffreq=freq
@@ -1597,11 +1596,55 @@ def mean_of_difference(
     Notes
     -----
     This is a generification of ECAD's DTR climate index.
+    The order of the two variables is the order of ``var_name``: the result is the mean
+    of ``first - second``, so the opposite of the result with the variables swapped.
     """
     study, ref = get_couple_of_var(climate_vars, "mean_of_difference")
     mean_of_diff = (study - ref).resample(time=resample_freq.pandas_freq).mean()
     mean_of_diff.attrs["units"] = study.attrs["units"]
     return mean_of_diff
+
+
+def absolute_mean_of_difference(
+    climate_vars: list[ClimateVariable],
+    resample_freq: Frequency,
+    **kwargs,  # noqa: ARG001
+) -> DataArray:
+    """
+    Calculate the absolute value of the mean of the difference of two climate variables.
+
+    The difference of the two variables is averaged over each period, then the absolute
+    value of that mean is taken for each grid point. It does not depend on the order
+    of the two variables. It is the absolute value of the period mean, not the mean of
+    the daily absolute differences: when the sign of the difference changes within a
+    period, the two are not equal.
+    The resulting data array will have the same units as the study variable.
+
+    Parameters
+    ----------
+    climate_vars : list[ClimateVariable]
+        The two climate variables necessary to compute the indicator.
+    resample_freq : Frequency
+        Resampling frequency of the output.
+    **kwargs : dict
+        Ignored keyword arguments (for compatibility).
+
+    Returns
+    -------
+    DataArray
+        The absolute value of the mean of the difference, never negative.
+
+    Notes
+    -----
+    This is the generic function of the DCSC index TRAV. The data are not checked:
+    if the first variable is below the second one everywhere, the result is positive
+    all the same.
+    """
+    study, ref = get_couple_of_var(climate_vars, "absolute_mean_of_difference")
+    mean_of_diff = (study - ref).resample(time=resample_freq.pandas_freq).mean()
+    result = abs(mean_of_diff)
+    result.attrs["units"] = study.attrs["units"]
+    return result
 
 
 # Upper latitude (degrees north) of each step of the daylength coefficient K of the
@@ -1793,6 +1836,9 @@ def difference_of_extremes(
     Finally, for each chunk, it calculates the differences of theses maximum and
     minimum values.
     This is a generification of ECAD's ETR climate index.
+    The order of the two variables is the order of ``var_name``: the result is
+    ``max(first) - min(second)``. With the variables swapped it is ``max(second) -
+    min(first)``, a different quantity, not the opposite.
     """
     study, ref = get_couple_of_var(climate_vars, "difference_of_extremes")
     max_study = study.resample(time=resample_freq.pandas_freq).max()
@@ -1894,6 +1940,10 @@ def difference_of_means(
     Notes
     -----
     This is a generification of the anomaly climate index.
+    When two variables are given, their order is the order of ``var_name``: the first
+    one is the study and the second one is the reference, so the result is the mean of
+    the study minus the mean of the reference, and the opposite anomaly with the
+    variables swapped.
     """
     study = climate_vars[0].studied_data
     ref = climate_vars[1].studied_data

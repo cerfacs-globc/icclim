@@ -11,6 +11,7 @@ from __future__ import annotations
 import copy
 import inspect
 import sys
+import textwrap
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -65,6 +66,99 @@ RUN_ATTRIBUTION_NOTE = """
        climdex.pcic specify end-period attribution for CDD/CWD. CFD, CSU,
        PXCDD, PXCWD and this generic operation use the same convention for
        consistency; the ATBD does not require it for those indices.
+"""
+
+
+def _var_name_order_note(
+    formula: str, first: str, second: str, example: str, other_order: str
+) -> str:
+    text = (
+        "``var_name`` is positional: the order of its names is the order of the"
+        f" formula. {formula} The first name is {first}, the second name is"
+        f" {second}, for example ``{example}``. {other_order}"
+    )
+    indent = TAB + "   "
+    paragraph = textwrap.fill(
+        text,
+        width=84,
+        initial_indent=indent,
+        subsequent_indent=indent,
+        break_long_words=False,
+        break_on_hyphens=False,
+    )
+    return f"\n{TAB}.. note::\n{paragraph}\n"
+
+
+# Indices with two variables whose result depends on the order of ``var_name``.
+VAR_NAME_ORDER_NOTES = {
+    "DTR": _var_name_order_note(
+        "``DTR`` is the mean of ``TX - TN``.",
+        "the daily maximum temperature (``TX``)",
+        "the daily minimum temperature (``TN``)",
+        'icclim.dtr(ds, var_name=["tasmax", "tasmin"])',
+        "With the names in the other order, the result is the mean of ``TN - TX``,"
+        " negative.",
+    ),
+    "ETR": _var_name_order_note(
+        "``ETR`` is ``max(TX) - min(TN)`` over each period.",
+        "the daily maximum temperature (``TX``), whose maximum is taken",
+        "the daily minimum temperature (``TN``), whose minimum is taken",
+        'icclim.etr(ds, var_name=["tasmax", "tasmin"])',
+        "With the names in the other order, the result is ``max(TN) - min(TX)``, a"
+        " different quantity, not the opposite of ``ETR``.",
+    ),
+}
+for _compound in ("CD", "CW", "WD", "WW"):
+    VAR_NAME_ORDER_NOTES[_compound] = _var_name_order_note(
+        f"``{_compound}`` counts the days when the temperature and the precipitation"
+        " are both beyond their percentile.",
+        "the daily mean temperature (``TG``)",
+        "the daily precipitation (``pr``)",
+        f'icclim.{_compound.lower()}(ds, var_name=["tas", "pr"],'
+        ' base_period_time_range=["1961-01-01", "1990-12-31"])',
+        "The two variables are not interchangeable: with the names in the other"
+        " order, the temperature is compared with a precipitation threshold, which"
+        " fails on the units.",
+    )
+
+# Generic indicators with two variables whose result depends on the order of
+# ``var_name``.
+GENERIC_VAR_NAME_ORDER_NOTES = {
+    "mean_of_difference": _var_name_order_note(
+        "``mean_of_difference`` is the mean of ``first - second``.",
+        "the minuend",
+        "the subtrahend",
+        'icclim.mean_of_difference(ds, var_name=["tasmax", "tasmin"])',
+        "With the names in the other order, the result is the opposite.",
+    ),
+    "difference_of_extremes": _var_name_order_note(
+        "``difference_of_extremes`` is ``max(first) - min(second)`` over each period.",
+        "the variable whose maximum is taken",
+        "the variable whose minimum is taken",
+        'icclim.difference_of_extremes(ds, var_name=["tasmax", "tasmin"])',
+        "With the names in the other order, the result is ``max(second) -"
+        " min(first)``, a different quantity, not the opposite.",
+    ),
+    "difference_of_means": _var_name_order_note(
+        "When two variables are given, ``difference_of_means`` is the mean of the"
+        " study minus the mean of the reference over each period, an anomaly: the"
+        " order is part of the definition.",
+        "the study",
+        "the reference",
+        'icclim.difference_of_means(ds, var_name=["tas_scenario", "tas_reference"])',
+        "With the names in the other order, the result is the opposite anomaly.",
+    ),
+}
+TRAV_NOTE = """
+    .. note::
+       ``TRAV`` is the absolute value of the mean of ``TX - TN``, the daily maximum
+       minus the daily minimum temperature: the daily differences are averaged over
+       each period, then the absolute value is taken for each grid point. It is
+       always positive and it does not depend on the order of ``var_name``:
+       ``icclim.dcsc.trav(ds, var_name=["tasmax", "tasmin"])`` and
+       ``icclim.dcsc.trav(ds, var_name=["tasmin", "tasmax"])`` give the same result.
+       The data are not checked: if ``TX`` is below ``TN`` everywhere, the result is
+       positive all the same and it is not flagged.
 """
 
 RELATIVE_ROOT = Path(__file__).parent.parent
@@ -272,7 +366,9 @@ def _get_typical_index_declaration(index: StandardIndex, registry: Registry) -> 
         )
     elif _can_have_reference_period(index):
         index_args = _get_arguments(
-            STANDARD_INDEX_POP_ARGS + NON_REFERENCE_FIELDS + _split_runs_pop_args(index)
+            _reference_period_pop_args(index)
+            + NON_REFERENCE_FIELDS
+            + _split_runs_pop_args(index)
         )
     else:
         index_args = _get_arguments(
@@ -281,9 +377,15 @@ def _get_typical_index_declaration(index: StandardIndex, registry: Registry) -> 
             + _split_runs_pop_args(index)
         )
     _set_run_index_default(index_args, index)
+    _set_reference_sampling_method_default(index_args, index)
     fun_signature_args = _build_fun_signature_args(index_args)
     doc_string = icclim_index.__doc__ or ""
     args_docs = _get_params_docstring(list(index_args.keys()), doc_string)
+    if _is_difference_of_means(index):
+        args_docs = args_docs.replace(
+            '(default: "resample")',
+            '(default: "groupby_ref_and_resample_study")',
+        )
     args = [f"{arg}={arg}" for arg in index_args]
     thresh_arg = _get_threshold_argument(index)
     output_unit_arg = _get_output_unit_argument(index)
@@ -308,7 +410,7 @@ def {index.short_name.lower()}(
     {index.short_name}: {index.definition}
     Source: {index.source}.
 
-    {_get_run_attribution_note(index)}
+    {_get_run_attribution_note(index)}{_get_trav_note(index)}{_get_var_name_order_note(index)}
     {args_docs}
     {END_NOTE}
     \"\"\"  # noqa: D401
@@ -436,6 +538,16 @@ def _get_run_attribution_note(index: StandardIndex | GenericIndicator) -> str:
     )
 
 
+def _get_var_name_order_note(index: StandardIndex | GenericIndicator) -> str:
+    if hasattr(index, "short_name"):
+        return VAR_NAME_ORDER_NOTES.get(index.short_name, "")
+    return GENERIC_VAR_NAME_ORDER_NOTES.get(index.name, "")
+
+
+def _get_trav_note(index: StandardIndex) -> str:
+    return TRAV_NOTE if index.short_name == "TRAV" else ""
+
+
 def _set_run_index_default(
     arguments: dict[str, inspect.Parameter],
     index: StandardIndex | GenericIndicator | None,
@@ -448,6 +560,35 @@ def _set_run_index_default(
     indicator = getattr(index, "indicator", index)
     if indicator is not GenericIndicatorRegistry.MaxConsecutiveOccurrence:
         arguments["run_index"] = arguments["run_index"].replace(default="first")
+
+
+def _is_difference_of_means(index: StandardIndex) -> bool:
+    from icclim.generic.registry import GenericIndicatorRegistry
+
+    return (
+        getattr(index, "indicator", None) is GenericIndicatorRegistry.DifferenceOfMeans
+    )
+
+
+def _reference_period_pop_args(index: StandardIndex) -> list[str]:
+    """The difference of means, unlike the other reference-period indices, takes a
+    sampling method."""
+    if _is_difference_of_means(index):
+        return [arg for arg in STANDARD_INDEX_POP_ARGS if arg != "sampling_method"]
+    return STANDARD_INDEX_POP_ARGS
+
+
+def _set_reference_sampling_method_default(
+    arguments: dict[str, inspect.Parameter],
+    index: StandardIndex,
+) -> None:
+    """Compare the study to a reference taken from it with the method that accepts it."""
+    from icclim._core.constants import GROUP_BY_REF_AND_RESAMPLE_STUDY_METHOD
+
+    if _is_difference_of_means(index) and "sampling_method" in arguments:
+        arguments["sampling_method"] = arguments["sampling_method"].replace(
+            default=GROUP_BY_REF_AND_RESAMPLE_STUDY_METHOD
+        )
 
 
 def _is_compared_to_normal(index: StandardIndex) -> bool:
@@ -536,7 +677,7 @@ def {index.name.lower()}(
 
     {index.name}: {index.definition}
 
-    {_get_run_attribution_note(index)}
+    {_get_run_attribution_note(index)}{_get_var_name_order_note(index)}
     {args_docs}
     {END_NOTE}
     \"\"\"

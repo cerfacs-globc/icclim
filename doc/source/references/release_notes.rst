@@ -6,6 +6,69 @@
 Unreleased
 **********
 
+-  [doc] The documentation states the positional order of ``var_name`` for the indices
+   with two variables whose result depends on it (issue #683): ``DTR`` (mean of
+   ``TX - TN``), ``ETR`` (``max(TX) - min(TN)``; swapped, a different quantity, not the
+   opposite), the generic ``mean_of_difference`` and ``difference_of_extremes``
+   (first and second variable), ``difference_of_means`` with two variables (study minus
+   reference), and ``CD``, ``CW``, ``WD`` and ``WW`` (temperature, then precipitation).
+   Each has its formula and an example call in its docstring and on the documentation
+   page. ``vDTR``, ``HI`` and ``BEDD`` do not depend on the order. No change of the
+   results.
+-  [fix] A temperature equal to a threshold in another unit is now equal to it (issue
+   #675). pint converts 77 degF to 25.000000000000057 degC, so with float64 data in
+   degrees Fahrenheit a value exactly at a threshold was counted as above a strict ``>``
+   threshold (and 25 degC was converted to 76.99999999999993 degF, so a threshold given
+   in degrees Fahrenheit was missed by ``>=`` on data in degrees Celsius). It concerns
+   all the indices with a temperature threshold, the ECA&D ``SU``, ``TR``, ``CSU``,
+   ``FD``, ``CFD`` and ``ID``, the DCSC ``SD``, ``TX35``, ``TR``, ``TNFD`` and ``TXFD``,
+   and the generic indices with a threshold. The temperatures compared with such a
+   threshold, and the converted thresholds, are rounded to 10 decimals; the percentile
+   thresholds are not changed. The rounding applies to float64 temperatures only (float32
+   data and float32 thresholds are not modified) and only values within 5e-11 of a
+   threshold are affected, the values exactly at a threshold in degrees Fahrenheit;
+   data in K or in degC are not affected. All the indices with a temperature threshold
+   are concerned, ``SU`` included. Affects the 7.x releases, not changed in 7.3.x.
+-  [fix] The DCSC indices ``PQ90`` and ``PQ99``, and the generic ``percentile``, no longer
+   have the placeholder ``"todo"`` as ``standard_name``, ``long_name`` and
+   ``cell_methods`` (issue #676). The ``standard_name`` is the one of the input variable
+   (``precipitation_flux``), as for the other statistics; the ``long_name`` is "Percentile
+   of the daily precipitation for each year." and the ``cell_methods`` is ``time:
+   percentile over days``. The template of ``difference_of_count_occurences``, which no
+   index uses, has no placeholder either. Metadata only: the values do not change.
+-  [Behaviour change] The DCSC index ``TRAV`` (mean of the daily thermal amplitude) is now
+   the absolute value of the mean of ``TX - TN`` (issue #668). It is always positive and
+   it does not depend on the order of ``var_name``. The results that were negative are now
+   positive: they were the calls without ``var_name`` (the inputs were declared as ``TN``,
+   ``TX``, so the sign has been reversed since 7.0.0) and the calls with
+   ``var_name=["tasmin", "tasmax"]``. The calls with ``var_name=["tasmax", "tasmin"]``
+   gave and still give the same result. The absolute value is taken on the mean of each
+   period, per grid point, not on each day; the data are not checked, so a ``TRAV``
+   computed on inconsistent data (``TX`` below ``TN`` everywhere) is positive and not
+   flagged. It uses the new generic function ``absolute_mean_of_difference``.
+-  [enh] New generic function ``icclim.absolute_mean_of_difference`` (and the generic index
+   ``absolute_mean_of_difference`` of ``icclim.index``): the absolute value of the
+   period mean of the daily difference of two variables, computed for each grid point on
+   the mean of the period, not on each day. The result is never negative and does not
+   depend on the order of the two variables. It is the function of the DCSC ``TRAV``
+   (issue #668). ``mean_of_difference`` is not changed.
+-  [fix] The DCSC index ``FFAV`` can compare the study period with a reference period
+   taken from the same input series (issue #673). ``icclim.dcsc.ffav`` raised
+   ``InvalidIcclimArgumentError`` ("It does not make sense to resample the reference
+   variable...") because it did not expose ``sampling_method``, and the default
+   ``"resample"`` is refused for a reference period. ``sampling_method`` is now an
+   argument of ``ffav``, and its default is ``"groupby_ref_and_resample_study"``, the
+   method that accepts a reference period. For yearly output the result is the mean of
+   the year minus the mean of the reference period. For monthly and seasonal output the
+   method compares each month or season with the mean of the same month or season of the
+   reference period; whether this is the convention of DRIAS is not decided here. No
+   result changes for the calls that already worked.
+-  [fix] ``TNCWD`` and ``TXHWD`` (DCSC), and ``WSDI`` and ``CSDI`` (ECA&D), return their
+   dimensions in the order of the input, with ``time`` where the input has it, as the
+   other spell indices do (issue #669, after issues #542 and #550). They moved ``time``
+   behind the spatial dimensions, whatever the order of the input. Layout change only:
+   the values do not change, and code that selects the results by axis position has to be
+   updated. Not changed in 7.3.x.
 -  [doc] Document the run attribution of the periods that no run starts or ends in
    (issue #580). With ``run_index="first"`` or ``"last"`` a period without any event is
    ``0``, while a period wholly traversed by one continuous run attributed to another

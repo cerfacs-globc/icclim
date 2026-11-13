@@ -28,4 +28,9 @@ threshold documentation. We also prepared a few examples in
 :ref:`generic_indices_recipes` so that you get an idea of the
 capabilities of these generic indices.
 
+For the indices that take two variables, the order of the names of ``var_name`` is
+positional: the first name is the first term of the formula. See
+:ref:`two_variable_indices_order` for the indices whose result depends on it, with an
+example call for each.
+
 The full API is now here :ref:`generic api`.

@@ -502,7 +502,9 @@ Minimum 5-day rolling mean temperature:
 ********************
 
 Mean daily difference between two variables (e.g. tasmax − tasmin), equivalent to
-ECA&D's DTR:
+ECA&D's DTR. The order of ``var_name`` is positional: the result is the mean of
+``first - second``, so ``var_name=["tasmax", "tasmin"]`` gives ``tasmax - tasmin`` and
+the names in the other order give the opposite:
 
 .. code:: python
 
@@ -525,11 +527,38 @@ File-based via ``icclim.index``:
        var_name=["tmax", "tmin"],
    ).mean_of_difference.compute()
 
+*******************************
+ Absolute mean of difference
+*******************************
+
+Absolute value of the mean daily difference between two variables, as the DCSC
+``TRAV``. The daily differences are averaged over each period, then the absolute
+value is taken for each grid point. The result is never negative and does not depend
+on the order of the two variables:
+
+.. code:: python
+
+   # In-memory example
+   spread = icclim.absolute_mean_of_difference(
+       in_files=xr.Dataset({"tasmax": tas, "tasmin": tasmin}),
+       var_name=["tasmax", "tasmin"],
+   ).absolute_mean_of_difference.compute()
+
+   # The same values with the names in the other order
+   same_spread = icclim.absolute_mean_of_difference(
+       in_files=xr.Dataset({"tasmax": tas, "tasmin": tasmin}),
+       var_name=["tasmin", "tasmax"],
+   ).absolute_mean_of_difference.compute()
+
 ************************
  Difference of extremes
 ************************
 
-Annual maximum of tasmax minus annual minimum of tasmin, equivalent to ECA&D's ETR:
+Annual maximum of tasmax minus annual minimum of tasmin, equivalent to ECA&D's ETR.
+The order of ``var_name`` is positional: the result is ``max(first) - min(second)``, so
+``var_name=["tasmax", "tasmin"]`` gives ``max(tasmax) - min(tasmin)``. With the names in
+the other order the result is ``max(tasmin) - min(tasmax)``, a different quantity, not
+the opposite:
 
 .. code:: python
 
@@ -556,7 +585,12 @@ File-based:
  Difference of means
 *********************
 
-Anomaly: mean of the study period minus mean of the reference period:
+Anomaly: mean of the study period minus mean of the reference period. When two
+variables are given instead of a reference period, the order of ``var_name`` is
+positional and part of the definition: the first name is the study and the second one
+is the reference, ``icclim.difference_of_means(ds, var_name=["tas_scenario",
+"tas_reference"])``. With the names in the other order the result is the opposite
+anomaly:
 
 .. code:: python
 

@@ -4,12 +4,13 @@ Jinja templates for the metadata of generic indices.
 
 from __future__ import annotations
 
-from typing import TypedDict
+from typing import NotRequired, TypedDict
 
 # fmt: off
 
 class IndicatorMetadata(TypedDict):
-    standard_name: str
+    # Omitted when there is no valid CF standard name for the indicator.
+    standard_name: NotRequired[str]
     long_name: str
     cell_methods: str
 
@@ -159,6 +160,16 @@ INDICATORS_TEMPLATES_EN: dict[str, IndicatorMetadata] = {
         "cell_methods":  "time: range within {{source_freq.units}}"
                          " time: mean over {{source_freq.units}}",
     },
+    "absolute_mean_of_difference": {
+        "standard_name": "range_between_{{climate_vars[0].standard_name}}"
+                         "_and_{{climate_vars[1].standard_name}}", # not CF
+        "long_name":     "Absolute value of the mean of difference between"
+                         " {{climate_vars[0].long_name}}"
+                         " and {{climate_vars[1].long_name}}"
+                         " for each {{output_freq.long_name}}.",
+        "cell_methods":  "time: range within {{source_freq.units}}"
+                         " time: mean over {{source_freq.units}}",
+    },
     "huglin_index": {
         "standard_name": "huglin_index",  # not CF
         "long_name":     "Huglin Index (heliothermal index) for each"
@@ -225,13 +236,17 @@ INDICATORS_TEMPLATES_EN: dict[str, IndicatorMetadata] = {
                          " time: difference over {{source_freq.units}}",
     },
     "percentile":  {
-        "standard_name": "todo",
-        "long_name":     "todo",
-        "cell_methods":  "todo",
+        "standard_name": "{{climate_vars[0].standard_name}}",
+        "long_name":     "Percentile of the {{source_freq.adjective}}"
+                         " {{climate_vars[0].long_name}}"
+                         " for each {{output_freq.long_name}}.",
+        "cell_methods":  "time: percentile over {{source_freq.units}}",  # not CF
     },
+    # There is no CF standard name for a difference of counts.
     "difference_of_count_occurences":  {
-        "standard_name": "todo",
-        "long_name":     "todo",
-        "cell_methods":  "todo",
+        "long_name":     "Difference of the number of {{source_freq.units}}"
+                         f" when {COMBINED_VARS_LONG_NAME}",
+        "cell_methods":  "time: sum over {{source_freq.units}}"
+                         " time: difference over {{source_freq.units}}",
     },
 }

@@ -71,15 +71,16 @@ class DcscIndexRegistry(Registry[StandardIndex]):
     )
     TRAV = StandardIndex(
         reference=DCSC_REFERENCE,
-        indicator=GenericIndicatorRegistry.MeanOfDifference,
+        indicator=GenericIndicatorRegistry.AbsoluteMeanOfDifference,
         output_unit="degree_Celsius",
-        definition="Moyenne de l'amplitude thermique.",
+        definition="Moyenne de l'amplitude thermique: valeur absolue de la moyenne"
+        " de Tx - Tn.",
         source=DCSC_SOURCE,
         short_name="TRAV",
         group=IndexGroupRegistry.TEMPERATURE,
         input_variables=[
-            StandardVariableRegistry.TAS_MIN,
             StandardVariableRegistry.TAS_MAX,
+            StandardVariableRegistry.TAS_MIN,
         ],
     )
     TX10 = StandardIndex(
