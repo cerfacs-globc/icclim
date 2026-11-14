@@ -576,6 +576,7 @@ def build_studied_data(
 
     """
     studied_data = _subset_to_requested_time_range(original_da, time_range)
+    studied_data = _chunk_before_conversion(studied_data)
     studied_data = _drop_february_29_if_requested(studied_data, ignore_feb29th)
     studied_data = _apply_default_units(studied_data, default_units)
     standard_var = standard_var or guess_standard_variable(studied_data)
@@ -603,6 +604,17 @@ def _reset_time_chunks_notice() -> None:
     """Forget that the time chunks notice was printed (for tests)."""
     global _TIME_CHUNKS_NOTICE_SHOWN  # noqa: PLW0603
     _TIME_CHUNKS_NOTICE_SHOWN = False
+
+
+def _chunk_before_conversion(data: DataArray) -> DataArray:
+    """
+    Chunk data that is not backed by dask before the unit conversions.
+
+    The conversions of units load non-dask data eagerly. For a threshold, they are also
+    applied to the whole original data (not only to ``time_range``), which then reads
+    and converts the whole file.
+    """
+    return data.chunk("auto") if data.chunks is None else data
 
 
 def _chunk_eager_data(data: DataArray) -> DataArray:
