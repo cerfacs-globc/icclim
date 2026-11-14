@@ -309,7 +309,7 @@ date: TBD
    Affected: 7.1.10, 7.2.0, 7.3.1 and 7.3.3 (run with xclim 0.60.0), and 7.3.4.
 -  [perf] Input that is not backed by dask (a single path string, a dataset opened without
    chunks, in-memory numpy data) is chunked with ``"auto"`` right after the ``time_range``
-   selection and before the unit conversion (PR #NNN). Before, an index with a threshold
+   selection and before the unit conversion (PR #689). Before, an index with a threshold
    read and converted the whole data, including the years outside ``time_range``: for a
    30-year ``SU`` on a 128x256 grid and a file of 60,265 steps, 31.5 GiB, against about
    1.5 to 2 GiB with the data given as a list or as a dataset with dask chunks. Versions
