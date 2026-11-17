@@ -63,21 +63,44 @@ Maintainers
 
 -  Christian Page, `@pagecp <https://github.com/pagecp/>`_
    <christian.page[at]cerfacs.fr>
--  Abel Aoun, `@bzah <https://github.com/bzah>`_
-   <abel.aoun[at]cerfacs.fr>
 
-********
- Grants
-********
+Acknowledgments
+===============
 
-This open-source project has been possible thanks to funding by the
-European Commission projects:
+People credited in the Zenodo record of icclim.
 
--  FP7-CLIPC (2013-2016)
--  FP7-IS-ENES2 (2013-2017)
--  EUDAT2020 (2015-2018)
--  H2020-IS-ENES3 (2019-2023)
+Creators:
 
-The beautiful icclim logo is a creation of `Carole Petetin
-<https://carolepetetin.com>`_ and has been funded by the H2020 `IS-ENES3
-<https://is.enes.org>`_ project grant agreement No 824084 (2019-2023).
+-  Christian Pagé
+-  Natalia Tatarinova
+-  Abel Aoun
+-  Xavier Pivan
+
+Contributors:
+
+-  Martin Evaldsson
+-  Lars Bärring
+
+Funding:
+
+-  PEPR TRACCS (PC2-INVEST 2024–2032): This work was supported by the Agence Nationale de
+   la Recherche - France 2030 as part of the PEPR TRACCS programme under grant number
+   ANR-22-EXTR-0003 (PC2-INVEST).
+-  ENES-RISe (2026–2029): This project has received funding from the European Union’s
+   Horizon Europe research and innovation programme under grant agreement No 101291049
+   (ENES-RISe).
+-  FUTURA (2026–2030): This project has received funding from the European Union’s
+   Horizon Europe research and innovation programme under grant agreement No 101295156
+   (FUTURA).
+-  H2020-IS-ENES3 (2019–2023): This project has received funding from the European
+   Union’s Horizon 2020 research and innovation programme under grant agreement No
+   824084. `IS-ENES3 <https://is.enes.org>`_ also funded the icclim logo, created by
+   `Carole Petetin <https://carolepetetin.com>`_.
+-  EUDAT2020 (2015–2018): This project has received funding from the European Union’s
+   Horizon 2020 research and innovation programme under grant agreement No 654065.
+-  FP7-IS-ENES2 (2013–2017): The research leading to these results has received funding
+   from the European Union’s Seventh Framework Programme (FP7/2007-2013) under grant
+   agreement no. 312979.
+-  FP7-CLIPC (2013–2016): The research leading to these results has received funding from
+   the European Union’s Seventh Framework Programme (FP7/2007-2013) under grant agreement
+   no. 607418.
