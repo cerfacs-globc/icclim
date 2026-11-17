@@ -463,10 +463,10 @@ def index(
         The dates can either be given as instance of datetime.datetime or as string
         values.
         It is used either:
-        #. to compute percentiles if threshold is filled.
-        When missing, the studied period is used to compute percentiles.
-        The study period is either the dataset filtered by `time_range` or the whole
-        dataset if `time_range` is missing.
+        #. to compute percentiles if threshold is filled. It is required for the ECA&D
+        percentile indices (such as TX90p, R95p, WSDI) and for the generic indicators
+        with a percentile threshold: when missing, a `InvalidIcclimArgumentError` is
+        raised, for example pass ``["1961-01-01", "1990-12-31"]``.
         For day of year percentiles (doy_per), on extreme percentiles the
         overlapping period between `base_period_time_range` and the study period is
         bootstrapped.
@@ -1114,7 +1114,7 @@ def _parse_threshold(
     interpolation: QuantileInterpolation,
 ) -> Threshold | Sequence[Threshold] | None:
     if isinstance(threshold, Threshold):
-        return threshold
+        return _with_request_reference_period(threshold, reference_period)
     if isinstance(threshold, (str, dict)):
         return _build_request_threshold(
             threshold,
@@ -1270,7 +1270,6 @@ def _build_standard_index_config(
     )
     _require_base_period_for_percentiles(
         parsed_threshold,
-        reference_period,
         standard_index=standard_index,
         indicator_name=indicator_name,
     )
@@ -1316,7 +1315,6 @@ def _build_standard_index_config(
 
 def _require_base_period_for_percentiles(
     threshold: Threshold | Sequence[Threshold] | None,
-    reference_period: Sequence[str] | None,
     *,
     standard_index: StandardIndex | None,
     indicator_name: str,
@@ -1329,7 +1327,13 @@ def _require_base_period_for_percentiles(
     much data the file holds. Only the ECA&D indices and the generic indicators are
     checked. The DCSC indices, the SPI and the legacy ``user_index`` are not changed.
     """
-    if reference_period is not None or threshold is None:
+    if threshold is None:
+        return
+    if standard_index is None and indicator_name == (
+        GenericIndicatorRegistry.Percentile.name
+    ):
+        # ``percentile`` computes the requested percentile of the studied data: it has
+        # no reference period.
         return
     if (
         standard_index is not None
@@ -1340,13 +1344,45 @@ def _require_base_period_for_percentiles(
         percentile.reference_period is None and not percentile.is_ready
         for percentile in _percentile_thresholds(threshold)
     ):
-        index_name = standard_index.short_name if standard_index else indicator_name
-        msg = (
-            f"{index_name} is computed with a percentile threshold, which needs a base"
-            " period. Pass `base_period_time_range`, for example"
-            ' `base_period_time_range=["1961-01-01", "1990-12-31"]`.'
-        )
+        if standard_index is not None:
+            msg = (
+                f"{standard_index.short_name} is computed with a percentile threshold,"
+                " which needs a base period. Pass `base_period_time_range`, for example"
+                ' `base_period_time_range=["1961-01-01", "1990-12-31"]`.'
+            )
+        else:
+            msg = (
+                f"{indicator_name} is computed with a percentile threshold, which needs"
+                " a base period. Pass `base_period_time_range` to `icclim.index`, for"
+                ' example `base_period_time_range=["1961-01-01", "1990-12-31"]`, or'
+                " build the threshold with a reference period, for example"
+                ' `build_threshold("> 90 doy_per",'
+                ' reference_period=["1961-01-01", "1990-12-31"])`.'
+            )
         raise InvalidIcclimArgumentError(msg)
+
+
+def _with_request_reference_period(
+    threshold: Threshold,
+    reference_period: Sequence[dt.datetime | str] | None,
+) -> Threshold:
+    """Give ``base_period_time_range`` to the percentiles that have no reference."""
+    if reference_period is None:
+        return threshold
+    targets = [
+        percentile
+        for percentile in _percentile_thresholds(threshold)
+        if percentile.reference_period is None and not percentile.is_ready
+    ]
+    if not targets:
+        return threshold
+    from copy import deepcopy  # noqa: PLC0415
+
+    threshold = deepcopy(threshold)
+    for percentile in _percentile_thresholds(threshold):
+        if percentile.reference_period is None and not percentile.is_ready:
+            percentile.reference_period = reference_period
+    return threshold
 
 
 def _percentile_thresholds(

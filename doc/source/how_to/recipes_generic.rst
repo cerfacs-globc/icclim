@@ -38,6 +38,13 @@ Threshold mini-cheat-sheet
    * - ``"< 0 degC OR > 35 degC"``
      - Bounded (OR): value must satisfy at least one condition
 
+.. note::
+
+   The percentile thresholds (``doy_per`` and ``period_per``) need a reference
+   period: build them with ``build_threshold(..., reference_period=["1961-01-01",
+   "1990-12-31"])``, or pass ``base_period_time_range`` to ``icclim.index``. Without
+   it, icclim raises an ``InvalidIcclimArgumentError``.
+
 See :ref:`thresholds_reference` for ``threshold_min_value``, per-grid-cell thresholds,
 and all available operators.
 
@@ -116,7 +123,8 @@ Using a day-of-year percentile threshold (equivalent to TX99p):
 .. code:: python
 
    tx99p = icclim.count_occurrences(
-       in_files=tas, var_name="tas", threshold=">= 99 doy_per"
+       in_files=tas, var_name="tas",
+       threshold=build_threshold(">= 99 doy_per", reference_period=["1961-01-01", "1990-12-31"]),
    ).count_occurrences.compute()
 
 Using ``out_unit="%"`` to get the result as a fraction of days:
@@ -133,7 +141,8 @@ File-based example:
 .. code:: python
 
    result_file = icclim.count_occurrences(
-       in_files=data, var_name="tasmax", threshold=">= 99 doy_per"
+       in_files=data, var_name="tasmax",
+       threshold=build_threshold(">= 99 doy_per", reference_period=["1961-01-01", "1990-12-31"]),
    ).count_occurrences.compute()
 
 *****
@@ -190,7 +199,8 @@ Mean of values above the 87th period percentile:
 .. code:: python
 
    tas_hot_avg = icclim.average(
-       in_files=tas, var_name="tas", threshold="> 87 period_per"
+       in_files=tas, var_name="tas",
+       threshold=build_threshold("> 87 period_per", reference_period=["1961-01-01", "1990-12-31"]),
    ).average.compute()
 
 Monthly means (``slice_mode="month"``):
@@ -300,7 +310,8 @@ Combine a percentile threshold via a bounded string:
 .. code:: python
 
    custom_wsdi = icclim.sum_of_spell_lengths(
-       in_files=data, var_name="tasmax", threshold="> 90 doy_per"
+       in_files=data, var_name="tasmax",
+       threshold=build_threshold("> 90 doy_per", reference_period=["1961-01-01", "1990-12-31"]),
    ).sum_of_spell_lengths.compute()
 
 ``run_index`` is also supported here (``"first"`` or ``"last"``).
@@ -329,7 +340,7 @@ With a day-of-year percentile reference period:
        var_name="tmin",
        threshold=build_threshold(
            "22 doy_per",
-           base_period_time_range=["1991-01-01", "1995-12-31"],
+           reference_period=["1991-01-01", "1995-12-31"],
        ),
        slice_mode="jja",
    ).excess.compute()
@@ -373,14 +384,22 @@ Fraction of total precipitation contributed by days above the 75th period percen
    r75ptot = icclim.fraction_of_total(
        in_files=pr,
        var_name="pr",
-       threshold=build_threshold("> 75 period_per", threshold_min_value="1 mm/day"),
+       threshold=build_threshold(
+           "> 75 period_per",
+           threshold_min_value="1 mm/day",
+           reference_period=["1961-01-01", "1990-12-31"],
+       ),
    ).fraction_of_total.compute()
 
    # Return as mm instead of % using out_unit
    r75ptot_mm = icclim.fraction_of_total(
        in_files=pr,
        var_name="pr",
-       threshold=build_threshold("> 75 period_per", threshold_min_value="1 mm/day"),
+       threshold=build_threshold(
+           "> 75 period_per",
+           threshold_min_value="1 mm/day",
+           reference_period=["1961-01-01", "1990-12-31"],
+       ),
        out_unit="mm",
    ).fraction_of_total.compute()
 
@@ -391,7 +410,11 @@ File-based:
    result_frac = icclim.fraction_of_total(
        in_files=data,
        var_name=["precip"],
-       threshold=build_threshold("> 75 period_per", threshold_min_value="1 mm/day"),
+       threshold=build_threshold(
+           "> 75 period_per",
+           threshold_min_value="1 mm/day",
+           reference_period=["1961-01-01", "1990-12-31"],
+       ),
    ).fraction_of_total.compute()
 
 *********

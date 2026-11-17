@@ -50,17 +50,27 @@ the following is sufficient to compute CW.
 
 .. code-block:: python
 
-        icclim.cw(in_files=["mean_temperatures.nc", "precipitations.nc"]).compute.CW
+        icclim.cw(
+            in_files=["mean_temperatures.nc", "precipitations.nc"],
+            base_period_time_range=["1961-01-01", "1990-12-31"],
+        ).compute.CW
 
 In case variables' name cannot be guessed, you can explicitly name the variable
 you wish to read from the input file:
 
 .. code-block:: python
 
-        icclim.cw(in_files={"customTas": mean_temperatures.nc, "pr": "precipitations.nc"})
+        icclim.cw(
+            in_files={"customTas": mean_temperatures.nc, "pr": "precipitations.nc"},
+            base_period_time_range=["1961-01-01", "1990-12-31"],
+        )
 
         # equivalent to
-        icclim.cw(in_files=["mean_temperatures.nc", "precipitations.nc"], var_name=["custom_tas", "pr"])
+        icclim.cw(
+            in_files=["mean_temperatures.nc", "precipitations.nc"],
+            var_name=["custom_tas", "pr"],
+            base_period_time_range=["1961-01-01", "1990-12-31"],
+        )
 
 The order in which variables are passed matters and must follow the ``input_variables`` property defined in the
 respective index of :py:class:`EcadIndexRegistry`.

@@ -106,8 +106,8 @@ Two flavours exist, selected by the unit string:
        (``doy_window_width``). Used for temperature-based ECAD indices (e.g. TX90p, WSDI).
    * - ``period_per``
      - Period percentile
-     - Percentile computed over the full reference period (or study period when no
-       ``base_period_time_range`` is given). Used for precipitation-based ECAD indices
+     - Percentile computed over the full reference period, given by
+       ``base_period_time_range``. Used for precipitation-based ECAD indices
        (e.g. R75p, R95pTOT).
 
 .. code:: python
@@ -123,8 +123,17 @@ Two flavours exist, selected by the unit string:
    # Percentile computed on a specific reference period
    ref_t = build_threshold(
        "> 90 doy_per",
-       base_period_time_range=["1991-01-01", "2020-12-31"],
+       reference_period=["1991-01-01", "2020-12-31"],
    )
+
+.. note::
+
+   The ECA&D indices need ``base_period_time_range`` (for example
+   ``["1961-01-01", "1990-12-31"]``), also for ``icclim.index``. The generic functions
+   (such as ``icclim.count_occurrences``) do not take ``base_period_time_range``: build
+   their percentile threshold with ``reference_period``, as above. Without a reference
+   period, icclim raises an ``InvalidIcclimArgumentError``: the percentiles would
+   otherwise be computed on the whole original dataset, not on the studied period.
 
 .. note::
 
