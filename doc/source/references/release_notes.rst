@@ -37,26 +37,26 @@ date: 2026-11-17
       run_index="last""; passing ``run_index`` explicitly prints nothing.
    -  Affected: scripts that read the standard output of these indices.
 -  [Behaviour change] Size of the change, on CMIP6 data (1976-2014, global grid;
-   ACCESS-CM2 for ``CDD`` and ``CWD``, CNRM-CM6-1 for ``CFD`` and ``CSU``):
+   ACCESS-CM2 for ``CDD`` and ``CWD``, CNRM-CM6-1 for ``CFD`` and ``CSU``): the share of
+   values that differ between ``"first"`` and ``"last"`` is, for yearly and monthly
+   output, 22% and 46% for ``CDD``, 5% and 19% for ``CWD``, 28% and 10% for ``CFD``, and
+   12% and 11% for ``CSU`` and ``max_consecutive_occurrence``.
 
-   -  the share of values that differ between ``"first"`` and ``"last"`` is, for yearly
-      and monthly output, 22% and 46% for ``CDD``, 5% and 19% for ``CWD``, 28% and 10% for
-      ``CFD``, and 12% and 11% for ``CSU`` and ``max_consecutive_occurrence``.
    -  Between 80% and 99% of the changed values differ by more than one day.
--  [Behaviour change] Periods that no run starts or ends in (issue #580 and PR #661).
+-  [Behaviour change] Periods that no run starts or ends in (issue #580 and PR #661). With
+   ``"first"`` and ``"last"``, a period with no event is 0, and a period wholly covered by
+   a run credited to another period is ``NaN`` (not reported), as in ETCCDI and the ATBD
+   for ``CDD`` and ``CWD``; with ``split_runs_at_period_boundary=True`` every period has a
+   value.
 
-   -  With ``"first"`` and ``"last"``, a period with no event is 0, and a period wholly
-      covered by a run credited to another period is ``NaN`` (not reported), as in ETCCDI
-      and the ATBD for ``CDD`` and ``CWD``; with ``split_runs_at_period_boundary=True``
-      every period has a value.
    -  Details: with ``"first"`` and ``"last"`` a value can be longer than its period: at a
       polar grid point with frost on every day of 1976-2014, ``CFD`` is a single run of
       14,245 days credited to one period, while with the split option it is 365 days per
       year (366 in a leap year). The share of values longer than their period is, for
       yearly and monthly output, 0.75% and 7.9% for ``CDD``, 2.9% and 3.7% for ``CFD``,
       and 1.3% and 4.2% for ``CSU``.
-   -  The docstrings and the how-to page "Attribute or split longest runs" say it, and
-      tests lock the behaviour in.
+   -  The docstrings and the how-to page "Attribute or split longest runs" say how these
+      periods are counted, and tests lock the behaviour in.
 -  [change] Python 3.10 is no longer supported (``requires-python >=3.11``) and the
    minimum versions of the dependencies are raised (issue #586, PR #630).
 
@@ -173,18 +173,14 @@ date: 2026-11-17
 -  [meta] ``environment.yml`` and the installation notes match ``pyproject.toml`` (PR
    #664); citation metadata and the concept DOI badge (PRs #588, #591, #592 and #593).
 -  [doc] The documentation states the positional order of ``var_name`` for the indices
-   with two variables whose result depends on it (issue #683):
-
-   -  ``DTR`` (mean of ``TX - TN``),
-   -  ``ETR`` (``max(TX) - min(TN)``; swapped, a different quantity, not the opposite),
-   -  the generic ``mean_of_difference`` and ``difference_of_extremes`` (first and second
-      variable),
-   -  ``difference_of_means`` with two variables (study minus reference),
-   -  and ``CD``, ``CW``, ``WD`` and ``WW`` (temperature, then precipitation).
-   -  Each has its formula and an example call in its docstring and on the documentation
-      page.
-   -  ``vDTR``, ``HI`` and ``BEDD`` do not depend on the order.
-   -  No change of the results.
+   with two variables whose result depends on it (issue #683): ``DTR`` (mean of
+   ``TX - TN``), ``ETR`` (``max(TX) - min(TN)``; swapped, a different quantity, not the
+   opposite), the generic ``mean_of_difference`` and ``difference_of_extremes``
+   (first and second variable), ``difference_of_means`` with two variables (study minus
+   reference), and ``CD``, ``CW``, ``WD`` and ``WW`` (temperature, then precipitation).
+   Each has its formula and an example call in its docstring and on the documentation
+   page. ``vDTR``, ``HI`` and ``BEDD`` do not depend on the order. No change of the
+   results.
 -  [fix] A temperature equal to a threshold in another unit is now equal to it (issue
    #675).
 
