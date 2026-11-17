@@ -9,43 +9,72 @@ Unreleased
 *****
 7.4.0
 *****
-
-date: TBD
-
-
--  [Behaviour change] Run-length indices now credit a run to the period where it ends.
-   ``CDD``, ``CWD``, ``CFD``, ``CSU``, ``PXCDD``, ``PXCWD`` and
-   ``max_consecutive_occurrence`` default to ``run_index="last"``. Until 7.3.x a run was
-   credited to the period where it starts. For ``CDD`` and ``CWD`` this follows the ECA&D
-   ATBD v11 (section 5.1) and the ETCCDI definitions; for ``CFD``, ``CSU`` and the
-   generic function it is icclim's own convention, applied for consistency (issue #580).
-   ``run_index="first"`` gives the previous behaviour, and
-   ``split_runs_at_period_boundary=True`` cuts the runs at the period boundaries. A
-   notice is printed once per process and per index (PR #633).
+-  [Behaviour change] Since 7.4.0, ``CDD``, ``CWD``, ``CFD``, ``CSU``, ``PXCDD``, ``PXCWD``
+   and ``max_consecutive_occurrence`` default to ``run_index="last"``: a run crossing an
+   output-period boundary is counted in the period where it ends; until 7.3.x it was
+   credited to the period where it starts (issue #580). This applies to every output
+   frequency, including months and seasons: a January 25--February 5 run is ``[12, 0]``
+   with ``run_index="first"``, ``[0, 12]`` by default, and ``[7, 5]`` when split. The
+   ECA&D example of a dry spell from December 2000 to January 2001 therefore counts toward
+   2001. With yearly output, a dry spell from 2001-10-01 through 2002-04-30 changes from
+   ``[212, 0]`` under the old default to ``[0, 212]``. Pass ``run_index="first"`` for the
+   pre-7.4.0 result, or ``split_runs_at_period_boundary=True`` to cut the spell at the year
+   boundary and get ``[92, 120]``. For ``CDD`` and ``CWD`` this follows the ECA&D ATBD v11
+   (section 5.1 and pp. 20--21), the ETCCDI definitions, the RClimDex manual (Appendix C)
+   and climdex.pcic; for ``CFD``, ``CSU``, ``PXCDD``, ``PXCWD`` and the generic function it
+   is icclim's own convention, applied for consistency, and the ATBD does not require it.
+   A notice is printed on stdout once per process and per index (PR #633), instead of at
+   every call, and starts with "Since icclim 7.4.0, <index> defaults to run_index="last"";
+   passing ``run_index`` explicitly prints nothing. Affected: scripts that read the
+   standard output of these indices.
 -  [Behaviour change] Size of the change, on CMIP6 data (1976-2014, global grid;
    ACCESS-CM2 for ``CDD`` and ``CWD``, CNRM-CM6-1 for ``CFD`` and ``CSU``): the share of
    values that differ between ``"first"`` and ``"last"`` is, for yearly and monthly
    output, 22% and 46% for ``CDD``, 5% and 19% for ``CWD``, 28% and 10% for ``CFD``, and
    12% and 11% for ``CSU`` and ``max_consecutive_occurrence``. Between 80% and 99% of the
    changed values differ by more than one day.
--  [Behaviour change] Periods wholly crossed by a run: a period with no event is 0; a
-   period entirely covered by a run credited to another period is ``NaN`` with
-   ``"first"`` and ``"last"`` (as in ETCCDI for ``CDD`` and ``CWD``); with the split
-   option every period has a value. With ``"first"`` and ``"last"`` a value can be longer
-   than its period: at a polar grid point with frost on every day of 1976-2014, ``CFD``
-   is a single run of 14,245 days credited to one period, while with the split option it
-   is 365 days per year (366 in a leap year). The share of values longer than their
-   period is, for yearly and monthly output, 0.75% and 7.9% for ``CDD``, 2.9% and 3.7%
-   for ``CFD``, and 1.3% and 4.2% for ``CSU`` (PR #661).
--  [change] Python 3.10 is no longer supported (``requires-python >=3.11``). The new
-   minimum versions are numpy 1.24, pandas 2.2.0, xarray 2024.11.0, xclim 0.56.0, dask
-   2024.11.1, zarr 2.12.0, cftime 1.6.2, dateparser 1.1.4, typing-extensions 4.5.0 and
-   pint 0.25 (PR #630).
--  [enh] ``HI`` and ``BEDD`` follow the ATBD v11: they sum from 1 April to 30 September,
-   and the coefficient of ``HI`` is 1.00 up to 40 N and 1.02 to 1.06 for each band of two
-   degrees up to 50 N, with a missing result above 50 N and below the equator (PRs #640,
-   #641 and #655). 66 of the 75 ECA&D indices are implemented; the others are followed in
-   issue #204.
+-  [Behaviour change] Periods that no run starts or ends in (issue #580 and PR #661). With
+   ``"first"`` and ``"last"``, a period with no event is 0, and a period wholly covered by
+   a run credited to another period is ``NaN`` (not reported), as in ETCCDI and the ATBD
+   for ``CDD`` and ``CWD``; with ``split_runs_at_period_boundary=True`` every period has a
+   value. With ``"first"`` and ``"last"`` a value can be longer than its period: at a polar
+   grid point with frost on every day of 1976-2014, ``CFD`` is a single run of 14,245 days
+   credited to one period, while with the split option it is 365 days per year (366 in a
+   leap year). The share of values longer than their period is, for yearly and monthly
+   output, 0.75% and 7.9% for ``CDD``, 2.9% and 3.7% for ``CFD``, and 1.3% and 4.2% for
+   ``CSU``. The docstrings and the how-to page "Attribute or split longest runs" say it,
+   and tests lock the behaviour in.
+-  [change] Python 3.10 is no longer supported (``requires-python >=3.11``) and the minimum
+   versions of the dependencies are raised (issue #586, PR #630). The previous minimums
+   could not be installed together or did not work. The new minimums are the versions the
+   test suite works with, measured with the lowest versions the resolver can pick on Python
+   3.11: ``numpy>=1.24`` (was 1.21), ``pandas>=2.2.0`` (was 1.3.0), ``xarray>=2024.11.0``
+   (was 2022.6.0), ``xclim>=0.56.0`` (was 0.45.0), ``dask[array]>=2024.11.1`` (was
+   2022.2.0), ``zarr>=2.12.0`` (was 2.11.0), ``cftime>=1.6.2`` (was 1.5.0),
+   ``dateparser>=1.1.4`` (was 1.1.0), ``pint>=0.25`` (was 0.20) and
+   ``typing-extensions>=4.5.0`` (was 4.0). ``pint`` older than 0.25 converts 1 mm/day to
+   ``kg m-2 s-1`` with an error of one ulp, so a daily value exactly equal to a converted
+   threshold could be lost; ``pint`` 0.25 needs Python 3.11. Affected: installations on
+   Python 3.10 or that pin a dependency below the new minimums.
+-  [enh] ``HI`` (Huglin Index) and ``BEDD`` (Biologically Effective Degree Days) follow the
+   ATBD v11 (issues #637 and #638, part of #204). 66 of the 75 ECA&D indices are
+   implemented, the others are followed in issue #204. Both sum from 1 April to 30
+   September, in degree_Celsius day. ``HI`` (PR #640) is the sum of
+   ``((TG - 10) + (TX - 10)) / 2 * K`` with ``K`` the daylength coefficient of the
+   latitude of the ATBD: 1.00 up to 40 N and 1.02 to 1.06 for each band of two degrees up
+   to 50 N, each band including its upper boundary (K = 1.02 at 42 N); the docstring and
+   the documentation give the six values of K and the tests cover the boundaries of the
+   bands. The index is defined for the northern hemisphere only: the result is missing
+   below 0 and above 50 degrees north (PR #655, issue #653). ``icclim.hi`` needs the daily
+   mean and maximum temperature and reads the latitude from the coordinates of the data.
+   It differs from xclim's ``huglin_index``, which clips each day at 0 and uses a
+   coefficient set by its ``cap_value`` above 50 N: the ATBD sum has no clipping and gives
+   no value above 50 N. ``BEDD`` (PR #641) is the sum of
+   ``min(max((TX + TN) / 2 - 10, 0), 9)``; ``icclim.bedd`` needs the daily minimum and
+   maximum temperature and no latitude. It is the definition of xclim's
+   ``biologically_effective_degree_days`` with ``method="icclim"`` and
+   ``end_date="10-01"``, except that a period without any valid day from April to
+   September is missing instead of 0.
 -  [compat] Tested with xclim 0.56 (lowest), 0.60 and 1.0, xarray 2026.2 or later, and
    pint 0.25 or later (PR #631). SciPy is not a direct dependency; with
    ``ICCLIM_BOOTSTRAP_MODE=default``, the bootstrap interpolation of xclim is still
@@ -59,44 +88,45 @@ date: TBD
    environments, from the ``run_index`` default), none unexpected. ``TRAV`` equals the
    absolute value of the previous ``TRAV``, ``HI`` and ``BEDD`` agree between the two
    environments, and the speed of the yearly ``SU`` is unchanged (median 47.3 s for 7.3.6,
-   45.9 s for the candidate). The later changes, the time-chunk guard and the version
-   bump, only concern the chunk handling of time-contiguous input and the version string.
--  [perf] The speed of the ordinary indices on a full CMIP6 grid is unchanged since 7.3.3
-   (59 s against 62 s for the yearly ``TG``, 45 s against 44 s for ``rx5day``, same input
-   and node).
+   45.9 s for the candidate). Changes made after the validated candidate: the notice for
+   time-contiguous Dask input (PR #685), the chunking of input that is not backed by dask
+   before the unit conversion (PR #689), updates of the CI lock file and the version bump;
+   a check on the real file after PR #689 gave identical results (SU and TG) for a path
+   string, a list, and a dataset with and without chunks.
+-  [perf] The speed of the ordinary indices on a full CMIP6 grid, measured on 7.3.6 and
+   on the candidate 19b40a3f, is unchanged (59 s against 62 s for the yearly ``TG``, 45 s
+   against 44 s for ``rx5day``, same input and node).
 -  [perf] Peak memory and speed depend on how the input is opened. On a 128x256 grid of
    daily data, on one node, for 30 to 165 years: opening the files with their own chunks
-   (one time step each in this test, ``chunks={}``; icclim then rechunks them to auto-sized
-   chunks) used less memory and was 1.4 to 1.7 times slower than opening them with
-   ``chunks="auto"``, and the difference in memory grows with the length of the series
-   (count index, 165 years: 44 s and 3.9 GiB with ``"auto"``, 73 s and 1.7 GiB with the
-   file chunks). Input held in a single chunk along time is left as it is by icclim and
-   needed 18 to 32 GiB; the count, rolling and date indices took about 30 minutes, against
-   less than 90 s with ``"auto"``.
+   (one time step each in this test, ``chunks={}``; icclim then rechunks them to
+   auto-sized chunks) used less memory and was 1.4 to 1.7 times slower than opening them
+   with ``chunks="auto"``, and the difference in memory grows with the length of the
+   series (count index, 165 years: 44 s and 3.9 GiB with ``"auto"``, 73 s and 1.7 GiB
+   with the file chunks).
 -  [perf] Percentile indices with a bootstrap over the years outside the base period are
-   the slowest case. The time is proportional to the number of grid points and grows with
-   the number of years outside the base period: on a full 128x256 grid, about 45 minutes
-   for 60 years and 2.2 hours for 165 years (annual ``TX90p``, 30-year base period,
-   auto-sized chunks).
+   the slowest case. The time grows with the number of grid points and with the number of
+   years outside the base period (measured; the mechanism is not established): on a full
+   128x256 grid, about 45 minutes for 60 years and 2.2 hours for 165 years (annual
+   ``TX90p``, 30-year base period, auto-sized chunks).
 -  [enh] A notice is printed once per process when a Dask-backed input has one chunk, or
    very long chunks, along time: its largest chunk is above eight times dask's
    ``array.chunk-size`` (1 GiB with the default) (PR #685). On CMIP6 data (128x256 grid,
-   daily) such inputs used 18 to 31 GiB and took about 1,700 s where chunks of 1024 days
+   daily) such inputs used 18 to 32 GiB and took about 1,700 s where chunks of 1024 days
    took under 90 s. The notice advises reopening the data with ``chunks="auto"`` or
    ``chunks={"time": 1024}``, or, if one chunk is needed, selecting the period before
-   chunking (30 years selected after chunking a 165-year file: 1,855 s; selected first: 342
-   s; ``chunks="auto"``: 13.7 s). The input and its chunks are not modified, and there is
-   no new parameter: rechunking the time axis did not reduce the time or the memory.
+   chunking (30 years selected after chunking a 165-year file: 1,855 s; selected first:
+   342 s; ``chunks="auto"``: 13.7 s; one run each, count index, 30 years, one file, warm
+   page cache). The input and its chunks are not modified, and there is no new parameter:
+   rechunking the time axis did not reduce the time or the memory on that file.
 -  [doc] The page "Chunk data and parallelize computation" states what icclim does with the
    chunks of the input (rechunk below 1/8 of ``array.chunk-size``, keep, keep with a notice
    above 8 times), the measured time and memory of ``chunks="auto"``, ``chunks={"time":
    1024}`` and the native chunks (RAM is the hard limit), and the cost of time-contiguous
-   chunks (PR #685).
--  [doc] The memory budget of the percentile bootstrap, ``ICCLIM_BOOTSTRAP_SAFE_TILE_MEMORY``
-   (default ``2GB``), is a budget given to the estimator, not a cap: the measured peak was
-   13.4 GiB for a 30-year study period equal to the base period (6.7 times the budget),
-   1.05 to 1.5 times for 60 years and 1.2 to 2.2 times for 165 years. The 30-year case is
-   not explained yet and is being investigated (PR #685).
+   chunks (PR #685). It also states that the memory budget of the percentile bootstrap,
+   ``ICCLIM_BOOTSTRAP_SAFE_TILE_MEMORY`` (default ``2GB``), is a budget given to the
+   estimator, not a cap: the measured peak was 13.4 GiB for a 30-year study period equal to
+   the base period (6.7 times the budget), 1.05 to 1.5 times for 60 years and 1.2 to 2.2
+   times for 165 years. The 30-year case is not explained yet and is being investigated.
 -  [test] Independent reference calculations now cover all 66 implemented indices (PR #539
    and the following pull requests); a registry-wide test checks the equivalence of
    inputs in K, degC and degF, and in kg m-2 s-1 and mm/day (PR #642).
@@ -159,101 +189,33 @@ date: TBD
    method compares each month or season with the mean of the same month or season of the
    reference period; whether this is the convention of DRIAS is not decided here. No
    result changes for the calls that already worked.
--  [fix] ``TNCWD`` and ``TXHWD`` (DCSC), and ``WSDI`` and ``CSDI`` (ECA&D), return their
-   dimensions in the order of the input, with ``time`` where the input has it, as the
-   other spell indices do (issue #669, after issues #542 and #550). They moved ``time``
-   behind the spatial dimensions, whatever the order of the input. Layout change only:
-   the values do not change, and code that selects the results by axis position has to be
-   updated. Not changed in 7.3.x.
--  [doc] Document the run attribution of the periods that no run starts or ends in
-   (issue #580). With ``run_index="first"`` or ``"last"`` a period without any event is
-   ``0``, while a period wholly traversed by one continuous run attributed to another
-   period is ``NaN`` (not reported), as in ETCCDI and the ATBD for ``CDD`` and ``CWD``;
-   with ``split_runs_at_period_boundary=True`` every period gets a value, and the value of
-   a period can exceed its length under ``"first"`` and ``"last"``. The docstrings and the
-   how-to page "Attribute or split longest runs" say it, and tests lock the behaviour in.
-   No change of the results.
+-  [fix] ``CDD``, ``CWD``, ``CFD``, ``CSU`` and ``max_consecutive_occurrence`` (issue #542,
+   PR #550), and ``TNCWD`` and ``TXHWD`` (DCSC) and ``WSDI`` and ``CSDI`` (ECA&D) (issue
+   #669), return their dimensions in the order of the input, with ``time`` where the input
+   has it. Behaviour change in the layout only, the values do not change. With xclim 0.60.0
+   and later these results had ``time`` after the spatial dimensions, whatever the input;
+   xclim 0.45.0 already kept the order of the input. Before: an input ordered
+   ``(time, lat, lon)`` gave ``(lat, lon, time)`` and an input ordered ``(lat, lon, time)``
+   gave ``(lat, lon, time)``. Now: ``(time, lat, lon)`` and ``(lat, lon, time)``. Results
+   computed with ``date_event=True`` are not concerned: ``time`` stays the first dimension
+   whatever the order of the input. Code that selects these results by axis position
+   instead of by dimension name has to be updated. Affected (``CDD``, ``CWD``, ``CFD``,
+   ``CSU``, ``max_consecutive_occurrence``): 7.1.10, 7.2.0, 7.3.1 and 7.3.3 (run with
+   xclim 0.60.0), and 7.3.4. The fix for ``TNCWD``, ``TXHWD``, ``WSDI`` and ``CSDI`` is not
+   made in 7.3.x.
 -  [doc] The logo of the README no longer shows a version number (issue #659). The PyPI
    page of a release showed the logo of 7.3.4, because the logo with the version is
    regenerated only on master, whose version did not change for 7.3.5 to 7.3.7, while the
    text of the page is fixed at upload. The README uses a copy of the logo without the
    version; the logos of the documentation are unchanged.
--  [fix] The DCSC indices ``PQ90`` and ``PQ99`` no longer raise ``DimensionalityError``
-   (issue #643). They are the 90th and 99th percentile of the daily precipitation, in
-   mm/day (DRIAS: "q90 des précipitations totales quotidiennes"); their output unit was
-   declared as a percent, which a precipitation cannot be converted to.
-   Affected: every release since 7.0.0 that has the DCSC indices.
--  [fix] The generic ``excess`` and ``deficit`` no longer raise ``KeyError: 'units'`` on a
-   precipitation with xarray 2026.2 and later (issue #644). The units of the result are
-   taken from the studied variable instead of from the subtraction of the threshold,
-   whose attributes recent xarray versions drop when the texts of the units differ
-   ("mm/day" and "mm d-1").
-   Affected: every release with ``excess`` and ``deficit``, with xarray 2026.2 or later.
--  [fix] The DCSC indices that use a normal (``TXND``, ``TNHT``, ``TNND``, ``TNCWD`` and
-   ``TXHWD``) no longer raise ``DimensionalityError`` ("cannot convert from
-   delta_degree_Celsius to degree_Celsius") when the input is in degrees Celsius or
-   Fahrenheit (issue #617). The offset of 5 degrees is now converted as a temperature
-   difference of the input unit, so input in K, degC and degF gives the same result.
-   Affected: every release since 7.0.0 that has the DCSC indices, with input not in K.
--  [fix] The new ECA&D index ``HI`` is now missing at latitudes below 0 (issue #653). Its
-   daylength coefficient started at minus infinity, so the southern hemisphere got
-   K = 1.00 and a value that has no meaning: the index is defined for the northern
-   hemisphere only, and the result is missing below 0 and above 50 degrees north. Each
-   latitude band includes its upper boundary (K = 1.02 at 42 N); the docstring and the
-   documentation give the six values of K, and the tests cover the boundaries of the
-   bands.
--  [enh] Added the ECA&D index ``HI`` (Huglin Index) of the ATBD v11 (issue #637,
-   part of #204): the sum, from 1 April to 30 September, of
-   ``((TG - 10) + (TX - 10)) / 2 * K`` in degree_Celsius day, with ``K`` the daylength
-   coefficient of the latitude of the ATBD (1.00 up to 40 N and 1.06 for 48-50 N).
-   ``icclim.hi`` needs the daily mean and maximum temperature and reads the latitude
-   from the coordinates of the data. It differs from xclim's ``huglin_index``, which
-   clips each day at 0 and caps the coefficient above 50 N: the ATBD sum has no
-   clipping and gives no value above 50 N, where the result is missing.
--  [enh] Added the ECA&D index ``BEDD`` (Biologically Effective Degree Days) of the
-   ATBD v11 (issue #638, part of #204): the sum, from 1 April to 30 September, of
-   ``min(max((TX + TN) / 2 - 10, 0), 9)`` in degree_Celsius day. ``icclim.bedd`` needs
-   the daily minimum and maximum temperature and no latitude. It is the definition of
-   xclim's ``biologically_effective_degree_days`` with ``method="icclim"``, except that
-   a period without any valid day from April to September is missing instead of 0.
--  [enh] The notice about the new default ``run_index="last"`` (``CDD``, ``CWD``, ``CFD``,
-   ``CSU``, ``PXCDD``, ``PXCWD`` and ``max_consecutive_occurrence``) is now printed
-   once per process for each index, on stdout, instead of at every call, and starts
-   with "Since icclim 7.4.0, <index> defaults to run_index="last"". Passing
-   ``run_index`` explicitly prints nothing.
-   Affected: scripts that read the standard output of these indices.
+-  [fix] The fixes of issues #603 (percentile thresholds and SciPy 1.18.1), #616, #620, #617,
+   #643 and #644 (DCSC indices and the generic ``excess`` and ``deficit``) were released in
+   7.3.5, 7.3.6 and 7.3.7; see their notes.
 -  [fix] ``date_event=True`` now works with ``max_consecutive_occurrence`` and the indices
    built on it (``CDD``, ``CWD``, ``CFD``, ``CSU``) on non-standard calendars such as
    ``noleap``, ``360_day`` or ``all_leap`` (issue #574). It raised ``TypeError: operand
    type(s) all returned NotImplemented from __array_ufunc__``.
    Affected: 7.2.0 and later, for input with a cftime calendar.
--  [maint] **Python 3.10 is no longer supported and the minimum versions of the
-   dependencies are raised** (issue #586). icclim now requires Python 3.11 or later.
-   The previous minimums could not be installed together or did not work. The new
-   minimums are the versions the test suite works with, measured with the lowest
-   versions the resolver can pick on Python 3.11: ``numpy>=1.24`` (was 1.21),
-   ``pandas>=2.2.0`` (was 1.3.0), ``xarray>=2024.11.0`` (was 2022.6.0),
-   ``xclim>=0.56.0`` (was 0.45.0), ``dask[array]>=2024.11.1`` (was 2022.2.0),
-   ``zarr>=2.12.0`` (was 2.11.0), ``cftime>=1.6.2`` (was 1.5.0),
-   ``dateparser>=1.1.4`` (was 1.1.0), ``pint>=0.25`` (was 0.20) and
-   ``typing-extensions>=4.5.0`` (was 4.0). ``pint`` older than 0.25 converts
-   1 mm/day to ``kg m-2 s-1`` with an error of one ulp, so a daily value exactly equal
-   to a converted threshold could be lost; ``pint`` 0.25 needs Python 3.11.
-   Affected: installations on Python 3.10 or that pin a dependency below the new
-   minimums.
--  [fix] The DCSC indices ``TXHWD``, ``TNCWD`` and ``TNND`` returned wrong values
-   (issue #616). They are now defined as in the DRIAS catalogue: ``TXHWD`` counts the
-   days with ``Tx >= normal + 5°C`` and ``TNCWD`` the days with ``Tn <= normal - 5°C``,
-   both in spells of more than 5 consecutive days (at least 6 days), and ``TNND`` the
-   days with ``Tn <= normal - 5°C``. They were declared with the operator ``<`` and the
-   offset +5°C, so ``TXHWD`` counted the days that were not warm and ``TNCWD`` and
-   ``TNND`` counted almost every day. The French definitions were corrected too.
-   Affected: every release since 7.0.0 that has the DCSC indices.
--  [fix] The DCSC indices ``TXND`` and ``TNHT`` now count the days with
-   ``Tx >= normal + 5°C`` and ``Tn >= normal + 5°C`` as in the DRIAS catalogue
-   (issue #620). They used a strict ``>``, so days exactly at the threshold were not
-   counted. The French definitions were corrected too.
-   Affected: every release since 7.0.0 that has the DCSC indices.
 -  [fix] ``split_runs_at_period_boundary`` is now applied by ``WSDI``, ``CSDI``,
    ``TXHWD``, ``TNCWD`` and ``sum_of_spell_lengths`` (issue #614). It was accepted by
    ``icclim.index`` and ignored. With the option, runs are cut at every output period
@@ -263,59 +225,22 @@ date: TBD
    argument of ``icclim.wsdi``, ``icclim.csdi``, ``icclim.sum_of_spell_lengths``,
    ``icclim.dcsc.txhwd`` and ``icclim.dcsc.tncwd``. The default behaviour is
    unchanged.
--  [fix] Percentile thresholds are now adjusted to the calendar with icclim's exact
-   interpolation (issue #603). With SciPy 1.18.1 (Python 3.12 or later) the previous
-   code, present since 7.0.0, could return different exceedance counts for
-   non-bootstrapped percentile indices and for the legacy bootstrap path: in a test
-   case the monthly ``TX90p`` went from 6 to 9 days, and the legacy bootstrap from 0 to
-   30 days. The default bootstrap path of 7.2 and 7.3 was not affected. The exact
-   interpolation is not used inside xclim's own bootstrap: with the diagnostic setting
-   ``ICCLIM_BOOTSTRAP_MODE=default`` and SciPy 1.18.1, the percentile bootstrap still
-   uses xclim's own interpolation, which is affected. Results with SciPy 1.17.x are
-   unchanged. Users of earlier
-   versions on that stack should upgrade.
 -  [fix] ``vDTR`` now excludes the difference between the last day of one output
    period and the first day of the next, as required by ECA&D ATBD v11 section
    5.3.11 (issue #599). This causes a small value change for every period after
    the first. icclim continues to average over the number of valid within-period
    differences; it does not use the ATBD formula's denominator of all days in
    the period.
--  [Behaviour change] Since 7.4.0, ``CDD``, ``CWD``, ``CFD``, ``CSU``,
-   ``PXCDD``, ``PXCWD`` and ``max_consecutive_occurrence`` default to
-   ``run_index="last"``: a run crossing an output-period boundary is counted in
-   the period where it ends (issue #580). This applies to every output frequency,
-   including months and seasons, not only years: a January 25--February 5 run is
-   ``[12, 0]`` with ``run_index="first"``, ``[0, 12]`` by default, and ``[7, 5]``
-   when split. The ECA&D example of a dry spell from
-   December 2000 to January 2001 therefore counts toward 2001. With yearly output,
-   a dry spell from 2001-10-01 through 2002-04-30 changes from ``[212, 0]`` under
-   the old default to ``[0, 212]``. Pass ``run_index="first"`` for the pre-7.4.0
-   result, or ``split_runs_at_period_boundary=True`` to cut the spell at the year
-   boundary and get ``[92, 120]``. ECA&D ATBD v11, pp. 20--21, the RClimDex
-   manual (Appendix C), and climdex.pcic use end-period attribution for CDD/CWD.
-   The same convention is applied to CFD, CSU, PXCDD, PXCWD and the generic
-   function for consistency; the ATBD does not require it for those indices.
--  [fix] ``CDD``, ``CWD``, ``CFD``, ``CSU`` and ``max_consecutive_occurrence``
-   return their dimensions in the order of the input (issue #542, PR #550).
-   Behaviour change in the layout only, the values do not change. With
-   xclim 0.60.0 and later these results had ``time`` after the spatial
-   dimensions, whatever the input; xclim 0.45.0 already kept the order of the
-   input. Before: an input ordered ``(time, lat, lon)`` gave
-   ``(lat, lon, time)`` and an input ordered ``(lat, lon, time)`` gave
-   ``(lat, lon, time)``. Now: ``(time, lat, lon)`` and ``(lat, lon, time)``.
-   Results computed with ``date_event=True`` are not concerned: ``time`` stays
-   the first dimension whatever the order of the input. Code that selects these
-   results by axis position instead of by dimension name has to be updated.
-   Affected: 7.1.10, 7.2.0, 7.3.1 and 7.3.3 (run with xclim 0.60.0), and 7.3.4.
--  [perf] Input that is not backed by dask (a single path string, a dataset opened without
-   chunks, in-memory numpy data) is chunked with ``"auto"`` right after the ``time_range``
-   selection and before the unit conversion (PR #689). Before, an index with a threshold
-   read and converted the whole data, including the years outside ``time_range``: for a
-   30-year ``SU`` on a 128x256 grid and a file of 60,265 steps, 31.5 GiB, against about
-   1.5 to 2 GiB with the data given as a list or as a dataset with dask chunks. Versions
-   up to 7.3.7 are affected; the workaround there is to pass a list of one path or a
-   dataset opened with ``chunks="auto"``. The results are identical up to floating-point
-   rounding (counts and dates are exact).
+-  [perf] Input that is not backed by dask (a single path string, a dataset opened
+   without chunks, in-memory numpy data) is chunked with ``"auto"`` right after the
+   ``time_range`` selection and before the unit conversion (issue #688, PR #689). Before,
+   an index with a threshold read and converted the whole data, including the years
+   outside ``time_range``: for a 30-year ``SU`` on a 128x256 grid and a file of 60,265
+   steps, 31.5 GiB, against about 1.5 to 2 GiB with the data given as a list or as a
+   dataset with dask chunks. Measured on 7.3.7 and on master before this PR; earlier
+   versions were not tested. The workaround is to pass a list of one path or a dataset
+   opened with ``chunks="auto"``. The results are identical up to floating-point rounding
+   (counts and dates are exact).
 
 *****
 7.3.7
