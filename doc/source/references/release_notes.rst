@@ -10,7 +10,7 @@ Unreleased
 7.4.0
 *****
 
-date: 2026-11-16
+date: 2026-11-17
 
 
 -  [Behaviour change] Run-length indices now credit a run to the period where it ends.
@@ -59,13 +59,11 @@ date: 2026-11-16
    environments, from the ``run_index`` default), none unexpected. ``TRAV`` equals the
    absolute value of the previous ``TRAV``, ``HI`` and ``BEDD`` agree between the two
    environments, and the speed of the yearly ``SU`` is unchanged (median 47.3 s for 7.3.6,
-   45.9 s for the candidate). The later changes, the time-chunk guard and the version
-   bump, only concern the chunk handling of time-contiguous input and the version string.
-   Changes made after the validated candidate: the notice for time-contiguous Dask input
-   (PR #685), the chunking of input that is not backed by dask before the unit conversion
-   (PR #689), updates of the CI lock file and the version bump; a check on the real file
-   after PR #689 gave identical results (SU and TG) for a path string, a list, and a
-   dataset with and without chunks.
+   45.9 s for the candidate). Changes made after the validated candidate: the notice for
+   time-contiguous Dask input (PR #685), the chunking of input that is not backed by dask
+   before the unit conversion (PR #689), updates of the CI lock file and the version bump;
+   a check on the real file after PR #689 gave identical results (SU and TG) for a path
+   string, a list, and a dataset with and without chunks.
 -  [perf] The speed of the ordinary indices on a full CMIP6 grid is unchanged since 7.3.3
    (59 s against 62 s for the yearly ``TG``, 45 s against 44 s for ``rx5day``, same input
    and node).
