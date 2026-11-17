@@ -65,6 +65,45 @@ The lead development is made at `CERFACS <https://cerfacs.fr/en/>`_, a research 
 
 The controlled vocabulary for the climate indices was contributed by M. Evaldsson and L. Bärring (SMHI).
 
+Acknowledgments
+~~~~~~~~~~~~~~~
+
+The people credited in the Zenodo record of icclim (``.zenodo.json``), in the order of
+that file. Creators:
+
+-  Pagé, Christian
+-  Tatarinova, Natalia
+-  Aoun, Abel
+-  Pivan, Xavier
+
+Contributors:
+
+-  Evaldsson, Martin
+-  Bärring, Lars
+
+Funding:
+
+-  **PEPR TRACCS (PC2-INVEST):** This work was supported by the Agence Nationale de la
+   Recherche - France 2030 as part of the PEPR TRACCS programme under grant number
+   ANR-22-EXTR-0003 (PC2-INVEST).
+-  **ENES-RISe:** This project has received funding from the European Union’s Horizon
+   Europe research and innovation programme under grant agreement No 101291049
+   (ENES-RISe).
+-  **FUTURA:** This project has received funding from the European Union’s Horizon Europe
+   research and innovation programme under grant agreement No 101130254 (FUTURA).
+-  **H2020-IS-ENES3 (2019–2023):** This project has received funding from the European
+   Union’s Horizon 2020 research and innovation programme under grant agreement No
+   824084.
+-  **EUDAT2020 (2015–2018):** This project has received funding from the European
+   Union’s Horizon 2020 research and innovation programme under grant agreement No
+   654065.
+-  **FP7-IS-ENES2 (2013–2017):** The research leading to these results has received
+   funding from the European Union’s Seventh Framework Programme (FP7/2007-2013) under
+   grant agreement no. 312979.
+-  **FP7-CLIPC (2013–2016):** The research leading to these results has received funding
+   from the European Union’s Seventh Framework Programme (FP7/2007-2013) under grant
+   agreement no. 607418.
+
 Grants
 ~~~~~~
 This open-source project has been possible thanks to funding by the European Commission projects:
