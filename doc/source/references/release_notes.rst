@@ -11,22 +11,27 @@ Unreleased
 *****
 -  [Behaviour change] Since 7.4.0, ``CDD``, ``CWD``, ``CFD``, ``CSU``, ``PXCDD``, ``PXCWD``
    and ``max_consecutive_occurrence`` default to ``run_index="last"``: a run crossing an
-   output-period boundary is counted in the period where it ends; until 7.3.x it was
-   credited to the period where it starts (issue #580). This applies to every output
-   frequency, including months and seasons: a January 25--February 5 run is ``[12, 0]``
-   with ``run_index="first"``, ``[0, 12]`` by default, and ``[7, 5]`` when split. The
-   ECA&D example of a dry spell from December 2000 to January 2001 therefore counts toward
-   2001. With yearly output, a dry spell from 2001-10-01 through 2002-04-30 changes from
-   ``[212, 0]`` under the old default to ``[0, 212]``. Pass ``run_index="first"`` for the
-   pre-7.4.0 result, or ``split_runs_at_period_boundary=True`` to cut the spell at the year
-   boundary and get ``[92, 120]``. For ``CDD`` and ``CWD`` this follows the ECA&D ATBD v11
-   (section 5.1 and pp. 20--21), the ETCCDI definitions, the RClimDex manual (Appendix C)
-   and climdex.pcic; for ``CFD``, ``CSU``, ``PXCDD``, ``PXCWD`` and the generic function it
-   is icclim's own convention, applied for consistency, and the ATBD does not require it.
-   A notice is printed on stdout once per process and per index (PR #633), instead of at
-   every call, and starts with "Since icclim 7.4.0, <index> defaults to run_index="last"";
-   passing ``run_index`` explicitly prints nothing. Affected: scripts that read the
-   standard output of these indices.
+   output-period boundary is counted in the period where it ends (issue #580).
+
+   -  Before: until 7.3.x a run was credited to the period where it starts.
+   -  Keep the old behaviour: Pass ``run_index="first"`` for the pre-7.4.0 result, or
+      ``split_runs_at_period_boundary=True`` to cut the spell at the year boundary and get
+      ``[92, 120]``.
+   -  Details: This applies to every output frequency, including months and seasons: a
+      January 25--February 5 run is ``[12, 0]`` with ``run_index="first"``, ``[0, 12]`` by
+      default, and ``[7, 5]`` when split. The ECA&D example of a dry spell from December
+      2000 to January 2001 therefore counts toward 2001. With yearly output, a dry spell
+      from 2001-10-01 through 2002-04-30 changes from ``[212, 0]`` under the old default
+      to ``[0, 212]``.
+   -  Convention: For ``CDD`` and ``CWD`` this follows the ECA&D ATBD v11 (section 5.1 and
+      pp. 20--21), the ETCCDI definitions, the RClimDex manual (Appendix C) and
+      climdex.pcic; for ``CFD``, ``CSU``, ``PXCDD``, ``PXCWD`` and the generic function it
+      is icclim's own convention, applied for consistency, and the ATBD does not require
+      it.
+   -  Notice: A notice is printed on stdout once per process and per index (PR #633),
+      instead of at every call, and starts with "Since icclim 7.4.0, <index> defaults to
+      run_index="last""; passing ``run_index`` explicitly prints nothing.
+   -  Affected: scripts that read the standard output of these indices.
 -  [Behaviour change] Size of the change, on CMIP6 data (1976-2014, global grid;
    ACCESS-CM2 for ``CDD`` and ``CWD``, CNRM-CM6-1 for ``CFD`` and ``CSU``): the share of
    values that differ between ``"first"`` and ``"last"`` is, for yearly and monthly
@@ -57,24 +62,27 @@ Unreleased
    threshold could be lost; ``pint`` 0.25 needs Python 3.11. Affected: installations on
    Python 3.10 or that pin a dependency below the new minimums.
 -  [enh] ``HI`` (Huglin Index) and ``BEDD`` (Biologically Effective Degree Days) follow the
-   ATBD v11 (issues #637 and #638, part of #204). 66 of the 75 ECA&D indices are
-   implemented, the others are followed in issue #204. Both sum from 1 April to 30
-   September, in degree_Celsius day. ``HI`` (PR #640) is the sum of
-   ``((TG - 10) + (TX - 10)) / 2 * K`` with ``K`` the daylength coefficient of the
-   latitude of the ATBD: 1.00 up to 40 N and 1.02 to 1.06 for each band of two degrees up
-   to 50 N, each band including its upper boundary (K = 1.02 at 42 N); the docstring and
-   the documentation give the six values of K and the tests cover the boundaries of the
-   bands. The index is defined for the northern hemisphere only: the result is missing
-   below 0 and above 50 degrees north (PR #655, issue #653). ``icclim.hi`` needs the daily
-   mean and maximum temperature and reads the latitude from the coordinates of the data.
-   It differs from xclim's ``huglin_index``, which clips each day at 0 and uses a
-   coefficient set by its ``cap_value`` above 50 N: the ATBD sum has no clipping and gives
-   no value above 50 N. ``BEDD`` (PR #641) is the sum of
-   ``min(max((TX + TN) / 2 - 10, 0), 9)``; ``icclim.bedd`` needs the daily minimum and
-   maximum temperature and no latitude. It is the definition of xclim's
-   ``biologically_effective_degree_days`` with ``method="icclim"`` and
-   ``end_date="10-01"``, except that a period without any valid day from April to
-   September is missing instead of 0.
+   ATBD v11 (issues #637 and #638, part of #204).
+
+   -  Details: 66 of the 75 ECA&D indices are implemented, the others are followed in
+      issue #204. Both sum from 1 April to 30 September, in degree_Celsius day.
+   -  ``HI`` (PR #640) is the sum of ``((TG - 10) + (TX - 10)) / 2 * K`` with ``K`` the
+      daylength coefficient of the latitude of the ATBD: 1.00 up to 40 N and 1.02 to 1.06
+      for each band of two degrees up to 50 N, each band including its upper boundary
+      (K = 1.02 at 42 N); the docstring and the documentation give the six values of K
+      and the tests cover the boundaries of the bands.
+   -  ``HI``: The index is defined for the northern hemisphere only: the result is missing
+      below 0 and above 50 degrees north (PR #655, issue #653).
+   -  ``HI``: ``icclim.hi`` needs the daily mean and maximum temperature and reads the
+      latitude from the coordinates of the data.
+   -  ``HI``: It differs from xclim's ``huglin_index``, which clips each day at 0 and uses
+      a coefficient set by its ``cap_value`` above 50 N: the ATBD sum has no clipping and
+      gives no value above 50 N.
+   -  ``BEDD`` (PR #641) is the sum of ``min(max((TX + TN) / 2 - 10, 0), 9)``;
+      ``icclim.bedd`` needs the daily minimum and maximum temperature and no latitude.
+   -  ``BEDD``: It is the definition of xclim's ``biologically_effective_degree_days`` with
+      ``method="icclim"`` and ``end_date="10-01"``, except that a period without any
+      valid day from April to September is missing instead of 0.
 -  [compat] Tested with xclim 0.56 (lowest), 0.60 and 1.0, xarray 2026.2 or later, and
    pint 0.25 or later (PR #631). SciPy is not a direct dependency; with
    ``ICCLIM_BOOTSTRAP_MODE=default``, the bootstrap interpolation of xclim is still
@@ -192,17 +200,21 @@ Unreleased
 -  [fix] ``CDD``, ``CWD``, ``CFD``, ``CSU`` and ``max_consecutive_occurrence`` (issue #542,
    PR #550), and ``TNCWD`` and ``TXHWD`` (DCSC) and ``WSDI`` and ``CSDI`` (ECA&D) (issue
    #669), return their dimensions in the order of the input, with ``time`` where the input
-   has it. Behaviour change in the layout only, the values do not change. With xclim 0.60.0
-   and later these results had ``time`` after the spatial dimensions, whatever the input;
-   xclim 0.45.0 already kept the order of the input. Before: an input ordered
-   ``(time, lat, lon)`` gave ``(lat, lon, time)`` and an input ordered ``(lat, lon, time)``
-   gave ``(lat, lon, time)``. Now: ``(time, lat, lon)`` and ``(lat, lon, time)``. Results
-   computed with ``date_event=True`` are not concerned: ``time`` stays the first dimension
-   whatever the order of the input. Code that selects these results by axis position
-   instead of by dimension name has to be updated. Affected (``CDD``, ``CWD``, ``CFD``,
-   ``CSU``, ``max_consecutive_occurrence``): 7.1.10, 7.2.0, 7.3.1 and 7.3.3 (run with
-   xclim 0.60.0), and 7.3.4. The fix for ``TNCWD``, ``TXHWD``, ``WSDI`` and ``CSDI`` is not
-   made in 7.3.x.
+   has it.
+
+   -  Behaviour change in the layout only, the values do not change.
+   -  Details: With xclim 0.60.0 and later these results had ``time`` after the spatial
+      dimensions, whatever the input; xclim 0.45.0 already kept the order of the input.
+      Before: an input ordered ``(time, lat, lon)`` gave ``(lat, lon, time)`` and an input
+      ordered ``(lat, lon, time)`` gave ``(lat, lon, time)``. Now: ``(time, lat, lon)`` and
+      ``(lat, lon, time)``.
+   -  Not concerned: Results computed with ``date_event=True`` are not concerned: ``time``
+      stays the first dimension whatever the order of the input.
+   -  Update: Code that selects these results by axis position instead of by dimension
+      name has to be updated.
+   -  Affected (``CDD``, ``CWD``, ``CFD``, ``CSU``, ``max_consecutive_occurrence``): 7.1.10,
+      7.2.0, 7.3.1 and 7.3.3 (run with xclim 0.60.0), and 7.3.4. The fix for ``TNCWD``,
+      ``TXHWD``, ``WSDI`` and ``CSDI`` is not made in 7.3.x.
 -  [doc] The logo of the README no longer shows a version number (issue #659). The PyPI
    page of a release showed the logo of 7.3.4, because the logo with the version is
    regenerated only on master, whose version did not change for 7.3.5 to 7.3.7, while the
