@@ -8,8 +8,7 @@ authors = [
   { name = "Christian Page", email = "christian.page@cerfacs.fr" }
 ]
 maintainers = [
-  { name = "Christian Page", email = "christian.page@cerfacs.fr" },
-  { name = "Abel Aoun", email = "aoun.abel@gmail.com" }
+  { name = "Christian Page", email = "christian.page@cerfacs.fr" }
 ]
 readme = "README.rst"
 license = { file = "LICENSE" }
