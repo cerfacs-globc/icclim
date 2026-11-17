@@ -1268,6 +1268,12 @@ def _build_standard_index_config(
         only_leap_years=only_leap_years,
         interpolation=interpolation,
     )
+    _require_base_period_for_percentiles(
+        parsed_threshold,
+        reference_period,
+        standard_index=standard_index,
+        indicator_name=indicator_name,
+    )
     climate_variables, is_compared_to_ref = _build_index_climate_variables(
         in_files=in_files,
         var_names=var_name,
@@ -1306,6 +1312,63 @@ def _build_standard_index_config(
         allow_partial_final_period=allow_partial_final_period,
         warn_on_missing_periods=warn_on_missing_periods,
     )
+
+
+def _require_base_period_for_percentiles(
+    threshold: Threshold | Sequence[Threshold] | None,
+    reference_period: Sequence[str] | None,
+    *,
+    standard_index: StandardIndex | None,
+    indicator_name: str,
+) -> None:
+    """
+    Require a base period when a percentile threshold has to be computed.
+
+    Without a base period, the percentiles are computed on the whole original dataset
+    and not on the studied period (``time_range``): the result then depends on how
+    much data the file holds. Only the ECA&D indices and the generic indicators are
+    checked. The DCSC indices, the SPI and the legacy ``user_index`` are not changed.
+    """
+    if reference_period is not None or threshold is None:
+        return
+    if (
+        standard_index is not None
+        and EcadIndexRegistry.lookup_no_error(standard_index.short_name) is None
+    ):
+        return
+    if any(
+        percentile.reference_period is None and not percentile.is_ready
+        for percentile in _percentile_thresholds(threshold)
+    ):
+        index_name = standard_index.short_name if standard_index else indicator_name
+        msg = (
+            f"{index_name} is computed with a percentile threshold, which needs a base"
+            " period. Pass `base_period_time_range`, for example"
+            ' `base_period_time_range=["1961-01-01", "1990-12-31"]`.'
+        )
+        raise InvalidIcclimArgumentError(msg)
+
+
+def _percentile_thresholds(
+    threshold: Threshold | Sequence[Threshold] | None,
+) -> list[Any]:
+    from icclim._core.generic.threshold.bounded import BoundedThreshold  # noqa: PLC0415
+    from icclim._core.generic.threshold.percentile import (  # noqa: PLC0415
+        PercentileThreshold,
+    )
+
+    if threshold is None:
+        return []
+    if isinstance(threshold, PercentileThreshold):
+        return [threshold]
+    if isinstance(threshold, BoundedThreshold):
+        return [
+            *_percentile_thresholds(threshold.left_threshold),
+            *_percentile_thresholds(threshold.right_threshold),
+        ]
+    if isinstance(threshold, Sequence) and not isinstance(threshold, str):
+        return [p for t in threshold for p in _percentile_thresholds(t)]
+    return []
 
 
 def _parse_legacy_user_index_config(
