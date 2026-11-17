@@ -84,19 +84,19 @@ Contributors:
 
 Funding:
 
--  PEPR TRACCS (PC2-INVEST 2024-2032): This work was supported by the Agence Nationale de
+-  PEPR TRACCS (PC2-INVEST 2024–2032): This work was supported by the Agence Nationale de
    la Recherche - France 2030 as part of the PEPR TRACCS programme under grant number
    ANR-22-EXTR-0003 (PC2-INVEST).
--  ENES-RISe (2026-2029): This project has received funding from the European Union’s
+-  ENES-RISe (2026–2029): This project has received funding from the European Union’s
    Horizon Europe research and innovation programme under grant agreement No 101291049
    (ENES-RISe).
--  FUTURA (2026-2029): This project has received funding from the European Union’s
-   Horizon Europe research and innovation programme under grant agreement No 101130254
+-  FUTURA (2026–2030): This project has received funding from the European Union’s
+   Horizon Europe research and innovation programme under grant agreement No 101295156
    (FUTURA).
--  H2020-IS-ENES3 (2019–2023; `IS-ENES3 <https://is.enes.org>`_; funded the icclim logo,
-   a creation of `Carole Petetin <https://carolepetetin.com>`_): This project has
-   received funding from the European Union’s Horizon 2020 research and innovation
-   programme under grant agreement No 824084.
+-  H2020-IS-ENES3 (2019–2023): This project has received funding from the European
+   Union’s Horizon 2020 research and innovation programme under grant agreement No
+   824084. `IS-ENES3 <https://is.enes.org>`_ also funded the icclim logo, created by
+   `Carole Petetin <https://carolepetetin.com>`_.
 -  EUDAT2020 (2015–2018): This project has received funding from the European Union’s
    Horizon 2020 research and innovation programme under grant agreement No 654065.
 -  FP7-IS-ENES2 (2013–2017): The research leading to these results has received funding
