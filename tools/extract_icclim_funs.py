@@ -747,6 +747,20 @@ def _get_params_docstring(
     return f"\n{TAB}".join(param_str.splitlines())
 
 
+def _long_unit_string(value: object) -> str:
+    """
+    Write a quantity with the long unit names, such as "1 knot" or "1 millimeter / day".
+
+    The default ``str`` of a quantity depends on the unit registry of the environment
+    that runs this script and can give an abbreviation (such as "1 kn") that other
+    pint and xclim versions do not define. The long names are defined everywhere.
+    """
+    from xclim.core.units import units
+
+    quantity = units.Quantity(value) if isinstance(value, str) else value
+    return f"{quantity.magnitude:g} {quantity.units:D}"
+
+
 def _format_thresh(t: str | Threshold | dict) -> str:
     params = {}
     if isinstance(t, str):
@@ -755,7 +769,9 @@ def _format_thresh(t: str | Threshold | dict) -> str:
     if isinstance(t, dict):
         params["query"] = f'"{t["query"]}"'
         if "threshold_min_value" in t:
-            params["threshold_min_value"] = f'"{t["threshold_min_value"]}"'
+            params["threshold_min_value"] = (
+                f'"{_long_unit_string(t["threshold_min_value"])}"'
+            )
     else:
         params["query"] = f'"{t.initial_query}"'
         if isinstance(t, PercentileThreshold):
@@ -764,7 +780,9 @@ def _format_thresh(t: str | Threshold | dict) -> str:
             params["interpolation"] = "interpolation"
             params["reference_period"] = "base_period_time_range"
         if getattr(t, "threshold_min_value", None) is not None:
-            params["threshold_min_value"] = f'"{t.threshold_min_value}"'
+            params["threshold_min_value"] = (
+                f'"{_long_unit_string(t.threshold_min_value)}"'
+            )
 
     acc = f"{build_threshold.__name__}(\n"
     for k, v in params.items():

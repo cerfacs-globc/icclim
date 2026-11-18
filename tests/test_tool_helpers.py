@@ -339,7 +339,7 @@ def test_extract_doc_and_threshold_format_helpers(tmp_path: Path) -> None:
         {"query": "> 90 doy_per", "threshold_min_value": "1 mm/day"}
     )
     assert "build_threshold" in formatted
-    assert 'threshold_min_value="1 mm/day"' in formatted
+    assert 'threshold_min_value="1 millimeter / day"' in formatted
 
     doc_path = tmp_path / "index.rst"
     doc_path.write_text(
