@@ -3,6 +3,7 @@ from __future__ import annotations
 import contextlib
 import datetime as dt
 import json
+import warnings
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
@@ -666,6 +667,60 @@ class TestIntegration:
                 assert res.data_vars.get(i.short_name, None) is None
             else:
                 assert res[i.short_name] is not None
+
+    def test_indices_heat_ignore_error__missing_variable(self) -> None:
+        # With a single variable icclim would use it for every index: add an unrelated one.
+        tasmax_only = self.full_data[["tasmax", "pr"]]
+        res = icclim.indices(
+            index_group="heat",
+            in_files=tasmax_only,
+            ignore_error=True,
+            base_period_time_range=("2042-01-01", "2042-12-31"),
+        )
+        assert "SU" in res.data_vars
+        for name in ("TR", "TG90p", "TN90p", "TNx"):  # need tasmin or tas
+            assert name not in res.data_vars
+
+    def test_indices_ignore_error__warning_names_each_skipped_index(self) -> None:
+        # With a single variable icclim would use it for every index: add an unrelated one.
+        tasmax_only = self.full_data[["tasmax", "pr"]]
+        with warnings.catch_warnings(record=True) as caught:
+            warnings.simplefilter("always")
+            res = icclim.indices(
+                index_group="heat",
+                in_files=tasmax_only,
+                ignore_error=True,
+                base_period_time_range=("2042-01-01", "2042-12-31"),
+            )
+        heat = [
+            i.short_name
+            for i in EcadIndexRegistry.values()
+            if i.group == IndexGroupRegistry.HEAT
+        ]
+        skipped = [name for name in heat if name not in res.data_vars]
+        assert sorted(skipped) == ["TG90p", "TN90p", "TNx", "TR"]
+        messages = [
+            str(w.message) for w in caught if "Could not compute" in str(w.message)
+        ]
+        assert len(messages) == len(skipped)
+        for name in skipped:
+            matching = [
+                m for m in messages if m.startswith(f"Could not compute {name},")
+            ]
+            assert len(matching) == 1
+            # the reason is given: the exception type and its message
+            assert "InvalidIcclimArgumentError: " in matching[0]
+            assert "needs the following" in matching[0]
+
+    def test_indices_no_warning_when_nothing_is_skipped(self) -> None:
+        with warnings.catch_warnings(record=True) as caught:
+            warnings.simplefilter("always")
+            icclim.indices(
+                index_group=["SU", "TR"],
+                in_files=self.full_data,
+                ignore_error=False,
+            )
+        assert [w for w in caught if "Could not compute" in str(w.message)] == []
 
     def test_indices_all__error(self) -> None:
         ds = self.data.to_dataset(name="tas")

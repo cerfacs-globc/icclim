@@ -179,7 +179,8 @@ def indices(
     ignore_error: bool
         When True, ignore indices that fails to compute. This is option is particularly
         useful when used with `index_group='all'` to compute everything that can be
-        computed given the input.
+        computed given the input. Each skipped index raises a ``UserWarning`` that
+        names the index and gives the exception type and message.
     kwargs : Dict
         ``icclim.index`` keyword arguments.
 
@@ -193,61 +194,87 @@ def indices(
     If ``output_file`` is part of kwargs, the result is written in a single netCDF
     file, which will contain all the index results of this group.
     """
-    with catch_warnings(record=True) as captured_warnings:
-        simplefilter("always")
-        indices = _get_ecad_indices_of_group(index_group)
-        out_file = kwargs.get("out_file")
-        index_kwargs = _build_indices_call_kwargs(kwargs)
-        acc = []
-        for standard_index in indices:
-            log.info("Computing index %s", standard_index.short_name)
-            try:
-                res = index(
-                    **_with_requested_index_name(
-                        index_kwargs, standard_index.short_name
-                    )
-                )
-                res = _rename_coords(res, standard_index.short_name)
-                res = _drop_group_auxiliary_vars(res)
-                acc.append(res)
-            except Exception:
-                if ignore_error:
-                    warn(
-                        f"Could not compute {standard_index.short_name}.", stacklevel=2
-                    )
-                else:
-                    raise
-        ds: Dataset = xr.merge(acc, compat="no_conflicts", join="outer")
-        if out_file is not None:
-            bundle = provenance.build_output_provenance(
-                config=None,
-                result_ds=ds,
-                out_file=out_file,
-                entrypoint="icclim.indices",
-                user_parameters={
-                    "index_group": index_group,
-                    "ignore_error": ignore_error,
-                    "kwargs": _build_provenance_user_parameters(kwargs),
-                },
-                resolved_overrides={
-                    "requested_indices": [
-                        standard_index.short_name for standard_index in indices
-                    ],
-                },
+    skipped_messages: list[str] = []
+    try:
+        with catch_warnings(record=True) as captured_warnings:
+            ds = _compute_indices(
+                index_group,
+                ignore_error=ignore_error,
+                kwargs=kwargs,
                 captured_warnings=captured_warnings,
+                skipped_messages=skipped_messages,
             )
-            provenance.add_provenance_attrs(ds, bundle)
-            _write_output_file(
-                result_ds=ds,
-                input_time_encoding=ds.time.encoding,
-                netcdf_version=index_kwargs.get(
-                    "netcdf_version", NetcdfVersionRegistry.NETCDF4
-                ),
-                file_path=out_file,
+    finally:
+        # The recorded warnings are not shown by the interpreter: re-emit the skipped
+        # indices once the recording is over so that the user sees them.
+        for message in skipped_messages:
+            warn(message, UserWarning, stacklevel=3)
+    return ds
+
+
+def _compute_indices(
+    index_group: Sequence[str] | str | IndexGroup | StandardIndex,
+    *,
+    ignore_error: bool,
+    kwargs: dict[str, Any],
+    captured_warnings: list[Any],
+    skipped_messages: list[str],
+) -> Dataset:
+    simplefilter("always")
+    indices = _get_ecad_indices_of_group(index_group)
+    out_file = kwargs.get("out_file")
+    index_kwargs = _build_indices_call_kwargs(kwargs)
+    acc = []
+    for standard_index in indices:
+        log.info("Computing index %s", standard_index.short_name)
+        try:
+            res = index(
+                **_with_requested_index_name(index_kwargs, standard_index.short_name)
             )
-            bundle = provenance.finalize_written_output_provenance(out_file, bundle)
-            provenance.write_provenance_json(out_file, bundle)
-        return ds
+            res = _rename_coords(res, standard_index.short_name)
+            res = _drop_group_auxiliary_vars(res)
+            acc.append(res)
+        except Exception as error:
+            if ignore_error:
+                message = (
+                    f"Could not compute {standard_index.short_name}, it is skipped"
+                    f" ({type(error).__name__}: {error})."
+                )
+                skipped_messages.append(message)
+                warn(message, UserWarning, stacklevel=2)
+            else:
+                raise
+    ds: Dataset = xr.merge(acc, compat="no_conflicts", join="outer")
+    if out_file is not None:
+        bundle = provenance.build_output_provenance(
+            config=None,
+            result_ds=ds,
+            out_file=out_file,
+            entrypoint="icclim.indices",
+            user_parameters={
+                "index_group": index_group,
+                "ignore_error": ignore_error,
+                "kwargs": _build_provenance_user_parameters(kwargs),
+            },
+            resolved_overrides={
+                "requested_indices": [
+                    standard_index.short_name for standard_index in indices
+                ],
+            },
+            captured_warnings=captured_warnings,
+        )
+        provenance.add_provenance_attrs(ds, bundle)
+        _write_output_file(
+            result_ds=ds,
+            input_time_encoding=ds.time.encoding,
+            netcdf_version=index_kwargs.get(
+                "netcdf_version", NetcdfVersionRegistry.NETCDF4
+            ),
+            file_path=out_file,
+        )
+        bundle = provenance.finalize_written_output_provenance(out_file, bundle)
+        provenance.write_provenance_json(out_file, bundle)
+    return ds
 
 
 def _build_indices_call_kwargs(kwargs: dict[str, Any]) -> dict[str, Any]:
