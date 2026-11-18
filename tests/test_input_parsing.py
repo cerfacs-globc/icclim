@@ -58,10 +58,13 @@ def test_reduce_only_leap_years_keeps_time_and_complete_leap_years() -> None:
 
 @pytest.mark.parametrize(
     ("base_period", "leap_years"),
-    [(None, {2000, 2004}), (("1999-01-01", "2001-12-31"), {2000})],
+    [
+        (("1999-01-01", "2004-12-31"), {2000, 2004}),
+        (("1999-01-01", "2001-12-31"), {2000}),
+    ],
 )
 def test_public_period_percentile_uses_only_leap_year_days(
-    base_period: tuple[str, str] | None, leap_years: set[int]
+    base_period: tuple[str, str], leap_years: set[int]
 ) -> None:
     time = pd.date_range("1999-01-01", "2004-12-31", freq="D")
     values = np.arange(time.size, dtype=float)

@@ -38,6 +38,9 @@ ECAD_ATBD = "ECA&D, Algorithm Theoretical Basis Document (ATBD) v11"
 QUANTILE_BASED = "QUANTILE_BASED"
 REFERENCE_PERIOD_INDEX = "REFERENCE_PERIOD_INDEX"
 NEEDS_NORMAL = "NEEDS_NORMAL"
+# The percentile threshold of the indicator is the percentile to compute on the studied
+# data (as in ``percentile``), not a threshold to compare the data with.
+PERCENTILE_AS_OUTPUT = "PERCENTILE_AS_OUTPUT"
 
 
 # Map of months index to their short name, used to get a pandas frequency anchor

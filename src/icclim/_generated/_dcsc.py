@@ -627,10 +627,12 @@ def tx10(
         The dates can either be given as instance of datetime.datetime or as string
         values.
         It is used either:
-        #. to compute percentiles if threshold is filled.
-        When missing, the studied period is used to compute percentiles.
-        The study period is either the dataset filtered by `time_range` or the whole
-        dataset if `time_range` is missing.
+        #. to compute percentiles if threshold is filled. It is required for the ECA&D
+        percentile indices (such as TX90p, R95p, WSDI), for the DCSC percentile indices
+        (TX10, TX90, TN10, TN90, R99, PFL90, FF98) and for the generic indicators with a
+        percentile threshold: when missing, an `InvalidIcclimArgumentError` is raised.
+        The ECA&D convention is a 30-year base period such as
+        ``["1961-01-01", "1990-12-31"]``.
         For day of year percentiles (doy_per), on extreme percentiles the
         overlapping period between `base_period_time_range` and the study period is
         bootstrapped.
@@ -825,10 +827,12 @@ def tx90(
         The dates can either be given as instance of datetime.datetime or as string
         values.
         It is used either:
-        #. to compute percentiles if threshold is filled.
-        When missing, the studied period is used to compute percentiles.
-        The study period is either the dataset filtered by `time_range` or the whole
-        dataset if `time_range` is missing.
+        #. to compute percentiles if threshold is filled. It is required for the ECA&D
+        percentile indices (such as TX90p, R95p, WSDI), for the DCSC percentile indices
+        (TX10, TX90, TN10, TN90, R99, PFL90, FF98) and for the generic indicators with a
+        percentile threshold: when missing, an `InvalidIcclimArgumentError` is raised.
+        The ECA&D convention is a 30-year base period such as
+        ``["1961-01-01", "1990-12-31"]``.
         For day of year percentiles (doy_per), on extreme percentiles the
         overlapping period between `base_period_time_range` and the study period is
         bootstrapped.
@@ -1023,10 +1027,12 @@ def tn10(
         The dates can either be given as instance of datetime.datetime or as string
         values.
         It is used either:
-        #. to compute percentiles if threshold is filled.
-        When missing, the studied period is used to compute percentiles.
-        The study period is either the dataset filtered by `time_range` or the whole
-        dataset if `time_range` is missing.
+        #. to compute percentiles if threshold is filled. It is required for the ECA&D
+        percentile indices (such as TX90p, R95p, WSDI), for the DCSC percentile indices
+        (TX10, TX90, TN10, TN90, R99, PFL90, FF98) and for the generic indicators with a
+        percentile threshold: when missing, an `InvalidIcclimArgumentError` is raised.
+        The ECA&D convention is a 30-year base period such as
+        ``["1961-01-01", "1990-12-31"]``.
         For day of year percentiles (doy_per), on extreme percentiles the
         overlapping period between `base_period_time_range` and the study period is
         bootstrapped.
@@ -1221,10 +1227,12 @@ def tn90(
         The dates can either be given as instance of datetime.datetime or as string
         values.
         It is used either:
-        #. to compute percentiles if threshold is filled.
-        When missing, the studied period is used to compute percentiles.
-        The study period is either the dataset filtered by `time_range` or the whole
-        dataset if `time_range` is missing.
+        #. to compute percentiles if threshold is filled. It is required for the ECA&D
+        percentile indices (such as TX90p, R95p, WSDI), for the DCSC percentile indices
+        (TX10, TX90, TN10, TN90, R99, PFL90, FF98) and for the generic indicators with a
+        percentile threshold: when missing, an `InvalidIcclimArgumentError` is raised.
+        The ECA&D convention is a 30-year base period such as
+        ``["1961-01-01", "1990-12-31"]``.
         For day of year percentiles (doy_per), on extreme percentiles the
         overlapping period between `base_period_time_range` and the study period is
         bootstrapped.
@@ -4676,10 +4684,12 @@ def r99(
         The dates can either be given as instance of datetime.datetime or as string
         values.
         It is used either:
-        #. to compute percentiles if threshold is filled.
-        When missing, the studied period is used to compute percentiles.
-        The study period is either the dataset filtered by `time_range` or the whole
-        dataset if `time_range` is missing.
+        #. to compute percentiles if threshold is filled. It is required for the ECA&D
+        percentile indices (such as TX90p, R95p, WSDI), for the DCSC percentile indices
+        (TX10, TX90, TN10, TN90, R99, PFL90, FF98) and for the generic indicators with a
+        percentile threshold: when missing, an `InvalidIcclimArgumentError` is raised.
+        The ECA&D convention is a 30-year base period such as
+        ``["1961-01-01", "1990-12-31"]``.
         For day of year percentiles (doy_per), on extreme percentiles the
         overlapping period between `base_period_time_range` and the study period is
         bootstrapped.
@@ -4875,10 +4885,12 @@ def pfl90(
         The dates can either be given as instance of datetime.datetime or as string
         values.
         It is used either:
-        #. to compute percentiles if threshold is filled.
-        When missing, the studied period is used to compute percentiles.
-        The study period is either the dataset filtered by `time_range` or the whole
-        dataset if `time_range` is missing.
+        #. to compute percentiles if threshold is filled. It is required for the ECA&D
+        percentile indices (such as TX90p, R95p, WSDI), for the DCSC percentile indices
+        (TX10, TX90, TN10, TN90, R99, PFL90, FF98) and for the generic indicators with a
+        percentile threshold: when missing, an `InvalidIcclimArgumentError` is raised.
+        The ECA&D convention is a 30-year base period such as
+        ``["1961-01-01", "1990-12-31"]``.
         For day of year percentiles (doy_per), on extreme percentiles the
         overlapping period between `base_period_time_range` and the study period is
         bootstrapped.
@@ -5074,10 +5086,12 @@ def pq90(
         The dates can either be given as instance of datetime.datetime or as string
         values.
         It is used either:
-        #. to compute percentiles if threshold is filled.
-        When missing, the studied period is used to compute percentiles.
-        The study period is either the dataset filtered by `time_range` or the whole
-        dataset if `time_range` is missing.
+        #. to compute percentiles if threshold is filled. It is required for the ECA&D
+        percentile indices (such as TX90p, R95p, WSDI), for the DCSC percentile indices
+        (TX10, TX90, TN10, TN90, R99, PFL90, FF98) and for the generic indicators with a
+        percentile threshold: when missing, an `InvalidIcclimArgumentError` is raised.
+        The ECA&D convention is a 30-year base period such as
+        ``["1961-01-01", "1990-12-31"]``.
         For day of year percentiles (doy_per), on extreme percentiles the
         overlapping period between `base_period_time_range` and the study period is
         bootstrapped.
@@ -5273,10 +5287,12 @@ def pq99(
         The dates can either be given as instance of datetime.datetime or as string
         values.
         It is used either:
-        #. to compute percentiles if threshold is filled.
-        When missing, the studied period is used to compute percentiles.
-        The study period is either the dataset filtered by `time_range` or the whole
-        dataset if `time_range` is missing.
+        #. to compute percentiles if threshold is filled. It is required for the ECA&D
+        percentile indices (such as TX90p, R95p, WSDI), for the DCSC percentile indices
+        (TX10, TX90, TN10, TN90, R99, PFL90, FF98) and for the generic indicators with a
+        percentile threshold: when missing, an `InvalidIcclimArgumentError` is raised.
+        The ECA&D convention is a 30-year base period such as
+        ``["1961-01-01", "1990-12-31"]``.
         For day of year percentiles (doy_per), on extreme percentiles the
         overlapping period between `base_period_time_range` and the study period is
         bootstrapped.
@@ -5470,10 +5486,12 @@ def ffav(
         The dates can either be given as instance of datetime.datetime or as string
         values.
         It is used either:
-        #. to compute percentiles if threshold is filled.
-        When missing, the studied period is used to compute percentiles.
-        The study period is either the dataset filtered by `time_range` or the whole
-        dataset if `time_range` is missing.
+        #. to compute percentiles if threshold is filled. It is required for the ECA&D
+        percentile indices (such as TX90p, R95p, WSDI), for the DCSC percentile indices
+        (TX10, TX90, TN10, TN90, R99, PFL90, FF98) and for the generic indicators with a
+        percentile threshold: when missing, an `InvalidIcclimArgumentError` is raised.
+        The ECA&D convention is a 30-year base period such as
+        ``["1961-01-01", "1990-12-31"]``.
         For day of year percentiles (doy_per), on extreme percentiles the
         overlapping period between `base_period_time_range` and the study period is
         bootstrapped.
@@ -5657,10 +5675,12 @@ def ff98(
         The dates can either be given as instance of datetime.datetime or as string
         values.
         It is used either:
-        #. to compute percentiles if threshold is filled.
-        When missing, the studied period is used to compute percentiles.
-        The study period is either the dataset filtered by `time_range` or the whole
-        dataset if `time_range` is missing.
+        #. to compute percentiles if threshold is filled. It is required for the ECA&D
+        percentile indices (such as TX90p, R95p, WSDI), for the DCSC percentile indices
+        (TX10, TX90, TN10, TN90, R99, PFL90, FF98) and for the generic indicators with a
+        percentile threshold: when missing, an `InvalidIcclimArgumentError` is raised.
+        The ECA&D convention is a 30-year base period such as
+        ``["1961-01-01", "1990-12-31"]``.
         For day of year percentiles (doy_per), on extreme percentiles the
         overlapping period between `base_period_time_range` and the study period is
         bootstrapped.

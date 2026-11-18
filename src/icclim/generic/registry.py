@@ -8,6 +8,7 @@ from icclim._core.constants import (
     EXPECTED_RANGE_LEN,
     GROUP_BY_METHOD,
     GROUP_BY_REF_AND_RESAMPLE_STUDY_METHOD,
+    PERCENTILE_AS_OUTPUT,
     RESAMPLE_METHOD,
 )
 from icclim._core.generic.functions import (
@@ -245,4 +246,5 @@ class GenericIndicatorRegistry(Registry[GenericIndicator]):
         percentile,
         check_vars=_check_single_var,
         definition="Percentile of a variable.",
+        qualifiers=(PERCENTILE_AS_OUTPUT,),
     )
