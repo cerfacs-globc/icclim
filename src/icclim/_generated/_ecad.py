@@ -8406,7 +8406,7 @@ def cd(
             ),
             build_threshold(
                 query="< 25 period_per",
-                threshold_min_value="1 mm/day",
+                threshold_min_value="1 millimeter / day",
             ),
         ],
         out_unit="day",
@@ -8620,7 +8620,7 @@ def cw(
             ),
             build_threshold(
                 query="> 75 period_per",
-                threshold_min_value="1 mm/day",
+                threshold_min_value="1 millimeter / day",
             ),
         ],
         out_unit="day",
@@ -8834,7 +8834,7 @@ def wd(
             ),
             build_threshold(
                 query="< 25 period_per",
-                threshold_min_value="1 mm/day",
+                threshold_min_value="1 millimeter / day",
             ),
         ],
         out_unit="day",
@@ -9048,7 +9048,7 @@ def ww(
             ),
             build_threshold(
                 query="> 75 period_per",
-                threshold_min_value="1 mm/day",
+                threshold_min_value="1 millimeter / day",
             ),
         ],
         out_unit="day",
