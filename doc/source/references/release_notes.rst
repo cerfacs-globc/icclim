@@ -8,7 +8,7 @@ Unreleased
 
 -  [Behaviour change] The percentile thresholds now need a base period: the ECA&D and DCSC
    percentile indices and the generic indicators with a percentile threshold raise an
-   ``InvalidIcclimArgumentError`` when none is given (issue #697, PR #NNN).
+   ``InvalidIcclimArgumentError`` when none is given (issue #697, PR #699).
 
    -  Before: without ``base_period_time_range`` the percentiles were computed on the
       whole original dataset, not on the studied period (``time_range``), so the result
