@@ -40,6 +40,11 @@ Threshold mini-cheat-sheet
 
 .. note::
 
+   The generic functions (``icclim.count_occurrences``, ``icclim.difference_of_means``,
+   ...) take no ``base_period_time_range``: the reference period goes in the threshold
+   (``build_threshold(..., reference_period=[...])``) or, for an anomaly of one
+   variable, in a call of ``icclim.index`` that has ``base_period_time_range``.
+
    The percentile thresholds (``doy_per`` and ``period_per``) need a reference
    period: build them with ``build_threshold(..., reference_period=["1961-01-01",
    "1990-12-31"])``, or pass ``base_period_time_range`` to ``icclim.index`` (it is also
@@ -617,23 +622,31 @@ is the reference, ``icclim.difference_of_means(ds, var_name=["tas_scenario",
 "tas_reference"])``. With the names in the other order the result is the opposite
 anomaly:
 
+To use a period of the same variable as the reference, call ``icclim.index``, which
+takes ``base_period_time_range``. As the reference period is a part of the study period,
+``sampling_method="groupby_ref_and_resample_study"`` is needed:
+
 .. code:: python
 
    # In-memory example: anomaly relative to first year
-   anomaly = icclim.difference_of_means(
+   anomaly = icclim.index(
        in_files=tas,
+       index_name="difference_of_means",
        var_name="tas",
        base_period_time_range=["2000-01-01", "2000-12-31"],
+       sampling_method="groupby_ref_and_resample_study",
    ).difference_of_means.compute()
 
 File-based:
 
 .. code:: python
 
-   anomaly_file = icclim.difference_of_means(
+   anomaly_file = icclim.index(
        in_files=data,
+       index_name="difference_of_means",
        var_name=["tas"],
        base_period_time_range=["1991-01-01", "1995-12-31"],
+       sampling_method="groupby_ref_and_resample_study",
    ).difference_of_means.compute()
 
 *******************************************
