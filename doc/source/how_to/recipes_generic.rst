@@ -42,8 +42,10 @@ Threshold mini-cheat-sheet
 
    The percentile thresholds (``doy_per`` and ``period_per``) need a reference
    period: build them with ``build_threshold(..., reference_period=["1961-01-01",
-   "1990-12-31"])``, or pass ``base_period_time_range`` to ``icclim.index``. Without
-   it, icclim raises an ``InvalidIcclimArgumentError``.
+   "1990-12-31"])``, or pass ``base_period_time_range`` to ``icclim.index`` (it is also
+   given to a percentile threshold object built without reference period). The ECA&D
+   convention is a 30-year base period such as 1961-1990. Without a reference period,
+   icclim raises an ``InvalidIcclimArgumentError``.
 
 See :ref:`thresholds_reference` for ``threshold_min_value``, per-grid-cell thresholds,
 and all available operators.

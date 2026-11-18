@@ -299,8 +299,9 @@ If it is ``True``, we kick out February 29th.
 
 Percentile thresholds are used as thresholds for calculation of
 percentile-based indices and are computed from values inside a reference
-period, named *base period* which is usually 30 years
-(``base_period_time_range`` parameter).
+period, named *base period* which is usually 30 years, such as 1961-1990 in the
+ECA&D convention (``base_period_time_range`` parameter). The base period is required:
+without it, icclim raises an ``InvalidIcclimArgumentError``.
 
 There are two methods for calculation of percentile thresholds:
 

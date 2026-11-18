@@ -38,8 +38,10 @@ def _dataset() -> xr.Dataset:
     return xr.Dataset(
         {
             "tasmax": variable(20.0, "degC"),
+            "tasmin": variable(10.0, "degC"),
             "tas": variable(15.0, "degC"),
             "pr": variable(1.0, "mm/day"),
+            "sfcWind": variable(5.0, "m s-1"),
         }
     )
 
@@ -147,9 +149,64 @@ def test_the_generic_percentile_does_not_need_a_base_period() -> None:
     assert "percentile" in result
 
 
-def test_a_dcsc_percentile_index_is_not_changed() -> None:
-    result = icclim.dcsc.tx90(_dataset(), var_name="tasmax", **OPTIONS)
-    assert "TX90" in result
+@pytest.mark.parametrize(
+    ("function", "var_name"),
+    [
+        (icclim.dcsc.tx10, "tasmax"),
+        (icclim.dcsc.tx90, "tasmax"),
+        (icclim.dcsc.tn10, "tasmin"),
+        (icclim.dcsc.tn90, "tasmin"),
+    ],
+    ids=["TX10", "TX90", "TN10", "TN90"],
+)
+def test_a_dcsc_temperature_percentile_index_needs_a_base_period(
+    function, var_name: str
+) -> None:
+    with pytest.raises(InvalidIcclimArgumentError, match="needs a base period"):
+        function(_dataset(), var_name=var_name, **OPTIONS)
+    function(_dataset(), var_name=var_name, base_period_time_range=BASE, **OPTIONS)
+
+
+@pytest.mark.parametrize(
+    ("function", "var_name"),
+    [(icclim.dcsc.r99, "pr"), (icclim.dcsc.pfl90, "pr"), (icclim.dcsc.ff98, "sfcWind")],
+    ids=["R99", "PFL90", "FF98"],
+)
+def test_a_dcsc_period_percentile_index_needs_a_base_period(
+    function, var_name: str
+) -> None:
+    with pytest.raises(InvalidIcclimArgumentError, match="needs a base period"):
+        function(_dataset(), var_name=var_name, **OPTIONS)
+    function(_dataset(), var_name=var_name, base_period_time_range=BASE, **OPTIONS)
+
+
+@pytest.mark.parametrize("function", [icclim.dcsc.pq90, icclim.dcsc.pq99])
+def test_the_dcsc_percentile_of_the_studied_data_is_not_changed(function) -> None:
+    result = function(_dataset(), var_name="pr", **OPTIONS)
+    assert len(result.data_vars) == 1
+
+
+def test_a_dcsc_index_with_a_normal_is_not_changed() -> None:
+    time = pd.date_range("1981-01-01", "2000-12-31")
+    normal = xr.DataArray(
+        np.full((len(time), 2, 2), 20.0, dtype="float32"),
+        dims=("time", "lat", "lon"),
+        coords={"time": time},
+        name="tasmax",
+        attrs={"units": "degC"},
+    )
+    result = icclim.dcsc.txnd(
+        _dataset(), normal=normal, var_name="tasmax", slice_mode="year", **OPTIONS
+    )
+    assert len(result.data_vars) == 1
+
+
+def test_the_request_is_checked_before_any_data_is_opened() -> None:
+    """A missing file is not reached: the error comes from the request alone."""
+    with pytest.raises(InvalidIcclimArgumentError, match="needs a base period"):
+        icclim.tx90p("a_file_that_does_not_exist.nc", **OPTIONS)
+    with pytest.raises(InvalidIcclimArgumentError, match="needs a base period"):
+        icclim.indices("heat", in_files="a_file_that_does_not_exist.nc", **OPTIONS)
 
 
 def test_the_spi_still_raises_its_own_error() -> None:

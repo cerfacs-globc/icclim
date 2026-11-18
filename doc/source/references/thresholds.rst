@@ -128,12 +128,16 @@ Two flavours exist, selected by the unit string:
 
 .. note::
 
-   The ECA&D indices need ``base_period_time_range`` (for example
-   ``["1961-01-01", "1990-12-31"]``), also for ``icclim.index``. The generic functions
-   (such as ``icclim.count_occurrences``) do not take ``base_period_time_range``: build
-   their percentile threshold with ``reference_period``, as above. Without a reference
-   period, icclim raises an ``InvalidIcclimArgumentError``: the percentiles would
-   otherwise be computed on the whole original dataset, not on the studied period.
+   The ECA&D percentile indices, the DCSC ones (``TX10``, ``TX90``, ``TN10``,
+   ``TN90``, ``R99``, ``PFL90`` and ``FF98``) and ``icclim.index`` with a percentile
+   threshold need ``base_period_time_range`` (for example
+   ``["1961-01-01", "1990-12-31"]``). The ECA&D convention is a 30-year base period
+   such as 1961-1990. The generic functions (such as ``icclim.count_occurrences``) do
+   not take ``base_period_time_range``: build their percentile threshold with
+   ``reference_period``, as above. Without a reference period, icclim raises an
+   ``InvalidIcclimArgumentError``: the percentiles would otherwise be computed on the
+   whole original dataset, not on the studied period. ``PQ90`` and ``PQ99`` compute the
+   percentile of the studied data and need no base period.
 
 .. note::
 

@@ -6,32 +6,39 @@
 Unreleased
 **********
 
--  [Behaviour change] The percentile thresholds now need a base period: the ECA&D percentile
-   indices and the generic indicators with a percentile threshold raise an
-   ``InvalidIcclimArgumentError`` when none is given (PR #NNN).
+-  [Behaviour change] The percentile thresholds now need a base period: the ECA&D and DCSC
+   percentile indices and the generic indicators with a percentile threshold raise an
+   ``InvalidIcclimArgumentError`` when none is given (issue #697, PR #NNN).
 
    -  Before: without ``base_period_time_range`` the percentiles were computed on the
       whole original dataset, not on the studied period (``time_range``), so the result
       depended on how much data the file held.
    -  Affected: ``TG90p``, ``TN90p``, ``TX90p``, ``TG10p``, ``TN10p``, ``TX10p``,
       ``WSDI``, ``CSDI``, ``R75p``, ``R75pTOT``, ``R95p``, ``R95pTOT``, ``R99p``,
-      ``R99pTOT``, ``CD``, ``CW``, ``WD`` and ``WW``, and the generic indicators whose
-      threshold is a percentile (``doy_per`` or ``period_per``), for example
-      ``count_occurrences`` with ``"> 90 doy_per"``. ``icclim.indices`` raises for a
-      group that contains one of them, unless ``ignore_error=True``, which skips them.
+      ``R99pTOT``, ``CD``, ``CW``, ``WD`` and ``WW`` (ECA&D), ``TX10``, ``TX90``,
+      ``TN10``, ``TN90``, ``R99``, ``PFL90`` and ``FF98`` (DCSC), and the generic
+      indicators whose threshold is a percentile (``doy_per`` or ``period_per``), for
+      example ``count_occurrences`` with ``"> 90 doy_per"``. ``icclim.indices`` raises
+      before computing anything for a group that contains one of them, unless
+      ``ignore_error=True``, which skips them.
    -  What to pass: ``base_period_time_range``, for example
-      ``["1961-01-01", "1990-12-31"]``. The generic functions (such as
-      ``icclim.count_occurrences``) do not take ``base_period_time_range``: build the
-      threshold with ``build_threshold("> 90 doy_per", reference_period=[...])``, or use
-      ``icclim.index``, whose ``base_period_time_range`` is now also given to a percentile
-      threshold built without a reference period.
-   -  Not changed: ``SPI3`` and ``SPI6`` (they already raise without a base period), the
-      DCSC indices, the generic ``percentile`` (it has no reference period) and the
-      legacy ``user_index``.
+      ``["1961-01-01", "1990-12-31"]`` (the ECA&D convention is a 30-year base period
+      such as 1961-1990). The generic functions (such as ``icclim.count_occurrences``) do
+      not take ``base_period_time_range``: build the threshold with
+      ``build_threshold("> 90 doy_per", reference_period=[...])``, or use
+      ``icclim.index``.
+   -  Also changed: ``icclim.index`` now gives its ``base_period_time_range`` to a
+      percentile threshold object built without a reference period (before, a single
+      threshold object ignored it), so that passing the base period always works.
+   -  The request is checked before any data is opened.
+   -  Not changed: ``PQ90`` and ``PQ99`` (they compute the percentile of the studied
+      data), the DCSC indices with a normal, ``SPI3`` and ``SPI6`` (they already raise
+      without a base period) and the legacy ``user_index``.
    -  Measured on 40 years of synthetic daily data with a 10-year ``time_range``:
-      ``TX90p`` and ``WSDI`` (6.4.0 to 7.4.0) and ``R95p`` (7.1.10 to 7.4.0) gave a
+      ``TX90p`` and ``WSDI`` (6.4.0 to 7.4.0) and ``R95p`` (7.1.0 to 7.4.0) gave a
       different result from the same call on the data trimmed to the 10 years, because the
-      percentiles came from the 40 years.
+      percentiles came from the 40 years. Up to 7.0.5, ``R95p`` and the other
+      precipitation percentile indices ignored ``base_period_time_range``.
 
 *****
 7.4.0
