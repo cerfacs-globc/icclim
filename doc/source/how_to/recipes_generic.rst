@@ -52,6 +52,10 @@ Threshold mini-cheat-sheet
    convention is a 30-year base period such as 1961-1990. Without a reference period,
    icclim raises an ``InvalidIcclimArgumentError``.
 
+   The reference periods of the examples below (1961-1990) are illustrative: the base
+   period must lie inside your data. The in-memory sample data of this page covers
+   2000-2004, so with it, use years of that range.
+
 See :ref:`thresholds_reference` for ``threshold_min_value``, per-grid-cell thresholds,
 and all available operators.
 
@@ -156,14 +160,16 @@ File-based example:
  Sum
 *****
 
-Sum of precipitation values above 4 mm/day per year:
+Sum of precipitation values above 4 mm/day per year. The result is a ``Dataset``: select
+its variable with ``["sum"]``, because ``.sum`` is the xarray method that sums the whole
+``Dataset``:
 
 .. code:: python
 
    # In-memory example
    rain_sum = icclim.sum(
        in_files=pr, var_name="pr", threshold="> 4 mm/day"
-   ).sum.compute()
+   )["sum"].compute()
 
 File-based:
 
@@ -171,7 +177,7 @@ File-based:
 
    rain_sum_file = icclim.sum(
        in_files=data, var_name="precip", threshold="> 4 mm/day"
-   ).sum.compute()
+   )["sum"].compute()
 
 ********************
  Standard Deviation
@@ -182,13 +188,17 @@ Standard deviation of the daily temperatures of each year (one value per year):
 .. code:: python
 
    # In-memory example
-   tas_std = icclim.std(in_files=tas, var_name="tas").std.compute()
+   tas_std = icclim.standard_deviation(
+       in_files=tas, var_name="tas"
+   ).standard_deviation.compute()
 
 File-based:
 
 .. code:: python
 
-   tas_std_file = icclim.std(in_files=data, var_name="tas").std.compute()
+   tas_std_file = icclim.standard_deviation(
+       in_files=data, var_name="tas"
+   ).standard_deviation.compute()
 
 *********
  Average
@@ -478,14 +488,19 @@ Maximum 5-day accumulated precipitation per year (equivalent to ECA&D's RX5day):
        rolling_window_width=5,
    ).max_of_rolling_sum.compute()
 
-With a wet-day percentile filter:
+With a wet-day percentile filter. A percentile threshold needs a reference period, and
+it must lie inside the data (here 1991-2000, a part of the file):
 
 .. code:: python
 
    max_rolling = icclim.max_of_rolling_sum(
        in_files=data,
        var_name="precip",
-       threshold=build_threshold(">= 50 period_per", threshold_min_value="1 mm/day"),
+       threshold=build_threshold(
+           ">= 50 period_per",
+           threshold_min_value="1 mm/day",
+           reference_period=["1991-01-01", "2000-12-31"],
+       ),
    ).max_of_rolling_sum.compute()
 
 ********************
