@@ -9,7 +9,7 @@ Unreleased
 -  [Fix] ``icclim.dcsc.ff98`` failed with "Could not build threshold from 1 kn" when pint
    does not define the unit symbol ``kn``, which is the case of pint 0.25 (installed with
    xclim 0.56.0, the lowest versions allowed by ``pyproject.toml``) and older (issue #700,
-   PR #NNN).
+   PR #701).
 
    -  Affected: the generated function ``icclim.dcsc.ff98`` from 7.0.5 to 7.4.0
       (7.0.0 to 7.0.4 wrote the minimum value as ``1 kt`` or ``1 knot``), with
