@@ -100,7 +100,9 @@ def tav(
     var_name : str | list[str] | None
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
-        climate index wanted.
+        climate index wanted. When no variable has an expected name and the dataset
+        has exactly one data variable, that variable is used and a ``UserWarning``
+        says so (``icclim.indices`` never does this).
         For the indices that take two variables, the order of the names is
         positional: the first name is the first term of the formula (for example
         ``var_name=["tasmax", "tasmin"]`` for ``DTR``, the mean of ``TX - TN``).
@@ -259,7 +261,9 @@ def txav(
     var_name : str | list[str] | None
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
-        climate index wanted.
+        climate index wanted. When no variable has an expected name and the dataset
+        has exactly one data variable, that variable is used and a ``UserWarning``
+        says so (``icclim.indices`` never does this).
         For the indices that take two variables, the order of the names is
         positional: the first name is the first term of the formula (for example
         ``var_name=["tasmax", "tasmin"]`` for ``DTR``, the mean of ``TX - TN``).
@@ -428,7 +432,9 @@ def trav(
     var_name : str | list[str] | None
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
-        climate index wanted.
+        climate index wanted. When no variable has an expected name and the dataset
+        has exactly one data variable, that variable is used and a ``UserWarning``
+        says so (``icclim.indices`` never does this).
         For the indices that take two variables, the order of the names is
         positional: the first name is the first term of the formula (for example
         ``var_name=["tasmax", "tasmin"]`` for ``DTR``, the mean of ``TX - TN``).
@@ -591,7 +597,9 @@ def tx10(
     var_name : str | list[str] | None
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
-        climate index wanted.
+        climate index wanted. When no variable has an expected name and the dataset
+        has exactly one data variable, that variable is used and a ``UserWarning``
+        says so (``icclim.indices`` never does this).
         For the indices that take two variables, the order of the names is
         positional: the first name is the first term of the formula (for example
         ``var_name=["tasmax", "tasmin"]`` for ``DTR``, the mean of ``TX - TN``).
@@ -791,7 +799,9 @@ def tx90(
     var_name : str | list[str] | None
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
-        climate index wanted.
+        climate index wanted. When no variable has an expected name and the dataset
+        has exactly one data variable, that variable is used and a ``UserWarning``
+        says so (``icclim.indices`` never does this).
         For the indices that take two variables, the order of the names is
         positional: the first name is the first term of the formula (for example
         ``var_name=["tasmax", "tasmin"]`` for ``DTR``, the mean of ``TX - TN``).
@@ -991,7 +1001,9 @@ def tn10(
     var_name : str | list[str] | None
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
-        climate index wanted.
+        climate index wanted. When no variable has an expected name and the dataset
+        has exactly one data variable, that variable is used and a ``UserWarning``
+        says so (``icclim.indices`` never does this).
         For the indices that take two variables, the order of the names is
         positional: the first name is the first term of the formula (for example
         ``var_name=["tasmax", "tasmin"]`` for ``DTR``, the mean of ``TX - TN``).
@@ -1191,7 +1203,9 @@ def tn90(
     var_name : str | list[str] | None
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
-        climate index wanted.
+        climate index wanted. When no variable has an expected name and the dataset
+        has exactly one data variable, that variable is used and a ``UserWarning``
+        says so (``icclim.indices`` never does this).
         For the indices that take two variables, the order of the names is
         positional: the first name is the first term of the formula (for example
         ``var_name=["tasmax", "tasmin"]`` for ``DTR``, the mean of ``TX - TN``).
@@ -1387,7 +1401,9 @@ def tnfd(
     var_name : str | list[str] | None
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
-        climate index wanted.
+        climate index wanted. When no variable has an expected name and the dataset
+        has exactly one data variable, that variable is used and a ``UserWarning``
+        says so (``icclim.indices`` never does this).
         For the indices that take two variables, the order of the names is
         positional: the first name is the first term of the formula (for example
         ``var_name=["tasmax", "tasmin"]`` for ``DTR``, the mean of ``TX - TN``).
@@ -1549,7 +1565,9 @@ def txfd(
     var_name : str | list[str] | None
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
-        climate index wanted.
+        climate index wanted. When no variable has an expected name and the dataset
+        has exactly one data variable, that variable is used and a ``UserWarning``
+        says so (``icclim.indices`` never does this).
         For the indices that take two variables, the order of the names is
         positional: the first name is the first term of the formula (for example
         ``var_name=["tasmax", "tasmin"]`` for ``DTR``, the mean of ``TX - TN``).
@@ -1711,7 +1729,9 @@ def sd(
     var_name : str | list[str] | None
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
-        climate index wanted.
+        climate index wanted. When no variable has an expected name and the dataset
+        has exactly one data variable, that variable is used and a ``UserWarning``
+        says so (``icclim.indices`` never does this).
         For the indices that take two variables, the order of the names is
         positional: the first name is the first term of the formula (for example
         ``var_name=["tasmax", "tasmin"]`` for ``DTR``, the mean of ``TX - TN``).
@@ -1873,7 +1893,9 @@ def tx35(
     var_name : str | list[str] | None
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
-        climate index wanted.
+        climate index wanted. When no variable has an expected name and the dataset
+        has exactly one data variable, that variable is used and a ``UserWarning``
+        says so (``icclim.indices`` never does this).
         For the indices that take two variables, the order of the names is
         positional: the first name is the first term of the formula (for example
         ``var_name=["tasmax", "tasmin"]`` for ``DTR``, the mean of ``TX - TN``).
@@ -2035,7 +2057,9 @@ def tr(
     var_name : str | list[str] | None
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
-        climate index wanted.
+        climate index wanted. When no variable has an expected name and the dataset
+        has exactly one data variable, that variable is used and a ``UserWarning``
+        says so (``icclim.indices`` never does this).
         For the indices that take two variables, the order of the names is
         positional: the first name is the first term of the formula (for example
         ``var_name=["tasmax", "tasmin"]`` for ``DTR``, the mean of ``TX - TN``).
@@ -2198,7 +2222,9 @@ def txnd(
     var_name : str | list[str] | None
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
-        climate index wanted.
+        climate index wanted. When no variable has an expected name and the dataset
+        has exactly one data variable, that variable is used and a ``UserWarning``
+        says so (``icclim.indices`` never does this).
         For the indices that take two variables, the order of the names is
         positional: the first name is the first term of the formula (for example
         ``var_name=["tasmax", "tasmin"]`` for ``DTR``, the mean of ``TX - TN``).
@@ -2371,7 +2397,9 @@ def tnht(
     var_name : str | list[str] | None
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
-        climate index wanted.
+        climate index wanted. When no variable has an expected name and the dataset
+        has exactly one data variable, that variable is used and a ``UserWarning``
+        says so (``icclim.indices`` never does this).
         For the indices that take two variables, the order of the names is
         positional: the first name is the first term of the formula (for example
         ``var_name=["tasmax", "tasmin"]`` for ``DTR``, the mean of ``TX - TN``).
@@ -2544,7 +2572,9 @@ def tnnd(
     var_name : str | list[str] | None
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
-        climate index wanted.
+        climate index wanted. When no variable has an expected name and the dataset
+        has exactly one data variable, that variable is used and a ``UserWarning``
+        says so (``icclim.indices`` never does this).
         For the indices that take two variables, the order of the names is
         positional: the first name is the first term of the formula (for example
         ``var_name=["tasmax", "tasmin"]`` for ``DTR``, the mean of ``TX - TN``).
@@ -2718,7 +2748,9 @@ def tncwd(
     var_name : str | list[str] | None
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
-        climate index wanted.
+        climate index wanted. When no variable has an expected name and the dataset
+        has exactly one data variable, that variable is used and a ``UserWarning``
+        says so (``icclim.indices`` never does this).
         For the indices that take two variables, the order of the names is
         positional: the first name is the first term of the formula (for example
         ``var_name=["tasmax", "tasmin"]`` for ``DTR``, the mean of ``TX - TN``).
@@ -2917,7 +2949,9 @@ def txhwd(
     var_name : str | list[str] | None
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
-        climate index wanted.
+        climate index wanted. When no variable has an expected name and the dataset
+        has exactly one data variable, that variable is used and a ``UserWarning``
+        says so (``icclim.indices`` never does this).
         For the indices that take two variables, the order of the names is
         positional: the first name is the first term of the formula (for example
         ``var_name=["tasmax", "tasmin"]`` for ``DTR``, the mean of ``TX - TN``).
@@ -3114,7 +3148,9 @@ def hdd(
     var_name : str | list[str] | None
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
-        climate index wanted.
+        climate index wanted. When no variable has an expected name and the dataset
+        has exactly one data variable, that variable is used and a ``UserWarning``
+        says so (``icclim.indices`` never does this).
         For the indices that take two variables, the order of the names is
         positional: the first name is the first term of the formula (for example
         ``var_name=["tasmax", "tasmin"]`` for ``DTR``, the mean of ``TX - TN``).
@@ -3276,7 +3312,9 @@ def cdd(
     var_name : str | list[str] | None
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
-        climate index wanted.
+        climate index wanted. When no variable has an expected name and the dataset
+        has exactly one data variable, that variable is used and a ``UserWarning``
+        says so (``icclim.indices`` never does this).
         For the indices that take two variables, the order of the names is
         positional: the first name is the first term of the formula (for example
         ``var_name=["tasmax", "tasmin"]`` for ``DTR``, the mean of ``TX - TN``).
@@ -3438,7 +3476,9 @@ def pav(
     var_name : str | list[str] | None
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
-        climate index wanted.
+        climate index wanted. When no variable has an expected name and the dataset
+        has exactly one data variable, that variable is used and a ``UserWarning``
+        says so (``icclim.indices`` never does this).
         For the indices that take two variables, the order of the names is
         positional: the first name is the first term of the formula (for example
         ``var_name=["tasmax", "tasmin"]`` for ``DTR``, the mean of ``TX - TN``).
@@ -3597,7 +3637,9 @@ def pint(
     var_name : str | list[str] | None
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
-        climate index wanted.
+        climate index wanted. When no variable has an expected name and the dataset
+        has exactly one data variable, that variable is used and a ``UserWarning``
+        says so (``icclim.indices`` never does this).
         For the indices that take two variables, the order of the names is
         positional: the first name is the first term of the formula (for example
         ``var_name=["tasmax", "tasmin"]`` for ``DTR``, the mean of ``TX - TN``).
@@ -3759,7 +3801,9 @@ def rr(
     var_name : str | list[str] | None
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
-        climate index wanted.
+        climate index wanted. When no variable has an expected name and the dataset
+        has exactly one data variable, that variable is used and a ``UserWarning``
+        says so (``icclim.indices`` never does this).
         For the indices that take two variables, the order of the names is
         positional: the first name is the first term of the formula (for example
         ``var_name=["tasmax", "tasmin"]`` for ``DTR``, the mean of ``TX - TN``).
@@ -3918,7 +3962,9 @@ def rr1mm(
     var_name : str | list[str] | None
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
-        climate index wanted.
+        climate index wanted. When no variable has an expected name and the dataset
+        has exactly one data variable, that variable is used and a ``UserWarning``
+        says so (``icclim.indices`` never does this).
         For the indices that take two variables, the order of the names is
         positional: the first name is the first term of the formula (for example
         ``var_name=["tasmax", "tasmin"]`` for ``DTR``, the mean of ``TX - TN``).
@@ -4080,7 +4126,9 @@ def pn20mm(
     var_name : str | list[str] | None
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
-        climate index wanted.
+        climate index wanted. When no variable has an expected name and the dataset
+        has exactly one data variable, that variable is used and a ``UserWarning``
+        says so (``icclim.indices`` never does this).
         For the indices that take two variables, the order of the names is
         positional: the first name is the first term of the formula (for example
         ``var_name=["tasmax", "tasmin"]`` for ``DTR``, the mean of ``TX - TN``).
@@ -4256,7 +4304,9 @@ def pxcdd(
     var_name : str | list[str] | None
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
-        climate index wanted.
+        climate index wanted. When no variable has an expected name and the dataset
+        has exactly one data variable, that variable is used and a ``UserWarning``
+        says so (``icclim.indices`` never does this).
         For the indices that take two variables, the order of the names is
         positional: the first name is the first term of the formula (for example
         ``var_name=["tasmax", "tasmin"]`` for ``DTR``, the mean of ``TX - TN``).
@@ -4457,7 +4507,9 @@ def pxcwd(
     var_name : str | list[str] | None
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
-        climate index wanted.
+        climate index wanted. When no variable has an expected name and the dataset
+        has exactly one data variable, that variable is used and a ``UserWarning``
+        says so (``icclim.indices`` never does this).
         For the indices that take two variables, the order of the names is
         positional: the first name is the first term of the formula (for example
         ``var_name=["tasmax", "tasmin"]`` for ``DTR``, the mean of ``TX - TN``).
@@ -4648,7 +4700,9 @@ def r99(
     var_name : str | list[str] | None
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
-        climate index wanted.
+        climate index wanted. When no variable has an expected name and the dataset
+        has exactly one data variable, that variable is used and a ``UserWarning``
+        says so (``icclim.indices`` never does this).
         For the indices that take two variables, the order of the names is
         positional: the first name is the first term of the formula (for example
         ``var_name=["tasmax", "tasmin"]`` for ``DTR``, the mean of ``TX - TN``).
@@ -4849,7 +4903,9 @@ def pfl90(
     var_name : str | list[str] | None
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
-        climate index wanted.
+        climate index wanted. When no variable has an expected name and the dataset
+        has exactly one data variable, that variable is used and a ``UserWarning``
+        says so (``icclim.indices`` never does this).
         For the indices that take two variables, the order of the names is
         positional: the first name is the first term of the formula (for example
         ``var_name=["tasmax", "tasmin"]`` for ``DTR``, the mean of ``TX - TN``).
@@ -5050,7 +5106,9 @@ def pq90(
     var_name : str | list[str] | None
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
-        climate index wanted.
+        climate index wanted. When no variable has an expected name and the dataset
+        has exactly one data variable, that variable is used and a ``UserWarning``
+        says so (``icclim.indices`` never does this).
         For the indices that take two variables, the order of the names is
         positional: the first name is the first term of the formula (for example
         ``var_name=["tasmax", "tasmin"]`` for ``DTR``, the mean of ``TX - TN``).
@@ -5251,7 +5309,9 @@ def pq99(
     var_name : str | list[str] | None
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
-        climate index wanted.
+        climate index wanted. When no variable has an expected name and the dataset
+        has exactly one data variable, that variable is used and a ``UserWarning``
+        says so (``icclim.indices`` never does this).
         For the indices that take two variables, the order of the names is
         positional: the first name is the first term of the formula (for example
         ``var_name=["tasmax", "tasmin"]`` for ``DTR``, the mean of ``TX - TN``).
@@ -5450,7 +5510,9 @@ def ffav(
     var_name : str | list[str] | None
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
-        climate index wanted.
+        climate index wanted. When no variable has an expected name and the dataset
+        has exactly one data variable, that variable is used and a ``UserWarning``
+        says so (``icclim.indices`` never does this).
         For the indices that take two variables, the order of the names is
         positional: the first name is the first term of the formula (for example
         ``var_name=["tasmax", "tasmin"]`` for ``DTR``, the mean of ``TX - TN``).
@@ -5639,7 +5701,9 @@ def ff98(
     var_name : str | list[str] | None
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
-        climate index wanted.
+        climate index wanted. When no variable has an expected name and the dataset
+        has exactly one data variable, that variable is used and a ``UserWarning``
+        says so (``icclim.indices`` never does this).
         For the indices that take two variables, the order of the names is
         positional: the first name is the first term of the formula (for example
         ``var_name=["tasmax", "tasmin"]`` for ``DTR``, the mean of ``TX - TN``).
