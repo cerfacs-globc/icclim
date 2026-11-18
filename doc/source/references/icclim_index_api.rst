@@ -53,7 +53,7 @@ the following is sufficient to compute CW.
         icclim.cw(
             in_files=["mean_temperatures.nc", "precipitations.nc"],
             base_period_time_range=["1961-01-01", "1990-12-31"],
-        ).compute.CW
+        )["CW"].compute()
 
 In case variables' name cannot be guessed, you can explicitly name the variable
 you wish to read from the input file:
@@ -61,7 +61,7 @@ you wish to read from the input file:
 .. code-block:: python
 
         icclim.cw(
-            in_files={"customTas": mean_temperatures.nc, "pr": "precipitations.nc"},
+            in_files={"customTas": "mean_temperatures.nc", "pr": "precipitations.nc"},
             base_period_time_range=["1961-01-01", "1990-12-31"],
         )
 

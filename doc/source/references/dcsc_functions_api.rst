@@ -13,15 +13,18 @@ Usage
 .. code:: python
 
    import icclim
+   import xarray as xr
+   from icclim import build_threshold
 
    txnd = icclim.dcsc.txnd(in_files="tas.nc", normal="tas-normal.nc", slice_mode="month").load()
 
-   # equivalent to the follwing generic index (output metadata will be different)
-   threshold=build_threshold(
-            operator=">",
-            value="tas-normal.nc",
-            offset=" 5 delta_degree_Celsius",
-        ),
+   # equivalent to the following generic index (output metadata will be different)
+   tas = xr.open_dataset("tas.nc")["tas"]
+   threshold = build_threshold(
+       operator=">",
+       value="tas-normal.nc",
+       offset=" 5 delta_degree_Celsius",
+   )
    summer_days = icclim.count_occurrences(tas, threshold=threshold)
 
 .. _dcsc_trav:

@@ -227,7 +227,7 @@ Compute every HEAT indices [SU, TR, WSDI, TG90p, TN90p, TX90p, TXx, TNx, CSU]
    # The file must include all necessary variable for HEAT indices i
    file = "./netcdf_files/sampledata.1991-2010.nc"
    res = icclim.indices(
-       index_group=IndexGroup.HEAT,
+       index_group="heat",
        in_files=file,
        base_period_time_range=bp,
        time_range=tr,
