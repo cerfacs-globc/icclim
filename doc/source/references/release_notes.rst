@@ -34,11 +34,17 @@ Unreleased
    -  Not changed: ``PQ90`` and ``PQ99`` (they compute the percentile of the studied
       data), the DCSC indices with a normal, ``SPI3`` and ``SPI6`` (they already raise
       without a base period) and the legacy ``user_index``.
-   -  Measured on 40 years of synthetic daily data with a 10-year ``time_range``:
-      ``TX90p`` and ``WSDI`` (6.4.0 to 7.4.0) and ``R95p`` (7.1.0 to 7.4.0) gave a
-      different result from the same call on the data trimmed to the 10 years, because the
-      percentiles came from the 40 years. Up to 7.0.5, ``R95p`` and the other
-      precipitation percentile indices ignored ``base_period_time_range``.
+   -  Measured on 40 years of synthetic daily data with a 10-year ``time_range``, on icclim
+      6.4.0, 6.5.0, 7.0.0, 7.0.5, 7.1.0, 7.1.10, 7.2.0, 7.3.7 and 7.4.0: without a base
+      period, ``TX90p`` and ``WSDI`` (6.4.0 to 7.4.0) and ``R95p`` (7.0.5 to 7.4.0) gave a
+      different result from the same call on the data trimmed to the 10 years, because
+      the percentiles came from the 40 years.
+   -  Measured on icclim 7.0.5 with an explicit base period: ``R75p``, ``R75pTOT``,
+      ``R95p``, ``R95pTOT``, ``R99p`` and ``R99pTOT`` ignored it (the result was the same
+      with and without it), and used it from 7.1.0. For ``CD``, ``CW``, ``WD`` and ``WW``
+      the temperature percentile received the base period on 7.0.5 but the precipitation
+      percentile did not and was computed on the whole dataset; from 7.1.0 both received
+      it.
 
 *****
 7.4.0
