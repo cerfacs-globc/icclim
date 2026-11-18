@@ -7,6 +7,11 @@
    import icclim
    import datetime
 
+
+   def print_progress(percentage):
+       """Progress callback: icclim calls it with the percentage already done."""
+       print(f"Processing: {percentage}%")
+
 *********************
  Example 1: index SU
 *********************
@@ -95,6 +100,10 @@
  Example 3: index TG90p with callback
 **************************************
 
+The ``callback`` parameter takes a function that receives the percentage of progress.
+By default icclim logs it ("Processing: 12.5%"); the second call below prints it with
+``print_progress``, defined at the top of the page.
+
 .. code:: python
 
    f = "tas_day_CNRM-CM5_historical_r1i1p1_19010101-20001231.nc"
@@ -141,7 +150,7 @@
        base_period_time_range=[base_dt1, base_dt2],
        out_file=out_f,
        out_unit="%",
-       callback=callback.defaultCallback2,
+       callback=print_progress,
    )
 
 *************************************************
@@ -194,7 +203,7 @@
        base_period_time_range=[base_dt1, base_dt2],
        out_file=out_f,
        out_unit="%",
-       callback=callback.defaultCallback2,
+       callback=print_progress,
    )
 
 *************************
