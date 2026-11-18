@@ -469,6 +469,7 @@ class TestIntegration:
         res = icclim.indices(
             index_group=IndexGroupRegistry.HEAT,
             in_files=self.data,
+            var_name="tasmax",
             out_file=self.OUTPUT_FILE,
             base_period_time_range=BASE_PERIOD,
         )
@@ -479,6 +480,7 @@ class TestIntegration:
         res = icclim.indices(
             index_group="tasmax",
             in_files=self.data,
+            var_name="tasmax",
             out_file=self.OUTPUT_FILE,
             base_period_time_range=BASE_PERIOD,
         )
@@ -489,6 +491,7 @@ class TestIntegration:
         res = icclim.indices(
             index_group="tx90p",
             in_files=self.data,
+            var_name="tasmax",
             out_file=self.OUTPUT_FILE,
             base_period_time_range=BASE_PERIOD,
         )

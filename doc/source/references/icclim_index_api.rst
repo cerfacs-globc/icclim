@@ -72,6 +72,23 @@ you wish to read from the input file:
             base_period_time_range=["1961-01-01", "1990-12-31"],
         )
 
+The variable of an index is looked for by name first: a variable named like the index
+expects, or one of its aliases, is used. When no variable has an expected name, the rule
+depends on the function.
+
+-  A direct call of ``icclim.index``, and the single-index functions that call it
+   (``icclim.txx``, ``icclim.dcsc.ff98``, ``icclim.generic.count_occurrences``, ...): if
+   the dataset has exactly one data variable, that variable is used and a ``UserWarning``
+   names it ("Using the only data variable 'foo' as the input of TXx"). Pass ``var_name``
+   to choose the variable explicitly and avoid the warning.
+-  ``icclim.indices``: the only data variable is never used instead of a missing one,
+   because the same dataset feeds indices that need different variables (``TNn`` must not
+   be computed from ``tasmax``). An index whose variable is not found fails with an
+   ``InvalidIcclimArgumentError`` that names the variable it expects, or is skipped with a
+   warning when ``ignore_error=True``. An explicit ``var_name`` and the standard variable
+   names keep working. To compute one index from a variable with another name, call
+   ``icclim.index`` for it.
+
 The order in which variables are passed matters and must follow the ``input_variables`` property defined in the
 respective index of :py:class:`EcadIndexRegistry`.
 

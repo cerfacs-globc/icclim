@@ -45,6 +45,33 @@ Unreleased
       the temperature percentile received the base period on 7.0.5 but the precipitation
       percentile did not and was computed on the whole dataset; from 7.1.0 both received
       it.
+-  [Behaviour change] ``icclim.indices`` no longer computes an index from the only data
+   variable of the dataset when the variable the index needs is missing (issue #696,
+   PR #704). A direct ``icclim.index`` call keeps this fallback and now warns.
+
+   -  Before: when a dataset had exactly one data variable, every index computed with
+      ``icclim.indices`` used it, silently, whatever the index needs. With a dataset that
+      only holds ``tasmax``, ``TNn`` was the minimum of ``tasmax`` and ``TN90p`` was
+      computed from the maximum temperature, with no error and no warning (CMIP6 files
+      opened with ``decode_coords="all"`` have one data variable, the bounds being
+      coordinates).
+   -  Measured on icclim 5.2.2, 5.3.0, 6.0.0, 6.4.0, 7.0.0 and 7.4.0, with ``TNn`` on a
+      dataset that only holds ``tasmax``: 5.2.2 raised an error, and 5.3.0, 6.0.0, 6.4.0,
+      7.0.0 and 7.4.0 computed it from ``tasmax``. The fallback exists from 5.3.0
+      (2022-07-06).
+   -  Now: ``icclim.indices`` fails for an index whose variable is not found by name or
+      by ``var_name``, with an error that names the variable it expects, or skips it with
+      a warning when ``ignore_error=True`` (PR #703). The indices whose variable is found
+      are computed as before.
+   -  Direct call: ``icclim.index`` (and the single-index functions such as
+      ``icclim.txx`` or ``icclim.dcsc.ff98``) still use the only data variable when no
+      variable has the expected name, and now emit a ``UserWarning`` that names the
+      variable and the index.
+   -  Keep the old behaviour: pass ``var_name`` (``icclim.indices(group, in_files=ds,
+      var_name="tasmax")``), or call ``icclim.index`` for each index.
+   -  Also changed: a warning of ``icclim.index`` about the only data variable is shown
+      to the user (the warnings of this function are recorded and only a short list of
+      them was shown).
 -  [Fix] ``icclim.dcsc.ff98`` failed with "Could not build threshold from 1 kn" when pint
    does not define the unit symbol ``kn``, which is the case of pint 0.25 (installed with
    xclim 0.56.0, the lowest versions allowed by ``pyproject.toml``) and older (issue #700,

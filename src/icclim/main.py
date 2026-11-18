@@ -38,7 +38,10 @@ from icclim._core.constants import (
     UNITS_KEY,
 )
 from icclim._core.generic.indicator import GenericIndicator
-from icclim._core.input_parsing import build_input_dict
+from icclim._core.input_parsing import (
+    build_input_dict,
+    without_single_variable_fallback,
+)
 from icclim._core.model.index_config import (
     CompletenessLike,
     IndexConfig,
@@ -183,6 +186,8 @@ def indices(
         useful when used with `index_group='all'` to compute everything that can be
         computed given the input. Each skipped index raises a ``UserWarning`` that
         names the index and gives the exception type and message.
+        An index whose input variable is not found by name or by ``var_name`` fails (or
+        is skipped): the only data variable of the dataset is never used in its place.
     kwargs : Dict
         ``icclim.index`` keyword arguments.
 
@@ -247,9 +252,14 @@ def _compute_indices(
     for standard_index in indices:
         log.info("Computing index %s", standard_index.short_name)
         try:
-            res = index(
-                **_with_requested_index_name(index_kwargs, standard_index.short_name)
-            )
+            # One dataset feeds indices that need different variables: an index whose
+            # variable is missing must fail, not be computed from the only variable.
+            with without_single_variable_fallback():
+                res = index(
+                    **_with_requested_index_name(
+                        index_kwargs, standard_index.short_name
+                    )
+                )
             res = _rename_coords(res, standard_index.short_name)
             res = _drop_group_auxiliary_vars(res)
             acc.append(res)
@@ -459,7 +469,9 @@ def index(
     var_name: str | list[str] | None
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
-        climate index wanted.
+        climate index wanted. When no variable has an expected name and the dataset
+        has exactly one data variable, that variable is used and a ``UserWarning``
+        says so (``icclim.indices`` never does this).
         For the indices that take two variables, the order of the names is
         positional: the first name is the first term of the formula (for example
         ``var_name=["tasmax", "tasmin"]`` for ``DTR``, the mean of ``TX - TN``).
@@ -858,6 +870,7 @@ def _reemit_actionable_warnings(captured_warnings: list[Any]) -> None:
             "source time series is incomplete" in message
             or "completeness policy will mask" in message
             or "will not attach that standard-variable metadata" in message
+            or "Using the only data variable" in message
         ):
             warn(item.message, item.category, stacklevel=3)
             emitted.add(warning_key)
@@ -1243,6 +1256,7 @@ def _build_legacy_user_index_config(
         time_range=time_range,
         reference_period=legacy_user_index_config.reference_period,
         bootstrap=bootstrap,
+        index_name=index_name or "user_index",
     )
     return _assemble_index_config(
         climate_variables=climate_variables,
@@ -1334,6 +1348,7 @@ def _build_standard_index_config(
         time_range=time_range,
         reference_period=reference_period,
         bootstrap=bootstrap,
+        index_name=indicator_name,
     )
     return _assemble_index_config(
         climate_variables=climate_variables,
@@ -1509,12 +1524,14 @@ def _build_index_climate_variables(
     time_range: Sequence[dt.datetime | str] | None,
     reference_period: Sequence[str] | None,
     bootstrap: bool | None,
+    index_name: str | None = None,
 ) -> tuple[list[ClimateVariable], bool]:
     climate_vars_dict = build_input_dict(
         in_files=in_files,
         var_names=var_names,
         threshold=threshold,
         standard_index=standard_index,
+        index_name=index_name,
     )
     is_compared_to_reference = _must_add_reference_var(
         climate_vars_dict,
