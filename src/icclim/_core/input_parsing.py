@@ -5,7 +5,9 @@ from __future__ import annotations
 import re
 import sys
 import warnings
-from collections.abc import Hashable, Sequence
+from collections.abc import Hashable, Iterator, Sequence
+from contextlib import contextmanager
+from contextvars import ContextVar
 from datetime import datetime
 from typing import TYPE_CHECKING, cast
 
@@ -117,6 +119,7 @@ def guess_var_names(
     ds: Dataset,
     var_names: str | Sequence[str] | None,
     standard_index: StandardIndex | None,
+    index_name: str | None = None,
 ) -> list[Hashable]:
     """
     Attempt to guess the variable names from the dataset and the standard index.
@@ -130,6 +133,9 @@ def guess_var_names(
         variable names.
     standard_index : StandardIndex | None
         The standard index to use to guess the variable names.
+    index_name : str | None
+        The name of the index, used in the warning when the only data variable of the
+        dataset is used as input.
 
     Returns
     -------
@@ -137,7 +143,9 @@ def guess_var_names(
         The list of guessed variable names.
     """
     if var_names is None:
-        return _guess_dataset_var_names(ds=ds, standard_index=standard_index)
+        return _guess_dataset_var_names(
+            ds=ds, standard_index=standard_index, index_name=index_name
+        )
     if isinstance(var_names, str):
         return [var_names]
     if isinstance(var_names, (list, tuple)):
@@ -371,6 +379,7 @@ def build_input_dict(
     var_names: Sequence[str] | None,
     threshold: Threshold | Sequence[Threshold] | None,
     standard_index: StandardIndex | None,
+    index_name: str | None = None,
 ) -> dict[str, InFileDictionary]:
     """
     Build an input dictionary based on the provided input files and variables.
@@ -391,6 +400,9 @@ def build_input_dict(
         threshold values, or None.
     standard_index : StandardIndex | None
         The standard index. It can be a standard index value or None.
+    index_name : str | None
+        The name of the index, used in the warning when the only data variable of the
+        dataset is used as input.
 
     Returns
     -------
@@ -428,9 +440,12 @@ def build_input_dict(
             standard_index=standard_index,
             threshold=threshold,
             var_names=list(in_files.keys()),
+            index_name=index_name,
         )
     # case of in_files="tasmax.nc" and var_names="tasmax"
-    return _build_in_file_dict(in_files, var_names, threshold, standard_index)
+    return _build_in_file_dict(
+        in_files, var_names, threshold, standard_index, index_name=index_name
+    )
 
 
 def find_standard_vars(ds: Dataset) -> list[Hashable]:
@@ -918,6 +933,7 @@ def _build_in_file_dict(
     var_names: Sequence[str],
     threshold: Threshold | Sequence[Threshold] | None,
     standard_index: StandardIndex | None,
+    index_name: str | None = None,
 ) -> InFileDictionary:
     standard_var = (
         standard_index.input_variables[0] if standard_index is not None else None
@@ -931,6 +947,7 @@ def _build_in_file_dict(
         ds=input_dataset,
         standard_index=standard_index,
         var_names=var_names,
+        index_name=index_name,
     )
     if threshold is not None:
         if len(var_names) == 1:
@@ -978,27 +995,66 @@ def _read_dataarray(
     return data.to_dataset(name=data_name, promote_attrs=True)
 
 
+# Whether the only data variable of a dataset can stand in for the input variable of an
+# index when no variable has the expected name. True for a direct call of
+# ``icclim.index`` (and of the single-input functions built on it), False inside
+# ``icclim.indices``, where one dataset feeds many indices that need different
+# variables. It is a context variable and not a parameter so that it is not part of
+# the public API, and so that concurrent calls (threads, tasks) do not see each other.
+_SINGLE_VARIABLE_FALLBACK: ContextVar[bool] = ContextVar(
+    "icclim_single_variable_fallback", default=True
+)
+
+
+@contextmanager
+def without_single_variable_fallback() -> Iterator[None]:
+    """Forbid the use of the only data variable as input, inside this block."""
+    token = _SINGLE_VARIABLE_FALLBACK.set(False)
+    try:
+        yield
+    finally:
+        _SINGLE_VARIABLE_FALLBACK.reset(token)
+
+
+def _use_only_variable(ds: Dataset, index_name: str | None) -> list[Hashable]:
+    name = get_name_of_first_var(ds)
+    warnings.warn(
+        f"Using the only data variable '{name}' as the input of"
+        f" {index_name or 'the index'}. Pass `var_name` to select the variable"
+        f" explicitly.",
+        UserWarning,
+        stacklevel=2,
+    )
+    return [name]
+
+
 def _guess_dataset_var_names(
     standard_index: StandardIndex,
     ds: Dataset,
+    index_name: str | None = None,
 ) -> list[Hashable]:
     """Try to guess the variable names.
 
     The expected kind of variable of the index is used to guess the variable names.
+    When no variable has an expected name and the dataset has exactly one data
+    variable, that variable is used (with a warning) in a direct call of
+    ``icclim.index``, and is not used inside ``icclim.indices``.
     """
+    only_variable_allowed = _SINGLE_VARIABLE_FALLBACK.get()
     if standard_index is not None and standard_index.input_variables is not None:
         main_aliases = ", ".join(
             (v.short_name for v in standard_index.input_variables),
         )
+        expected_names = ", ".join(
+            v.aliases[0] for v in standard_index.input_variables if v.aliases
+        )
         error_msg = (
             f"Index {standard_index.short_name} needs the following variable(s)"
             f" [{main_aliases}], but the input variables were {list(ds.data_vars)}."
-            f" Use `var_name` parameter to explicitly set variable names."
+            f" No variable found for {standard_index.short_name}: name it"
+            f" {expected_names} or use the `var_name` parameter to explicitly set"
+            f" variable names."
         )
-        if len(ds.data_vars) == 1:
-            if len(standard_index.input_variables) != 1:
-                raise InvalidIcclimArgumentError(error_msg)
-            return [get_name_of_first_var(ds)]
         climate_var_names = []
         for expected_standard_var in standard_index.input_variables:
             for alias in expected_standard_var.aliases:
@@ -1006,12 +1062,28 @@ def _guess_dataset_var_names(
                 if _is_alias_valid(ds, alias):
                     climate_var_names.append(_get_actual_name(ds, alias))
                     break
-        if len(climate_var_names) < len(standard_index.input_variables):
-            raise InvalidIcclimArgumentError(error_msg)
-        return cast("list[Hashable]", climate_var_names)
+        if len(climate_var_names) == len(standard_index.input_variables):
+            return cast("list[Hashable]", climate_var_names)
+        if (
+            only_variable_allowed
+            and len(ds.data_vars) == 1
+            and len(standard_index.input_variables) == 1
+        ):
+            return _use_only_variable(ds, index_name or standard_index.short_name)
+        raise InvalidIcclimArgumentError(error_msg)
+    standard_names = find_standard_vars(ds)
+    if len(ds.data_vars) == 1 and not standard_names and only_variable_allowed:
+        return _use_only_variable(ds, index_name)
+    if len(ds.data_vars) == 1 and not standard_names:
+        msg = (
+            f"No variable found for {index_name or 'the index'}: the input variable was"
+            f" {list(ds.data_vars)}. Name it with a standard variable name or use"
+            f" `var_name` parameter to explicitly set variable names."
+        )
+        raise InvalidIcclimArgumentError(msg)
     if len(ds.data_vars) == 1:
         return [get_name_of_first_var(ds)]
-    return find_standard_vars(ds)
+    return standard_names
 
 
 def _check_time_range_pre_validity(key: str, tr: Sequence[datetime | str]) -> None:
