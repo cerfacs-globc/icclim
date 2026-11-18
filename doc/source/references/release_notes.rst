@@ -47,7 +47,7 @@ Unreleased
       it.
 -  [Behaviour change] ``icclim.indices`` no longer computes an index from the only data
    variable of the dataset when the variable the index needs is missing (issue #696,
-   PR #NNN). A direct ``icclim.index`` call keeps this fallback and now warns.
+   PR #704). A direct ``icclim.index`` call keeps this fallback and now warns.
 
    -  Before: when a dataset had exactly one data variable, every index computed with
       ``icclim.indices`` used it, silently, whatever the index needs. With a dataset that
