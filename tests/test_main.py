@@ -77,6 +77,10 @@ def diagnose_time_frequency(time: xr.DataArray) -> None:
         _ = time.chunks
 
 
+# The percentile indices need a base period (here, the whole stub data).
+BASE_PERIOD = ("2042-01-01", "2046-12-31")
+
+
 class TestIntegration:
     """
     Integration tests.
@@ -301,6 +305,7 @@ class TestIntegration:
             index_name="CD",
             in_files=ds,
             out_file=self.OUTPUT_FILE,
+            base_period_time_range=BASE_PERIOD,
         )
         assert f"icclim version: {icclim_version}" in res.attrs["history"]
         np.testing.assert_array_equal(0, res.CD)
@@ -319,6 +324,7 @@ class TestIntegration:
             index_name="CD",
             in_files=ds,
             out_file=self.OUTPUT_FILE,
+            base_period_time_range=BASE_PERIOD,
         )
 
         assert f"icclim version: {icclim_version}" in res.attrs["history"]
@@ -464,6 +470,7 @@ class TestIntegration:
             index_group=IndexGroupRegistry.HEAT,
             in_files=self.data,
             out_file=self.OUTPUT_FILE,
+            base_period_time_range=BASE_PERIOD,
         )
         for i in HEAT_INDICES:
             assert res[i] is not None
@@ -473,6 +480,7 @@ class TestIntegration:
             index_group="tasmax",
             in_files=self.data,
             out_file=self.OUTPUT_FILE,
+            base_period_time_range=BASE_PERIOD,
         )
         for i in ["SU", "WSDI", "TX90p", "TXx", "CSU", "ID", "TX10p", "TXn"]:
             assert res[i] is not None
@@ -482,6 +490,7 @@ class TestIntegration:
             index_group="tx90p",
             in_files=self.data,
             out_file=self.OUTPUT_FILE,
+            base_period_time_range=BASE_PERIOD,
         )
         for i in ["TX90p"]:
             assert res[i] is not None
@@ -535,6 +544,7 @@ class TestIntegration:
             index_group=IndexGroupRegistry.HEAT | IndexGroupRegistry.SNOW,
             in_files=ds,
             out_file=self.OUTPUT_FILE,
+            base_period_time_range=BASE_PERIOD,
         )
         for i in [
             "SU",
@@ -613,6 +623,7 @@ class TestIntegration:
             out_file=self.OUTPUT_FILE,
             slice_mode=["season", [1, 2, 3]],
             ignore_error=True,
+            base_period_time_range=BASE_PERIOD,
         )
         for i in self.not_spi_indices:
             assert res[i.short_name] is not None
@@ -624,6 +635,7 @@ class TestIntegration:
             out_file=self.OUTPUT_FILE,
             slice_mode=["season", ["07-19", "08-14"]],
             ignore_error=True,
+            base_period_time_range=BASE_PERIOD,
         )
         for i in self.not_spi_indices:
             assert res[i.short_name] is not None
@@ -635,6 +647,7 @@ class TestIntegration:
             out_file=self.OUTPUT_FILE,
             slice_mode=["season", [1, 2, 3]],
             ignore_error=True,
+            base_period_time_range=BASE_PERIOD,
         )
         for i in self.not_spi_indices:
             assert res[i.short_name] is not None
@@ -646,6 +659,7 @@ class TestIntegration:
             out_file=self.OUTPUT_FILE,
             slice_mode=["season", [12, 1, 2, 3]],
             ignore_error=True,
+            base_period_time_range=BASE_PERIOD,
         )
         for i in self.not_spi_indices:
             assert res[i.short_name] is not None
@@ -737,6 +751,7 @@ class TestIntegration:
                 in_files=ds,
                 out_file=self.OUTPUT_FILE,
                 ignore_error=False,
+                base_period_time_range=BASE_PERIOD,
             )
 
     def test_index_tr(self) -> None:
@@ -774,6 +789,7 @@ class TestIntegration:
             out_file=self.OUTPUT_FILE,
             slice_mode="year",
             save_thresholds=True,
+            base_period_time_range=BASE_PERIOD,
         ).load()
         # 75th per is 2e-05
         # 50% of precip are due to the precip above the 75th percentile
@@ -2049,6 +2065,7 @@ class TestIntegration:
             threshold=build_threshold(value=[10, 99], operator=">=", unit="doy_per"),
             slice_mode="month",
             save_thresholds=True,
+            base_period_time_range=BASE_PERIOD,
         ).compute()
         assert res.count_occurrences.attrs[UNITS_KEY] == "d"
         assert res.count_occurrences.isel(time=0).sel(percentiles=10) == 31
@@ -2069,6 +2086,7 @@ class TestIntegration:
             ),
             slice_mode="month",
             save_thresholds=True,
+            base_period_time_range=BASE_PERIOD,
         ).compute()
         assert res.count_occurrences.attrs[UNITS_KEY] == "d"
         assert res.count_occurrences.isel(time=0).sel(percentiles=10) == 31

@@ -49,12 +49,14 @@ Recommended generic equivalent:
    result = icclim.max_consecutive_occurrence(
        in_files="netcdf_files/tasmin.nc",
        var_name="tasmin",
-       threshold="< 5 doy_per",
+       threshold=build_threshold(
+           "< 5 doy_per",
+           reference_period=[
+               datetime.datetime(1991, 1, 1),
+               datetime.datetime(1999, 12, 31),
+           ],
+       ),
        slice_mode="YS",
-       base_period_time_range=[
-           datetime.datetime(1991, 1, 1),
-           datetime.datetime(1999, 12, 31),
-       ],
        time_range=[
            datetime.datetime(1991, 1, 1),
            datetime.datetime(2010, 12, 31),

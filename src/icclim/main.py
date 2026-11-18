@@ -31,7 +31,9 @@ from icclim._core.climate_variable import (
     build_climate_vars,
 )
 from icclim._core.constants import (
+    DEFAULT_DOY_WINDOW,
     ICCLIM_REFERENCE,
+    PERCENTILE_AS_OUTPUT,
     RESAMPLE_METHOD,
     UNITS_KEY,
 )
@@ -224,6 +226,23 @@ def _compute_indices(
     indices = _get_ecad_indices_of_group(index_group)
     out_file = kwargs.get("out_file")
     index_kwargs = _build_indices_call_kwargs(kwargs)
+    if not ignore_error:
+        # Fail before any index is built when one of them needs a base period.
+        for standard_index in indices:
+            _require_base_period_for_percentiles(
+                index_name=standard_index,
+                threshold=index_kwargs.get("threshold"),
+                reference_period=_get_reference_period(
+                    index_kwargs.get("base_period_time_range")
+                ),
+                doy_window_width=index_kwargs.get(
+                    "doy_window_width", DEFAULT_DOY_WINDOW
+                ),
+                only_leap_years=index_kwargs.get("only_leap_years", False),
+                interpolation=index_kwargs.get(
+                    "interpolation", QuantileInterpolationRegistry.MEDIAN_UNBIASED
+                ),
+            )
     acc = []
     for standard_index in indices:
         log.info("Computing index %s", standard_index.short_name)
@@ -490,10 +509,12 @@ def index(
         The dates can either be given as instance of datetime.datetime or as string
         values.
         It is used either:
-        #. to compute percentiles if threshold is filled.
-        When missing, the studied period is used to compute percentiles.
-        The study period is either the dataset filtered by `time_range` or the whole
-        dataset if `time_range` is missing.
+        #. to compute percentiles if threshold is filled. It is required for the ECA&D
+        percentile indices (such as TX90p, R95p, WSDI), for the DCSC percentile indices
+        (TX10, TX90, TN10, TN90, R99, PFL90, FF98) and for the generic indicators with a
+        percentile threshold: when missing, an `InvalidIcclimArgumentError` is raised.
+        The ECA&D convention is a 30-year base period such as
+        ``["1961-01-01", "1990-12-31"]``.
         For day of year percentiles (doy_per), on extreme percentiles the
         overlapping period between `base_period_time_range` and the study period is
         bootstrapped.
@@ -716,6 +737,15 @@ def index(
             save_percentile=save_percentile,
             window_width=window_width,
         )
+        if normalized_request.legacy_user_index is None:
+            _require_base_period_for_percentiles(
+                index_name=normalized_request.index_name,
+                threshold=threshold,
+                reference_period=_get_reference_period(base_period_time_range),
+                doy_window_width=normalized_request.doy_window_width,
+                only_leap_years=only_leap_years,
+                interpolation=interpolation,
+            )
         config = _build_config_from_request(
             in_files=in_files,
             var_name=var_name,
@@ -1141,7 +1171,7 @@ def _parse_threshold(
     interpolation: QuantileInterpolation,
 ) -> Threshold | Sequence[Threshold] | None:
     if isinstance(threshold, Threshold):
-        return threshold
+        return _with_request_reference_period(threshold, reference_period)
     if isinstance(threshold, (str, dict)):
         return _build_request_threshold(
             threshold,
@@ -1333,6 +1363,106 @@ def _build_standard_index_config(
         allow_partial_final_period=allow_partial_final_period,
         warn_on_missing_periods=warn_on_missing_periods,
     )
+
+
+def _require_base_period_for_percentiles(
+    *,
+    index_name: str | GenericIndicator | StandardIndex,
+    threshold: str | Threshold | Sequence[str | Threshold] | None,
+    reference_period: Sequence[str] | None,
+    doy_window_width: int,
+    only_leap_years: bool,
+    interpolation: str | QuantileInterpolation,
+) -> None:
+    """
+    Require a base period when a percentile threshold has to be computed.
+
+    Without a base period, the percentiles are computed on the whole original dataset
+    and not on the studied period (``time_range``): the result then depends on how
+    much data the file holds. The check only reads the request (it opens no data) and
+    is decided from the thresholds of the index: a percentile threshold that is not
+    prepared yet and has no reference period needs a base period. The indicators that
+    compute the requested percentile of the studied data (``percentile``, qualifier
+    ``PERCENTILE_AS_OUTPUT``) have no reference period. The SPI, which raises its own
+    error, and the legacy ``user_index`` are not changed.
+    """
+    indicator_config = _parse_indicator_config(index_name, None, threshold)
+    if PERCENTILE_AS_OUTPUT in getattr(indicator_config.indicator, "qualifiers", ()):
+        return
+    parsed_threshold = _parse_threshold(
+        indicator_config.threshold,
+        doy_window_width=doy_window_width,
+        reference_period=reference_period,
+        only_leap_years=only_leap_years,
+        interpolation=QuantileInterpolationRegistry.lookup(interpolation),
+    )
+    if not any(
+        percentile.reference_period is None and not percentile.is_ready
+        for percentile in _percentile_thresholds(parsed_threshold)
+    ):
+        return
+    standard_index = indicator_config.standard_index
+    if standard_index is not None:
+        msg = (
+            f"{standard_index.short_name} is computed with a percentile threshold,"
+            " which needs a base period. Pass `base_period_time_range`, for example"
+            ' `base_period_time_range=["1961-01-01", "1990-12-31"]`.'
+        )
+    else:
+        msg = (
+            f"{indicator_config.indicator_name} is computed with a percentile"
+            " threshold, which needs a base period. Pass `base_period_time_range` to"
+            " `icclim.index`, for example"
+            ' `base_period_time_range=["1961-01-01", "1990-12-31"]`, or build the'
+            ' threshold with a reference period, for example `build_threshold("> 90'
+            ' doy_per", reference_period=["1961-01-01", "1990-12-31"])`.'
+        )
+    raise InvalidIcclimArgumentError(msg)
+
+
+def _with_request_reference_period(
+    threshold: Threshold,
+    reference_period: Sequence[dt.datetime | str] | None,
+) -> Threshold:
+    """Give ``base_period_time_range`` to the percentiles that have no reference."""
+    if reference_period is None:
+        return threshold
+    targets = [
+        percentile
+        for percentile in _percentile_thresholds(threshold)
+        if percentile.reference_period is None and not percentile.is_ready
+    ]
+    if not targets:
+        return threshold
+    from copy import deepcopy  # noqa: PLC0415
+
+    threshold = deepcopy(threshold)
+    for percentile in _percentile_thresholds(threshold):
+        if percentile.reference_period is None and not percentile.is_ready:
+            percentile.reference_period = reference_period
+    return threshold
+
+
+def _percentile_thresholds(
+    threshold: Threshold | Sequence[Threshold] | None,
+) -> list[Any]:
+    from icclim._core.generic.threshold.bounded import BoundedThreshold  # noqa: PLC0415
+    from icclim._core.generic.threshold.percentile import (  # noqa: PLC0415
+        PercentileThreshold,
+    )
+
+    if threshold is None:
+        return []
+    if isinstance(threshold, PercentileThreshold):
+        return [threshold]
+    if isinstance(threshold, BoundedThreshold):
+        return [
+            *_percentile_thresholds(threshold.left_threshold),
+            *_percentile_thresholds(threshold.right_threshold),
+        ]
+    if isinstance(threshold, Sequence) and not isinstance(threshold, str):
+        return [p for t in threshold for p in _percentile_thresholds(t)]
+    return []
 
 
 def _parse_legacy_user_index_config(
