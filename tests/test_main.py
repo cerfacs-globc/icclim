@@ -726,6 +726,37 @@ class TestIntegration:
             assert "InvalidIcclimArgumentError: " in matching[0]
             assert "needs the following" in matching[0]
 
+    def test_indices_heat_ignore_error__percentile_indices_need_a_base_period(
+        self,
+    ) -> None:
+        # All the variables are there: only the missing base period makes indices fail.
+        with warnings.catch_warnings(record=True) as caught:
+            warnings.simplefilter("always")
+            res = icclim.indices(
+                index_group="heat",
+                in_files=self.full_data[["tas", "tasmax", "tasmin"]],
+                ignore_error=True,
+            )
+        skipped = {"TG90p", "TN90p", "TX90p", "WSDI"}
+        for name in skipped:
+            assert name not in res.data_vars
+        for name in ("SU", "TR", "TXx", "TNx", "CSU"):
+            assert name in res.data_vars
+        messages = [
+            str(w.message) for w in caught if "Could not compute" in str(w.message)
+        ]
+        assert len(messages) == len(skipped)
+        for name in skipped:
+            matching = [
+                m for m in messages if m.startswith(f"Could not compute {name},")
+            ]
+            assert len(matching) == 1
+            assert "InvalidIcclimArgumentError: " in matching[0]
+            assert "needs a base period" in matching[0]
+        assert all(
+            w.category is UserWarning for w in caught if "Could not" in str(w.message)
+        )
+
     def test_indices_no_warning_when_nothing_is_skipped(self) -> None:
         with warnings.catch_warnings(record=True) as caught:
             warnings.simplefilter("always")
