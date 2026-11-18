@@ -36,9 +36,9 @@ Unreleased
       without a base period) and the legacy ``user_index``.
    -  Measured on 40 years of synthetic daily data with a 10-year ``time_range``, on icclim
       6.4.0, 6.5.0, 7.0.0, 7.0.5, 7.1.0, 7.1.10, 7.2.0, 7.3.7 and 7.4.0: without a base
-      period, ``TX90p`` and ``WSDI`` (6.4.0 to 7.4.0) and ``R95p`` (7.0.5 to 7.4.0) gave a
-      different result from the same call on the data trimmed to the 10 years, because
-      the percentiles came from the 40 years.
+      period, ``TX90p``, ``WSDI`` and ``R95p`` gave a different result from the same call
+      on the data trimmed to the 10 years on every one of these versions, because the
+      percentiles came from the 40 years.
    -  Measured on icclim 7.0.5 with an explicit base period: ``R75p``, ``R75pTOT``,
       ``R95p``, ``R95pTOT``, ``R99p`` and ``R99pTOT`` ignored it (the result was the same
       with and without it), and used it from 7.1.0. For ``CD``, ``CW``, ``WD`` and ``WW``
