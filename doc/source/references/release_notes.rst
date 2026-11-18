@@ -58,6 +58,16 @@ Unreleased
       the long unit names (``1 knot``, ``1 millimeter / day``), which every pint and
       xclim version accepts, and a test parses every threshold of the generated
       functions.
+-  [Fix] ``icclim.indices(..., ignore_error=True)`` now warns about each index it skips
+   (issue #695, PR #703).
+
+   -  Before: the warning was recorded and never shown, so the user could not tell which
+      indices were missing from the result.
+   -  Now: one ``UserWarning`` per skipped index names the index and gives the exception
+      type and message, for example "Could not compute TR, it is skipped
+      (InvalidIcclimArgumentError: ...)".
+   -  Not changed: the returned Dataset, and the behaviour with ``ignore_error=False``,
+      which raises at the first failing index.
 
 *****
 7.4.0
