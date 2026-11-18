@@ -68,7 +68,7 @@ you wish to read from the input file:
         # equivalent to
         icclim.cw(
             in_files=["mean_temperatures.nc", "precipitations.nc"],
-            var_name=["custom_tas", "pr"],
+            var_name=["customTas", "pr"],
             base_period_time_range=["1961-01-01", "1990-12-31"],
         )
 
