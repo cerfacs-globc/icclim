@@ -59,7 +59,7 @@ Unreleased
       xclim version accepts, and a test parses every threshold of the generated
       functions.
 -  [Fix] ``icclim.indices(..., ignore_error=True)`` now warns about each index it skips
-   (issue #695, PR #NNN).
+   (issue #695, PR #703).
 
    -  Before: the warning was recorded and never shown, so the user could not tell which
       indices were missing from the result.
