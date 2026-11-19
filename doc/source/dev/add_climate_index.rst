@@ -188,7 +188,7 @@ Legacy user_index bridge
 ------------------------
 
 The deprecated ``user_index`` API still exists for backward
-compatibility, but it should not guide new code structure.
+compatibility until icclim 7.6.0, but it should not guide new code structure.
 
 For contributors, that means:
 

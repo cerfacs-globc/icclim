@@ -3,7 +3,8 @@ Contain the parsing operations to create a user indices.
 
 .. warning::
    The ``user_index`` API (also known as "custom indices") is **deprecated**
-   and will be removed in a future version.
+   since 7.1.8, emits a ``FutureWarning`` since 7.5.0 and its support ends in
+   icclim 7.6.0.
 """
 
 from __future__ import annotations

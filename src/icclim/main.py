@@ -12,6 +12,7 @@ A convenience function `indices` is also exposed to compute multiple indices at 
 from __future__ import annotations
 
 import datetime as dt
+import inspect
 import json
 import operator
 import os
@@ -20,6 +21,7 @@ import time
 import warnings
 from collections.abc import Callable, Sequence
 from functools import reduce
+from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal, Union
 from warnings import catch_warnings, simplefilter, warn
 
@@ -449,9 +451,10 @@ def index(
     This is the main entry point for icclim.
 
     .. warning::
-       The ``user_index`` parameter is deprecated, treated as a legacy
-       compatibility bridge, and will lose support in a future version.
-       New custom indices should use the generic index API instead.
+       The ``user_index`` parameter is deprecated since 7.1.8, emits a
+       ``FutureWarning`` since 7.5.0, and its support ends in icclim 7.6.0.
+       It is a legacy compatibility bridge. New custom indices should use the
+       generic index API instead (see :ref:`custom_indices_recipes`).
 
     Parameters
     ----------
@@ -601,7 +604,8 @@ def index(
         ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
     user_index: UserIndexDict
         ``optional`` Legacy dictionary-based custom-index configuration.
-        **Deprecated** and kept only for backward compatibility.
+        **Deprecated** since 7.1.8, emits a ``FutureWarning`` since 7.5.0 and its
+        support ends in icclim 7.6.0.
         New code should use the generic index API instead.
         See :ref:`custom_indices_recipes` only to migrate old code.
         Ignored for ECA&D indices.
@@ -869,6 +873,36 @@ _UNSHOWN_WARNINGS: tuple[tuple[str, str], ...] = (
 )
 
 
+_ICCLIM_DIR = Path(__file__).resolve().parent
+
+
+def _stacklevel_outside_icclim() -> int:
+    """
+    Stack level, for ``warnings.warn``, of the first frame outside the icclim package.
+
+    Used so that a warning is reported at the line of the user's code, whether
+    ``icclim.index`` is called directly or through a generated wrapper such as
+    ``icclim.custom_index`` (which adds a frame inside the package).
+    """
+    current = inspect.currentframe()
+    frame = current.f_back if current is not None else None  # calls ``warn``
+    level = 1
+    while frame is not None and Path(frame.f_code.co_filename).resolve().is_relative_to(
+        _ICCLIM_DIR
+    ):
+        frame = frame.f_back
+        level += 1
+    return level
+
+
+USER_INDEX_END_OF_SUPPORT_WARNING = (
+    "`user_index` is deprecated since icclim 7.1.8 and its support ends in icclim "
+    "7.6.0. Use `icclim.index` with `index_name` and thresholds, or the "
+    "`icclim.generic` functions, instead. See the migration recipes of the "
+    "documentation (custom_indices_recipes)."
+)
+
+
 def _is_shown_to_user(item: warnings.WarningMessage) -> bool:
     message = str(item.message)
     return not any(
@@ -888,7 +922,7 @@ def _reemit_recorded_warnings(captured_warnings: list[Any]) -> None:
     for item in captured_warnings:
         warning_key = (item.category, str(item.message))
         if warning_key not in emitted and _is_shown_to_user(item):
-            warn(item.message, item.category, stacklevel=3)
+            warn(item.message, item.category, stacklevel=_stacklevel_outside_icclim())
             emitted.add(warning_key)
 
 
@@ -1785,6 +1819,13 @@ def _normalize_index_request(
     if user_indice is not None:
         log.deprecation_warning(old="user_indice", new="user_index")
         user_index = user_indice
+    if user_index is not None:
+        # One warning per call, reported at the line of the caller's code.
+        warn(
+            USER_INDEX_END_OF_SUPPORT_WARNING,
+            FutureWarning,
+            stacklevel=_stacklevel_outside_icclim(),
+        )
     if transfer_limit_mbytes is not None:
         log.deprecation_warning(old="transfer_limit_Mbytes")
     if save_percentile is not None:

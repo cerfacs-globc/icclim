@@ -6,8 +6,9 @@
 
 .. warning::
 
-   The ``user_index`` API (also known as "custom indices") is **deprecated**
-   and will be removed in a future version.
+   The ``user_index`` API (also known as "custom indices") is **deprecated**:
+   deprecated since 7.1.8, it emits a ``FutureWarning`` since 7.5.0, and its
+   support ends in icclim 7.6.0.
    Please use the :ref:`generic_functions_api` instead, which is more powerful
    and consistent with the rest of icclim.
 
@@ -228,8 +229,9 @@ parameters:
 
 .. warning::
 
-   The ``user_index`` API (also known as "User indices") is **deprecated**
-   and will be removed in a future version.
+   The ``user_index`` API (also known as "User indices") is **deprecated**:
+   deprecated since 7.1.8, it emits a ``FutureWarning`` since 7.5.0, and its
+   support ends in icclim 7.6.0.
    Please switch to the :ref:`generic_indices_recipes` API instead.
 
 .. note::

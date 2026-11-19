@@ -21,7 +21,8 @@ class UserIndexDict(TypedDict, total=False):
 
     .. warning::
        The ``user_index`` API (also known as "custom indices") is **deprecated**
-       and will be removed in a future version.
+       since 7.1.8, emits a ``FutureWarning`` since 7.5.0 and its support ends in
+       icclim 7.6.0.
        Please use the generic indices API instead.
        See :ref:`generic_indices_recipes` for examples.
 

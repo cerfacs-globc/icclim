@@ -47,6 +47,12 @@ DEFAULT_ARGS = {
     "allow_partial_final_period": False,
 }
 
+# user_index is deprecated (issue #719): these tests exercise the legacy bridge and
+# only ignore its own warning, not FutureWarning in general.
+USER_INDEX_WARNING = pytest.mark.filterwarnings(
+    "ignore:`user_index` is deprecated:FutureWarning"
+)
+
 
 def _filter_supported_kwargs(func, kwargs: dict):
     params = inspect.signature(func).parameters
@@ -291,6 +297,7 @@ def test_txx__months_slice_mode() -> None:
         (CalcOperationRegistry.MAX_NUMBER_OF_CONSECUTIVE_EVENTS, 1, 1),
     ],
 )
+@USER_INDEX_WARNING
 def test_custom_index__season_slice_mode(
     operator: CalcOperation,
     expectation_year_1,
@@ -325,6 +332,7 @@ def test_custom_index__season_slice_mode(
         (CalcOperationRegistry.RUN_SUM, 1925.0, 1932.0),
     ],
 )
+@USER_INDEX_WARNING
 def test_custom_index_run_algos__season_slice_mode(
     operator,
     expectation_year_1,
@@ -382,6 +390,7 @@ def test_custom_index_anomaly__error_() -> None:
         )
 
 
+@USER_INDEX_WARNING
 def test_custom_index_anomaly__datetime_ref_period() -> None:
     tas = stub_tas(2.0)
     tas.loc[{"time": "2045-01-01"}] = 300
@@ -407,6 +416,7 @@ def test_custom_index_anomaly__datetime_ref_period() -> None:
     np.testing.assert_almost_equal(res.anomaly.sel(time="2046"), np.nan)
 
 
+@USER_INDEX_WARNING
 def test_custom_index_anomaly__groupby_and_resample_month() -> None:
     tas = stub_tas(2.0)
     tas.loc[{"time": "2045-01-01"}] = 300
@@ -426,6 +436,7 @@ def test_custom_index_anomaly__groupby_and_resample_month() -> None:
     np.testing.assert_almost_equal(res.anomaly.sel(time="2045-01"), 9.61290323)
 
 
+@USER_INDEX_WARNING
 def test_custom_index_anomaly__groupby_and_resample_year() -> None:
     tas = stub_tas(2.0)
     tas.loc[{"time": "2045-01-01"}] = 300
@@ -445,6 +456,7 @@ def test_custom_index_anomaly__groupby_and_resample_year() -> None:
     np.testing.assert_almost_equal(res.anomaly.sel(time="2045"), 0.81643836)
 
 
+@USER_INDEX_WARNING
 def test_custom_index_anomaly__groupby_and_resample_day() -> None:
     tas = stub_tas(2.0)
     tas.loc[{"time": "2045-01-01"}] = 300
@@ -483,6 +495,7 @@ def test_custom_index_anomaly__groupby_and_resample_hour() -> None:
         )
 
 
+@USER_INDEX_WARNING
 def test_custom_index_anomaly__grouby_season() -> None:
     tas = stub_tas(2.0)
     tas.loc[{"time": "2045-01-01"}] = 300
@@ -503,6 +516,7 @@ def test_custom_index_anomaly__grouby_season() -> None:
     np.testing.assert_almost_equal(res.anomaly, 0.96129032)
 
 
+@USER_INDEX_WARNING
 def test_custom_index_anomaly__grouby_month() -> None:
     tas = stub_tas(2.0)
     tas.loc[{"time": "2045-01-01"}] = 300

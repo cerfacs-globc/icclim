@@ -6,8 +6,9 @@
 
 .. warning::
 
-   The ``user_index`` API (also known as "User indices") is **deprecated**
-   and will be removed in a future version.
+   The ``user_index`` API (also known as "User indices") is **deprecated**:
+   deprecated since 7.1.8, it emits a ``FutureWarning`` since 7.5.0, and its
+   support ends in icclim 7.6.0.
    Please switch to the :ref:`generic_indices_recipes` API instead.
 
 This page is a migration aid for older code.
@@ -24,7 +25,9 @@ Status of ``user_index``
 
 The ``user_index`` parameter of ``icclim.index`` (and the ``icclim.custom_index``
 function, which is the generated form of it) is documented as deprecated since icclim
-7.1.8. It still works, without a warning at call time, but it receives no new feature.
+7.1.8. Since 7.5.0 each call emits one ``FutureWarning`` (reported at the line of your
+code), and the support ends in icclim 7.6.0. Until then it still works, but it receives
+no new feature.
 Of the legacy recipes, the ones that use a percentile threshold (``"thresh": "p80"``) or
 ``slice_mode=None`` fail with ``user_index``, the ``anomaly`` operation needs
 ``sampling_method="groupby_ref_and_resample_study"``, and the ``icclim.util.callback``
