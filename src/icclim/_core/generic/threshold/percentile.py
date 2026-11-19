@@ -74,7 +74,6 @@ class PercentileThreshold(Threshold):
     Before that, setting unit has no effect.
     """
 
-    reference_period: Sequence[datetime | str] | None
     doy_window_width: int
     only_leap_years: bool
     interpolation: QuantileInterpolation
@@ -85,6 +84,21 @@ class PercentileThreshold(Threshold):
     _initial_unit: str | None
     _prepare_output_unit: str | None
     _prepare_source_data: DataArray | None
+
+    @property
+    def reference_period(self) -> tuple[datetime | str, ...] | None:
+        """
+        Reference period of the percentiles, as a tuple (start, end), or None.
+
+        A list is converted to a tuple when it is set, so that a threshold built with
+        a list or with a tuple is equal, and so that the reference period can be a part
+        of the key of a cache.
+        """
+        return self._reference_period
+
+    @reference_period.setter
+    def reference_period(self, value: Sequence[datetime | str] | None) -> None:
+        self._reference_period = None if value is None else tuple(value)
 
     @property  # type: ignore[override]
     def unit(self) -> str | None:
