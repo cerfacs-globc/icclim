@@ -76,7 +76,7 @@ Combined thresholds in the base years (known issue)
 
 For a combined percentile threshold (a bounded threshold, thresholds on several
 variables, or ``CD``, ``CW``, ``WD`` and ``WW``), the years inside the base
-period are not computed as the ATBD describes. Each threshold is averaged over
+period are not paired per bootstrap replicate. Each threshold is averaged over
 the bootstrap replicates and the resulting masks are then combined, instead of
 combining the masks of each replicate and averaging the counts afterwards. The
 counts of these years are not paired per replicate, so ``> 90 doy_per AND

@@ -901,8 +901,8 @@ COMBINED_PERCENTILE_BOOTSTRAP_WARNING = (
     "inside the base period, each threshold is averaged over the bootstrap replicates "
     "and the resulting masks are then combined, instead of combining the masks of "
     "each replicate and averaging afterwards. The counts of these years are therefore "
-    "not paired per replicate and can differ from the ATBD procedure. The years "
-    "outside the base period are not affected. See "
+    "not paired per replicate and can differ from combining the thresholds per "
+    "bootstrap replicate. The years outside the base period are not affected. See "
     "https://github.com/cerfacs-globc/icclim/issues/724."
 )
 

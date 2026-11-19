@@ -71,7 +71,10 @@ def _generic(threshold, ds=None, **kwargs):
 
 def test_warning_text_points_to_the_issue():
     assert "not paired per replicate" in COMBINED_PERCENTILE_BOOTSTRAP_WARNING
-    assert "ATBD" in COMBINED_PERCENTILE_BOOTSTRAP_WARNING
+    assert "can differ from combining the thresholds per bootstrap replicate" in (
+        COMBINED_PERCENTILE_BOOTSTRAP_WARNING
+    )
+    assert "ATBD" not in COMBINED_PERCENTILE_BOOTSTRAP_WARNING
     assert "outside the base period are not affected" in (
         COMBINED_PERCENTILE_BOOTSTRAP_WARNING
     )
