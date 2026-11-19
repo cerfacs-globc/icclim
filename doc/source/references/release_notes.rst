@@ -28,7 +28,7 @@ Unreleased
    -  What happens: each threshold is averaged over the bootstrap replicates and the
       resulting masks are then combined, instead of combining the masks of each
       replicate and averaging the counts afterwards. The counts of the years inside the
-      base period can differ from the ATBD procedure, and ``"> 90 doy_per" &
+      base period can differ from combining the thresholds per bootstrap replicate, and ``"> 90 doy_per" &
       "< 90 doy_per"`` does not give zero in these years. The years outside the base
       period are not affected.
    -  Affected versions: measured on 6.4.0, 7.0.0, 7.1.0, 7.1.10 and 7.4.0, which all
