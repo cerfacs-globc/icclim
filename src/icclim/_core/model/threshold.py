@@ -83,6 +83,33 @@ class Threshold(abc.ABC):
     prepare: Callable | None = None
     is_ready: bool | None = None
 
+    def to_dict(self) -> dict[str, Any]:
+        """
+        Describe the threshold with a structured, JSON-serialisable dictionary.
+
+        The description is stable: the same threshold gives the same dictionary in
+        every run (no memory address, no timestamp). It is meant for the provenance
+        record, ``repr`` and ``str`` are not changed.
+        """
+        from icclim._core.generic.bootstrap_capability import (  # noqa: PLC0415
+            classify_threshold_kind,
+        )
+
+        operator = self.operator
+        threshold_min_value = self.threshold_min_value
+        return {
+            "class": type(self).__name__,
+            "operator": getattr(operator, "short_name", operator),
+            "kind": str(getattr(classify_threshold_kind(self), "value", None)),
+            "value": _value_description(self),
+            "unit": self.unit,
+            "threshold_min_value": None
+            if threshold_min_value is None
+            else str(threshold_min_value),
+            "initial_query": self.initial_query,
+            "threshold_var_name": self.threshold_var_name,
+        }
+
     @abc.abstractmethod
     def format_metadata(
         self,
@@ -156,3 +183,20 @@ class Threshold(abc.ABC):
             So we accept to not respected LSP here.
         """
         ...
+
+
+def _value_description(
+    threshold: Threshold,
+) -> float | list[float] | dict[str, Any] | None:
+    """Value of a threshold as plain numbers, or a summary of its array."""
+    if getattr(threshold, "is_ready", True) is False:
+        initial_value = getattr(threshold, "initial_value", None)
+        return None if initial_value is None else [float(v) for v in initial_value]
+    value = getattr(threshold, "value", None)
+    if not isinstance(value, DataArray):
+        return None
+    if value.ndim == 0:
+        return float(value.values)
+    if value.ndim == 1 and value.dims == ("threshold",):
+        return [float(v) for v in value.values]
+    return {"kind": "DataArray", "dims": list(value.dims), "shape": list(value.shape)}

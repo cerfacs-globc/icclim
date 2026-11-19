@@ -1004,6 +1004,9 @@ def _build_index_provenance_user_parameters(
 
 
 def _serialize_provenance_value(value: object) -> object:
+    if isinstance(value, Threshold):
+        # A structured and stable description, not the default object text.
+        value = value.to_dict()
     if value is None or isinstance(value, (str, int, float, bool)):
         return value
     if isinstance(value, dt.datetime):
