@@ -10,7 +10,7 @@ Unreleased
 7.5.0
 *****
 
-date: 2026-11-19
+date: 2026-11-20
 
 
 -  [Fix] A call with a list of paths or of datasets no longer shows warnings that the
