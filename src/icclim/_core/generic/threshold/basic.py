@@ -222,8 +222,24 @@ class BasicThreshold(Threshold):
         )
 
     def __hash__(self) -> int:
-        """Return the hash of the threshold."""
-        return hash((self.operator, self.value, self.unit, self.initial_query))
+        """
+        Return the hash of the threshold.
+
+        It uses the fields compared by ``__eq__``. The value is a ``DataArray``, which
+        is not hashable: its dimensions and shape stand for it (equal arrays have the
+        same dimensions and shape).
+        """
+        value = self.value
+        value_key = None if value is None else (value.dims, value.shape)
+        return hash(
+            (
+                self.operator,
+                value_key,
+                self.unit,
+                self.initial_query,
+                self.threshold_min_value,
+            )
+        )
 
     def __str__(self) -> str:
         """Return a string representation of the threshold."""

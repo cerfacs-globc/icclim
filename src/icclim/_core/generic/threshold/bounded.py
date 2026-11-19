@@ -240,8 +240,15 @@ class BoundedThreshold(Threshold):
         )
 
     def __hash__(self) -> int:
-        """Return the hash of the threshold."""
-        return hash((self.left_threshold, self.right_threshold, self.logical_link))
+        """
+        Return the hash of the threshold.
+
+        ``__eq__`` accepts the left and right thresholds in any order, and compares them
+        by membership, so they cannot be a part of the hash without breaking the rule
+        that equal objects have the same hash. The query and the logical link, which
+        ``__eq__`` compares, are used.
+        """
+        return hash((self.initial_query, self.logical_link))
 
     def _build_thresh(
         self,

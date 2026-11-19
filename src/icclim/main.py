@@ -17,6 +17,7 @@ import operator
 import os
 import sys
 import time
+import warnings
 from collections.abc import Callable, Sequence
 from functools import reduce
 from typing import TYPE_CHECKING, Any, Literal, Union
@@ -201,7 +202,6 @@ def indices(
     If ``output_file`` is part of kwargs, the result is written in a single netCDF
     file, which will contain all the index results of this group.
     """
-    skipped_messages: list[str] = []
     try:
         with catch_warnings(record=True) as captured_warnings:
             ds = _compute_indices(
@@ -209,13 +209,11 @@ def indices(
                 ignore_error=ignore_error,
                 kwargs=kwargs,
                 captured_warnings=captured_warnings,
-                skipped_messages=skipped_messages,
             )
     finally:
-        # The recorded warnings are not shown by the interpreter: re-emit the skipped
-        # indices once the recording is over so that the user sees them.
-        for message in skipped_messages:
-            warn(message, UserWarning, stacklevel=3)
+        # The recorded warnings (the ones of each index and the skipped indices) are
+        # not shown by the interpreter: re-emit them once the recording is over.
+        _reemit_recorded_warnings(captured_warnings)
     return ds
 
 
@@ -225,7 +223,6 @@ def _compute_indices(
     ignore_error: bool,
     kwargs: dict[str, Any],
     captured_warnings: list[Any],
-    skipped_messages: list[str],
 ) -> Dataset:
     simplefilter("always")
     indices = _get_ecad_indices_of_group(index_group)
@@ -269,7 +266,6 @@ def _compute_indices(
                     f"Could not compute {standard_index.short_name}, it is skipped"
                     f" ({type(error).__name__}: {error})."
                 )
-                skipped_messages.append(message)
                 warn(message, UserWarning, stacklevel=2)
             else:
                 raise
@@ -826,7 +822,7 @@ def index(
             captured_warnings=captured_warnings,
         )
         log.ending_message(time.process_time())
-    _reemit_actionable_warnings(captured_warnings)
+    _reemit_recorded_warnings(captured_warnings)
     return result_ds
 
 
@@ -861,17 +857,37 @@ def _resolve_run_index(config: IndexConfig, requested: str | None) -> str:
     return "last"
 
 
-def _reemit_actionable_warnings(captured_warnings: list[Any]) -> None:
+# Warnings that are recorded for the provenance but not shown to the user: noise the
+# user cannot act on. Each entry is (category name, text found in the message).
+_UNSHOWN_WARNINGS: tuple[tuple[str, str], ...] = (
+    # xclim reports it for every input variable without a standard_name attribute,
+    # once per grid of the computation; the missing attribute is the input file's.
+    ("UserWarning", "Variable does not have a `standard_name` attribute."),
+    # pandas deprecation raised by the library's own calendar helpers: the user has
+    # nothing to change in the call, it is fixed inside icclim.
+    ("Pandas4Warning", "DatetimeIndex.dayofyear is deprecated"),
+)
+
+
+def _is_shown_to_user(item: warnings.WarningMessage) -> bool:
+    message = str(item.message)
+    return not any(
+        item.category.__name__ == category and text in message
+        for category, text in _UNSHOWN_WARNINGS
+    )
+
+
+def _reemit_recorded_warnings(captured_warnings: list[Any]) -> None:
+    """Show the recorded warnings to the user, once each, with their category.
+
+    The warnings stay in ``captured_warnings`` for the provenance; the ones listed in
+    ``_UNSHOWN_WARNINGS`` are not shown. The user can silence the others with the
+    standard ``warnings`` filters.
+    """
     emitted: set[tuple[type[Warning], str]] = set()
     for item in captured_warnings:
-        message = str(item.message)
-        warning_key = (item.category, message)
-        if warning_key not in emitted and (
-            "source time series is incomplete" in message
-            or "completeness policy will mask" in message
-            or "will not attach that standard-variable metadata" in message
-            or "Using the only data variable" in message
-        ):
+        warning_key = (item.category, str(item.message))
+        if warning_key not in emitted and _is_shown_to_user(item):
             warn(item.message, item.category, stacklevel=3)
             emitted.add(warning_key)
 

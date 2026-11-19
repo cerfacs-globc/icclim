@@ -509,6 +509,9 @@ The most useful current top-level sections are:
 - ``execution``
 - ``warnings``
 
+The ``warnings`` section lists every warning recorded during the call. They are also
+shown to the user, once each, except a few noisy messages that are only recorded.
+
 Frontend code should treat the schema as explicit and versioned through
 ``schema_version``.
 

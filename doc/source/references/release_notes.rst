@@ -18,7 +18,16 @@ Unreleased
       The key name is unchanged, but the value is an object instead of a string, and
       thresholds in lists and dictionaries are described the same way. The output
       metadata (``history`` and the attributes) is unchanged.
+-  [Behaviour change] The warnings raised inside an ``icclim.index`` call are now shown
+   to the user (issue #717).
 
+   -  Before: the call recorded them for the provenance and showed only a short list,
+      so most of them (for example from xarray, dask or xclim) never reached the user.
+      First affected version: not measured.
+   -  Now: each recorded warning is shown once, with its category, through
+      ``warnings.warn``, so the standard ``warnings`` filters silence it. A few noisy
+      messages the user cannot act on are still only recorded. The provenance content
+      is unchanged. ``icclim.indices`` shows the warnings of its indices the same way.
 -  [Behaviour change] The percentile thresholds now need a base period: the ECA&D and DCSC
    percentile indices and the generic indicators with a percentile threshold raise an
    ``InvalidIcclimArgumentError`` when none is given (issue #697, PR #699).
@@ -125,6 +134,23 @@ Unreleased
       and a tuple give the same threshold and the same result. ``base_period_time_range``
       and ``time_range`` were not affected: they give the same result as a list or a
       tuple in ``icclim.index``, ``icclim.indices`` and the ECA&D functions.
+-  [Fix] ``hash()`` of a threshold no longer raises ``TypeError: unhashable type:
+   'Operator'``, so a threshold can be a dictionary key or a member of a set (issue #716,
+   PR #723).
+
+   -  Before: ``hash(build_threshold("> 90 doy_per"))`` and the same call with a basic or
+      a bounded threshold raised the error, because the operator, the logical link and
+      the quantile interpolation are dataclasses without a hash.
+   -  Measured with ``hash(build_threshold(...))``: 6.4.0, 7.0.0, 7.1.0 and 7.4.0 all fail,
+      with a different error for each of the first two (``unhashable type:
+      'BasicThreshold'``, ``'PercentileThreshold'``, ``'BoundedThreshold'``), and with
+      ``'Operator'`` in 7.1.0 and 7.4.0 (a bounded threshold gives an
+      ``AttributeError`` in 7.1.0). Earlier releases were not measured.
+   -  Now: the hash of each threshold class uses the fields that its equality compares,
+      so equal thresholds have the same hash (this includes a reference period given as a
+      list or as a tuple). The equality of the thresholds is not changed. The ECA&D and
+      DCSC indices that have a threshold can be hashed too; ``GSL``, ``SPI3`` and ``SPI6``
+      cannot yet, their indicator classes define no hash on purpose.
 
 *****
 7.4.0

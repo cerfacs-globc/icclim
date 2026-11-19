@@ -55,6 +55,15 @@ class Operator:
     compute: Callable[[DataArray, DataArray | int | float], DataArray]
     aliases: list[str]
 
+    def __hash__(self) -> int:
+        """
+        Return the hash of the operator.
+
+        A dataclass with ``eq=True`` that is not frozen is unhashable. The hash only
+        uses the text fields: operators that are equal have the same text fields.
+        """
+        return hash((self.short_name, self.long_name, self.standard_name, self.operand))
+
     def __call__(self, *args, **kwargs) -> DataArray:
         """
         Call the computation function of the operator.

@@ -353,15 +353,19 @@ class PercentileThreshold(Threshold):
         )
 
     def __hash__(self) -> int:
-        """Return the hash of the threshold."""
+        """
+        Return the hash of the threshold.
+
+        It uses the fields compared by ``__eq__``, so equal thresholds have the same
+        hash. The reference period is a tuple (see ``reference_period``).
+        """
         return hash(
             (
-                self.operator,
                 self.initial_query,
                 self.doy_window_width,
                 self.only_leap_years,
                 self.interpolation,
-                tuple(self.reference_period) if self.reference_period else None,
+                self.reference_period,
                 self.unit,
                 self.threshold_min_value,
             )
