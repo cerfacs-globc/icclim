@@ -183,7 +183,7 @@ File-based:
  Standard Deviation
 ********************
 
-Interannual variability of daily temperature:
+Standard deviation of the daily temperatures of each year (one value per year):
 
 .. code:: python
 
