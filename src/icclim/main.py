@@ -862,7 +862,7 @@ def _resolve_run_index(config: IndexConfig, requested: str | None) -> str:
 
 
 # Warnings that are recorded for the provenance but not shown to the user: noise the
-# user cannot act on. Each entry is (category name, text found in the message).
+# user cannot act on. Each entry is (category name, beginning of the message).
 _UNSHOWN_WARNINGS: tuple[tuple[str, str], ...] = (
     # xclim reports it for every input variable without a standard_name attribute,
     # once per grid of the computation; the missing attribute is the input file's.
@@ -870,6 +870,16 @@ _UNSHOWN_WARNINGS: tuple[tuple[str, str], ...] = (
     # pandas deprecation raised by the library's own calendar helpers: the user has
     # nothing to change in the call, it is fixed inside icclim.
     ("Pandas4Warning", "DatetimeIndex.dayofyear is deprecated"),
+    # Raised when xarray imports netCDF4 for the first file it opens, on installations
+    # where the compiled netCDF4 was built against another numpy ABI. It depends on
+    # the installation, is harmless and cannot be fixed in the call.
+    (
+        "RuntimeWarning",
+        "numpy.ndarray size changed, may indicate binary incompatibility",
+    ),
+    # cf_xarray warns, when xclim is first imported (inside the call, as the import is
+    # deferred), that matplotlib is not installed. icclim does not use matplotlib.
+    ("UserWarning", "Import(s) unavailable to set up matplotlib support"),
 )
 
 
@@ -906,7 +916,7 @@ USER_INDEX_END_OF_SUPPORT_WARNING = (
 def _is_shown_to_user(item: warnings.WarningMessage) -> bool:
     message = str(item.message)
     return not any(
-        item.category.__name__ == category and text in message
+        item.category.__name__ == category and message.startswith(text)
         for category, text in _UNSHOWN_WARNINGS
     )
 
