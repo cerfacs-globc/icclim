@@ -180,8 +180,7 @@ date: 2026-11-19
       class of the threshold (``'BasicThreshold'``, ``'PercentileThreshold'`` and
       ``'BoundedThreshold'``); 7.1.0 raises ``TypeError: unhashable type: 'Operator'``
       for the basic and the percentile threshold, and an ``AttributeError`` for the
-      bounded threshold (``'BoundedThreshold' object has no attribute 'thresh...'``, the
-      end of the message was not recorded); 7.4.0 raises ``TypeError: unhashable type:
+      bounded threshold; 7.4.0 raises ``TypeError: unhashable type:
       'Operator'`` for the three. Earlier releases were not measured.
    -  Now: the hash of each threshold class uses the fields that its equality compares,
       so equal thresholds have the same hash (this includes a reference period given as a
