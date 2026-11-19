@@ -6,6 +6,22 @@
 Unreleased
 **********
 
+-  [Known issue] Combined percentile thresholds are not paired per bootstrap replicate
+   for the years inside the base period (issue #724). The affected calculations are a
+   bounded threshold (for example ``"> 90 doy_per" & "< 99 doy_per"``), thresholds on
+   several variables, and ``CD``, ``CW``, ``WD`` and ``WW``.
+
+   -  What happens: each threshold is averaged over the bootstrap replicates and the
+      resulting masks are then combined, instead of combining the masks of each
+      replicate and averaging the counts afterwards. The counts of the years inside the
+      base period can differ from the ATBD procedure, and ``"> 90 doy_per" &
+      "< 90 doy_per"`` does not give zero in these years. The years outside the base
+      period are not affected.
+   -  Affected versions: measured on 6.4.0, 7.0.0, 7.1.0, 7.1.10 and 7.4.0, which all
+      combine the thresholds this way; the other releases were not measured.
+   -  Now: icclim emits one warning per call when the bootstrap runs on combined
+      thresholds. The results are not changed.
+
 -  [Behaviour change] The warnings raised inside an ``icclim.index`` call are now shown
    to the user (issue #717).
 

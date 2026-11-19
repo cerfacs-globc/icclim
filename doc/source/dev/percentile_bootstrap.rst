@@ -50,20 +50,41 @@ Fast path currently supports:
 - unfiltered and ``threshold_min_value``-filtered ``cftime`` ``sum``,
   ``average`` and ``fraction_of_total`` reducers through the same exact
   threshold reconstruction and daily union semantics;
-- validated simple one-threshold spell reducers through the compiled
+- simple one-threshold spell reducers through the compiled
   union-mask route on pandas-compatible calendars and the exact eager tiled
   route on ``cftime`` calendars;
-- validated same-variable compound ``cftime`` spells through shared eager
+- same-variable compound ``cftime`` spells through shared eager
   spatial tiles;
-- validated compound count workloads that reuse component-mask
-  composition;
-- validated same-variable bounded scalar guards such as
+- compound count workloads that reuse component-mask composition;
+- same-variable bounded scalar guards such as
   ``> 90 doy_per AND <= 30 degC`` or
   ``> 90 doy_per OR <= 10 degC`` for ``count_occurrences``,
   ``average``, ``sum`` and ``fraction_of_total``;
-- validated same-variable percentile combinations such as
+- same-variable percentile combinations such as
   ``> 95 doy_per OR <= 10 doy_per`` for ``count_occurrences``,
   ``average``, ``sum`` and ``fraction_of_total``.
+
+The combined thresholds above are executed and agree with the reference path,
+but they are **not validated for the years inside the base period**: see
+:ref:`dev_percentile_bootstrap_combined`. The years outside the base period are
+not affected.
+
+.. _dev_percentile_bootstrap_combined:
+
+Combined thresholds in the base years (known issue)
+===================================================
+
+For a combined percentile threshold (a bounded threshold, thresholds on several
+variables, or ``CD``, ``CW``, ``WD`` and ``WW``), the years inside the base
+period are not computed as the ATBD describes. Each threshold is averaged over
+the bootstrap replicates and the resulting masks are then combined, instead of
+combining the masks of each replicate and averaging the counts afterwards. The
+counts of these years are not paired per replicate, so ``> 90 doy_per AND
+< 90 doy_per`` does not give zero in these years. The reference path and the
+optimized paths share this behaviour, so an agreement between them does not
+validate the combined counts. icclim emits one warning per call when this
+applies. Tracked in
+`issue 724 <https://github.com/cerfacs-globc/icclim/issues/724>`_.
 
 Unsupported cases
 =================
@@ -73,7 +94,8 @@ the exact tiled bootstrap path or the reference path, depending on the
 family. The most useful future extensions are likely:
 
 - additional non-Gregorian CF-calendar families beyond the validated count,
-  common value-reducer, simple-spell and same-variable compound-spell routes;
+  common value-reducer and simple-spell routes, and the supported
+  same-variable compound-spell route;
 - additional ``threshold_min_value`` combinations beyond the current
   single day-of-year percentile boundary;
 - broader spell/run-length combinations. Simple pandas-compatible
@@ -81,11 +103,12 @@ family. The most useful future extensions are likely:
   eager tiled route; same-variable compound ``cftime`` spells reuse loaded
   tiles, while aligned multi-variable compounds load and combine corresponding
   tiles from each input;
-- spell/run-length extension beyond the currently validated simple
+- spell/run-length extension beyond the currently supported simple
   day-of-year percentile cases;
-- broader compound percentile shapes beyond the currently validated
+- broader compound percentile shapes beyond the currently supported
   multi-variable component-mask cases, bounded scalar guards and
-  same-variable percentile combinations;
+  same-variable percentile combinations (their base-year counts are not
+  validated, see :ref:`dev_percentile_bootstrap_combined`);
 - additional reducer families that still need their own exact support
   boundary analysis.
 
@@ -199,14 +222,17 @@ The same mask route made the annual ``cftime`` ``average`` field-exact in all
 completed in about 173 seconds locally, compared with about 76 seconds for the
 reference graph and roughly 1,000 seconds for the earlier compiled batch route.
 
-A two-percentile ACCESS-CM2 compound spell was also field-exact in all 38,220
-annual cells. Shared-tile evaluation took about 274 seconds, versus about 424
+A two-percentile ACCESS-CM2 compound spell also matched the reference path in
+all 38,220 annual cells (this compares two paths that share the combination
+semantics described in :ref:`dev_percentile_bootstrap_combined`, so it does not
+validate the base-year counts). Shared-tile evaluation took about 274 seconds, versus about 424
 seconds for two separately materialized eager masks, a 35 percent improvement.
 The local reference graph took about 133 seconds; the eager route is retained
 for bounded, graph-free execution rather than as a faster reference replacement.
 
 An aligned temperature-and-precipitation compound spell on a 65-year ACCESS-CM2
-sample matched all 1,040 annual reference values and coordinates when the
+sample matched all 1,040 annual reference values (same remark: agreement with the
+reference path, not a validation of the base-year counts) and coordinates when the
 generated xclim history string was excluded. It completed eagerly in about 35
 seconds, compared with 57 seconds for the reference route, and returned no dask
 graph.

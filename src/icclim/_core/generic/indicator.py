@@ -42,6 +42,7 @@ if TYPE_CHECKING:
         IndexConfig,
         WmoAggregationKind,
     )
+    from icclim._core.model.threshold import Threshold
     from icclim.frequency import Frequency
 
 
@@ -499,6 +500,7 @@ class GenericIndicator(Indicator):
             "output_freq": config.frequency,
             "source_freq": src_freq,
         }
+        _warn_combined_percentile_bootstrap(config.climate_variables)
         climate_vars_meta = _get_climate_vars_metadata(
             config.climate_variables,
             src_freq,
@@ -891,6 +893,52 @@ def _same_freq_for_all(climate_vars: list[ClimateVariable]) -> bool:
         return True
     freqs = [xr.infer_freq(a.studied_data.time) for a in climate_vars]
     return all(x == freqs[0] for x in freqs[1:])
+
+
+COMBINED_PERCENTILE_BOOTSTRAP_WARNING = (
+    "The percentile bootstrap is applied to a combination of thresholds (a bounded "
+    "threshold, thresholds on several variables, or CD, CW, WD, WW). For the years "
+    "inside the base period, each threshold is averaged over the bootstrap replicates "
+    "and the resulting masks are then combined, instead of combining the masks of "
+    "each replicate and averaging afterwards. The counts of these years are therefore "
+    "not paired per replicate and can differ from the ATBD procedure. The years "
+    "outside the base period are not affected. See "
+    "https://github.com/cerfacs-globc/icclim/issues/724."
+)
+
+
+def _threshold_leaves(threshold: Threshold | None) -> list[Threshold]:
+    """Thresholds that are combined together, a bounded one gives its two parts."""
+    from icclim._core.generic.threshold.bounded import (  # noqa: PLC0415
+        BoundedThreshold,
+    )
+
+    if threshold is None:
+        return []
+    if isinstance(threshold, BoundedThreshold):
+        return _threshold_leaves(threshold.left_threshold) + _threshold_leaves(
+            threshold.right_threshold
+        )
+    return [threshold]
+
+
+def _warn_combined_percentile_bootstrap(climate_vars: list[ClimateVariable]) -> None:
+    """
+    Warn once when the bootstrap runs on thresholds that are combined (issue #724).
+
+    No numerical change: the warning only tells that the in-base counts of combined
+    thresholds are not paired per bootstrap replicate.
+    """
+    leaves = [
+        (c_var, leaf)
+        for c_var in climate_vars
+        for leaf in _threshold_leaves(c_var.threshold)
+    ]
+    if len(leaves) > 1 and any(
+        must_run_bootstrap(c_var.studied_data, leaf, c_var.bootstrap)
+        for c_var, leaf in leaves
+    ):
+        warn(COMBINED_PERCENTILE_BOOTSTRAP_WARNING, UserWarning, stacklevel=2)
 
 
 def _get_climate_vars_metadata(
