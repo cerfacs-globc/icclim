@@ -457,6 +457,11 @@ prioritize:
 These are the fields most likely to matter in support, scientific
 validation and reproducibility views.
 
+``user_parameters.threshold`` is a structured object (operator, value or
+percentiles, unit, kind, reference period, window width, minimum value,
+interpolation, ``only_leap_years``; a bounded threshold gives its logical link and
+the description of each part), the same in every run.
+
 Why the sidecar should remain file-oriented
 -------------------------------------------
 

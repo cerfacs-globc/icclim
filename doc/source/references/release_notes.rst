@@ -21,7 +21,18 @@ Unreleased
       combine the thresholds this way; the other releases were not measured.
    -  Now: icclim emits one warning per call when the bootstrap runs on combined
       thresholds. The results are not changed.
+-  [Fix] The provenance file (``.prov.json``) now records a readable and stable
+   description of the threshold in ``user_parameters.threshold`` (issue #718).
 
+   -  Before: the value was Python's default object text, such as
+      ``<icclim._core.generic.threshold.percentile.PercentileThreshold object at 0x...>``,
+      which changes at every run. First affected version: not measured.
+   -  Now: the value is a structured object (operator, value or percentiles, unit,
+      kind, reference period, window width, minimum value, interpolation,
+      ``only_leap_years``; for a bounded threshold the logical link and each part).
+      The key name is unchanged, but the value is an object instead of a string, and
+      thresholds in lists and dictionaries are described the same way. The output
+      metadata (``history`` and the attributes) is unchanged.
 -  [Behaviour change] The warnings raised inside an ``icclim.index`` call are now shown
    to the user (issue #717).
 
@@ -32,7 +43,6 @@ Unreleased
       ``warnings.warn``, so the standard ``warnings`` filters silence it. A few noisy
       messages the user cannot act on are still only recorded. The provenance content
       is unchanged. ``icclim.indices`` shows the warnings of its indices the same way.
-
 -  [Behaviour change] The percentile thresholds now need a base period: the ECA&D and DCSC
    percentile indices and the generic indicators with a percentile threshold raise an
    ``InvalidIcclimArgumentError`` when none is given (issue #697, PR #699).

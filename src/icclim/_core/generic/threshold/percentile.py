@@ -33,6 +33,7 @@ from icclim._core.model.quantile_interpolation import (
     QuantileInterpolationRegistry,
 )
 from icclim._core.model.threshold import Threshold, ThresholdValueType
+from icclim._core.utils import read_date
 
 if TYPE_CHECKING:
     # Standard library
@@ -200,6 +201,28 @@ class PercentileThreshold(Threshold):
         self._prepare_source_data = None
         self.unit = unit
         self.is_doy_per_threshold = is_doy_per_threshold
+
+    def to_dict(self) -> dict[str, Any]:
+        """
+        Describe the threshold with a structured, JSON-serialisable dictionary.
+
+        On top of the common fields: the percentiles, the reference period (ISO
+        dates), the window width, the interpolation and ``only_leap_years``.
+        """
+        description = super().to_dict()
+        description["percentiles"] = (
+            None if self.initial_value is None else list(self.initial_value)
+        )
+        description["is_day_of_year_percentile"] = self.is_doy_per_threshold
+        description["reference_period"] = (
+            None
+            if self.reference_period is None
+            else [read_date(date).date().isoformat() for date in self.reference_period]
+        )
+        description["doy_window_width"] = self.doy_window_width
+        description["interpolation"] = self.interpolation.name
+        description["only_leap_years"] = self.only_leap_years
+        return description
 
     def prepare(self, studied_data: DataArray) -> None:
         """

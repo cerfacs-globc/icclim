@@ -197,6 +197,21 @@ class BoundedThreshold(Threshold):
             },
         )
 
+    def to_dict(self) -> dict[str, Any]:
+        """
+        Describe the threshold with a structured, JSON-serialisable dictionary.
+
+        The logical link and the description of each of the two parts are given.
+        """
+        return {
+            "class": type(self).__name__,
+            "logical_link": self.logical_link.name,
+            "unit": self.unit,
+            "initial_query": self.initial_query,
+            "left_threshold": self.left_threshold.to_dict(),
+            "right_threshold": self.right_threshold.to_dict(),
+        }
+
     def __eq__(self, other: object) -> bool:
         """
         Check if the comparison threshold is equivalent to `self`.
