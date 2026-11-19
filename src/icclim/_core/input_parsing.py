@@ -217,17 +217,30 @@ def read_dataset(
         #  in different files (was the case with eobs).
         # TODO @bzah: change parallel to True when issue is fixed on netcdf4 (py and C)
         # https://github.com/Unidata/netcdf4-python/issues/1192
-        ds = xr.open_mfdataset(in_files, parallel=False, join="override")
+        #  data_vars and compat are the current defaults of xarray, given explicitly so
+        #  that xarray does not warn about the change of these defaults (the warning
+        #  cannot be acted on by the user).
+        ds = xr.open_mfdataset(
+            in_files,
+            parallel=False,
+            join="override",
+            data_vars="all",
+            compat="no_conflicts",
+        )
     elif is_netcdf_path(in_files):
         ds = xr.open_dataset(in_files)
     elif is_zarr_path(in_files):
         ds = xr.open_zarr(in_files)
     elif isinstance(in_files, (list, tuple)):
+        # compat and join are the current defaults of xarray, given explicitly so that
+        # xarray does not warn about the change of these defaults.
         return xr.merge(
             [
                 read_dataset(in_file, standard_var, var_name[i])
                 for i, in_file in enumerate(in_files)
             ],
+            compat="no_conflicts",
+            join="outer",
         )
     else:
         msg = f"`in_files` format {type(in_files)} was not recognized."
