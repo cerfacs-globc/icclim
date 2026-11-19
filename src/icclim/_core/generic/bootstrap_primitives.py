@@ -9,6 +9,7 @@ These helpers keep bootstrap workflow steps visible in domain language:
 
 from __future__ import annotations
 
+import warnings
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Protocol
 
@@ -220,11 +221,24 @@ def _reopen_file_backed_study(study: DataArray) -> DataArray | None:
         return None
     import xarray as xr  # noqa: PLC0415
 
-    reopened = xr.open_mfdataset(
-        source_files,
-        combine="by_coords",
-        chunks=_bootstrap_reopen_chunks(study),
-    )[variable_name]
+    with warnings.catch_warnings():
+        # The chunks of the re-open are chosen for the bootstrap tiles, not for the
+        # layout of the files: when they do not line up with the stored chunks xarray
+        # warns, and the user cannot act on it. Only this message is ignored.
+        warnings.filterwarnings(
+            "ignore",
+            message="The specified chunks separate the stored chunks",
+            category=UserWarning,
+        )
+        # data_vars and compat are the current defaults of xarray, given explicitly so
+        # that xarray does not warn about the change of these defaults.
+        reopened = xr.open_mfdataset(
+            source_files,
+            combine="by_coords",
+            chunks=_bootstrap_reopen_chunks(study),
+            data_vars="all",
+            compat="no_conflicts",
+        )[variable_name]
     selection = _selection_for_reopened_study(reopened, study)
     if selection:
         reopened = reopened.sel(selection)
