@@ -97,7 +97,7 @@ Unreleased
       which raises at the first failing index.
 -  [Fix] A percentile threshold built with a list as ``reference_period`` no longer fails
    with ``TypeError: unhashable type: 'list'`` when the thresholds of several variables
-   are combined (issue #714, PR #NNN).
+   are combined (issue #714, PR #715).
 
    -  Before: ``icclim.count_occurrences(in_files={"tasmax": {"study": tasmax,
       "thresholds": build_threshold("> 90 doy_per", reference_period=[...])}, "tasmin":
