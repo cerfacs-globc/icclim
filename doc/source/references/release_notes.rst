@@ -6,6 +6,17 @@
 Unreleased
 **********
 
+-  [Behaviour change] The warnings raised inside an ``icclim.index`` call are now shown
+   to the user (issue #717).
+
+   -  Before: the call recorded them for the provenance and showed only a short list,
+      so most of them (for example from xarray, dask or xclim) never reached the user.
+      First affected version: not measured.
+   -  Now: each recorded warning is shown once, with its category, through
+      ``warnings.warn``, so the standard ``warnings`` filters silence it. A few noisy
+      messages the user cannot act on are still only recorded. The provenance content
+      is unchanged. ``icclim.indices`` shows the warnings of its indices the same way.
+
 -  [Behaviour change] The percentile thresholds now need a base period: the ECA&D and DCSC
    percentile indices and the generic indicators with a percentile threshold raise an
    ``InvalidIcclimArgumentError`` when none is given (issue #697, PR #699).
