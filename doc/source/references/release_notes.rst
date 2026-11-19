@@ -127,9 +127,6 @@ date: 2026-11-19
       variable and the index.
    -  Keep the old behaviour: pass ``var_name`` (``icclim.indices(group, in_files=ds,
       var_name="tasmax")``), or call ``icclim.index`` for each index.
-   -  Also changed: a warning of ``icclim.index`` about the only data variable is shown
-      to the user (the warnings of this function are recorded and only a short list of
-      them was shown).
 -  [Fix] ``icclim.dcsc.ff98`` failed with "Could not build threshold from 1 kn" when pint
    does not define the unit symbol ``kn``, which is the case of pint 0.25 (installed with
    xclim 0.56.0, the lowest versions allowed by ``pyproject.toml``) and older (issue #700,
@@ -177,11 +174,15 @@ date: 2026-11-19
    -  Before: ``hash(build_threshold("> 90 doy_per"))`` and the same call with a basic or
       a bounded threshold raised the error, because the operator, the logical link and
       the quantile interpolation are dataclasses without a hash.
-   -  Measured with ``hash(build_threshold(...))``: 6.4.0, 7.0.0, 7.1.0 and 7.4.0 all fail,
-      with a different error for each of the first two (``unhashable type:
-      'BasicThreshold'``, ``'PercentileThreshold'``, ``'BoundedThreshold'``), and with
-      ``'Operator'`` in 7.1.0 and 7.4.0 (a bounded threshold gives an
-      ``AttributeError`` in 7.1.0). Earlier releases were not measured.
+   -  Measured with ``hash(build_threshold(...))`` on a basic threshold (``"> 25 degC"``),
+      a percentile threshold (``"> 90 doy_per"``) and a bounded threshold (``">= 18 degC
+      AND <= 30 degC"``): 6.4.0 and 7.0.0 raise ``TypeError: unhashable type`` with the
+      class of the threshold (``'BasicThreshold'``, ``'PercentileThreshold'`` and
+      ``'BoundedThreshold'``); 7.1.0 raises ``TypeError: unhashable type: 'Operator'``
+      for the basic and the percentile threshold, and an ``AttributeError`` for the
+      bounded threshold (``'BoundedThreshold' object has no attribute 'thresh...'``, the
+      end of the message was not recorded); 7.4.0 raises ``TypeError: unhashable type:
+      'Operator'`` for the three. Earlier releases were not measured.
    -  Now: the hash of each threshold class uses the fields that its equality compares,
       so equal thresholds have the same hash (this includes a reference period given as a
       list or as a tuple). The equality of the thresholds is not changed. The ECA&D and
