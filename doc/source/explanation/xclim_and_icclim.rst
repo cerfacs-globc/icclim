@@ -56,7 +56,8 @@ Beside, icclim v5 still provides a way to write **user defined indices**
 using a JSON-like data structure (actually a python dictionary). New
 custom-index work should use the generic index API. The deprecated
 ``icclim.index(user_index=...)`` compatibility bridge can still be used
-for older code. The output metadata is however not as rich as with
+for older code until icclim 7.6.0, where its support ends (it emits a
+``FutureWarning`` since 7.5.0). The output metadata is however not as rich as with
 ECA&D indices.
 
 One of the goal of icclim is also to provide an API which require zero

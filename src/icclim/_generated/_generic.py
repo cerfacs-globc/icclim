@@ -3908,6 +3908,12 @@ def custom_index(
 ) -> Dataset:
     """Compute custom indices using simple operators.
 
+    .. warning::
+       Deprecated since 7.1.8, emits a ``FutureWarning`` since 7.5.0, and its
+       support ends in icclim 7.6.0. Use ``icclim.index`` with ``index_name`` and
+       thresholds, or the ``icclim.generic`` functions, instead (see
+       :ref:`custom_indices_recipes`).
+
     Use the `user_index` parameter to describe how the index should be computed.
     You can find some examples in icclim documentation at :ref:`custom indices`
 

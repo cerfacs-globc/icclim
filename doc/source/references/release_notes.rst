@@ -6,6 +6,20 @@
 Unreleased
 **********
 
+-  [Behaviour change] The support of ``user_index`` ends in icclim 7.6.0 (issue #719).
+
+   -  What changes now: ``icclim.index(user_index=...)``, the ``user_indice`` spelling
+      and the ``icclim.custom_index`` function emit one ``FutureWarning`` per call,
+      reported at the line of your code. The result is not changed, and nothing is
+      removed yet.
+   -  Timeline: deprecated since 7.1.8, warning since 7.5.0, support ends in 7.6.0.
+   -  Migration: use ``icclim.index`` with an ``index_name`` and thresholds, or the
+      generic functions such as ``icclim.count_occurrences``. The migration recipes
+      are on the documentation page "Migrate Deprecated user_index Recipes".
+   -  Also changed: the warnings that icclim re-emits are reported at the line of your
+      code, also when you call a generated function such as ``icclim.custom_index``
+      (before, they were reported inside icclim for these functions).
+
 -  [Known issue] Combined percentile thresholds are not paired per bootstrap replicate
    for the years inside the base period (issue #724). The affected calculations are a
    bounded threshold (for example ``"> 90 doy_per" & "< 99 doy_per"``), thresholds on

@@ -460,8 +460,8 @@ percentage of days (``out_unit`` = "%").
  Custom indices
 ****************
 
-The deprecated ``user_index`` API is described in its legacy migration
-chapter:
+The deprecated ``user_index`` API (support ends in icclim 7.6.0) is described in its
+legacy migration chapter:
 :ref:`custom indices`
 
 .. _table_index_sourcevar_label:
