@@ -95,6 +95,23 @@ Unreleased
       (InvalidIcclimArgumentError: ...)".
    -  Not changed: the returned Dataset, and the behaviour with ``ignore_error=False``,
       which raises at the first failing index.
+-  [Fix] A percentile threshold built with a list as ``reference_period`` no longer fails
+   with ``TypeError: unhashable type: 'list'`` when the thresholds of several variables
+   are combined (issue #714, PR #715).
+
+   -  Before: ``icclim.count_occurrences(in_files={"tasmax": {"study": tasmax,
+      "thresholds": build_threshold("> 90 doy_per", reference_period=[...])}, "tasmin":
+      {...}})`` raised the error when the reference period overlaps the study period,
+      and so did a bounded threshold made of two percentiles. A tuple worked.
+   -  Measured with this call: 7.1.0 gives the same result with a list and a tuple;
+      7.1.10 and 7.4.0 fail with a list and work with a tuple. 7.1.7 fails with a
+      different error for both (``unsupported operand type(s) for &``), so it does not
+      show this problem. The code that fails first appears in 7.1.8, which is not on
+      PyPI: 7.1.10 is the first release measured.
+   -  Now: the reference period of a percentile threshold is stored as a tuple, so a list
+      and a tuple give the same threshold and the same result. ``base_period_time_range``
+      and ``time_range`` were not affected: they give the same result as a list or a
+      tuple in ``icclim.index``, ``icclim.indices`` and the ECA&D functions.
 
 *****
 7.4.0
