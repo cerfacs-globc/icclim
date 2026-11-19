@@ -6,26 +6,31 @@
 Unreleased
 **********
 
--  [Fix] A call with a list of paths no longer shows two warnings of xarray that the user
-   cannot act on (issue #735).
+-  [Fix] A call with a list of paths or of datasets no longer shows warnings that the
+   user cannot act on (issue #735).
 
    -  Before: since the warnings raised inside ``icclim.index`` are shown (issue #717),
       a call with a list of paths showed the ``FutureWarning`` of xarray about the coming
-      change of the default of ``data_vars`` (``'all'`` to ``None``), raised by the
-      ``xarray.open_mfdataset`` call of icclim, and the percentile bootstrap that
-      re-opens the files (for example ``WSDI``, a bounded percentile threshold or
+      change of the defaults of ``data_vars`` (``'all'`` to ``None``) and ``compat``
+      (``'no_conflicts'`` to ``'override'``), and the percentile bootstrap that re-opens
+      the files (for example ``WSDI``, a bounded percentile threshold or
       ``max_consecutive_occurrence`` with a percentile threshold) showed the
       ``UserWarning`` "The specified chunks separate the stored chunks along dimension
-      ...", for chunks that icclim chooses.
+      ...", for chunks that icclim chooses. A list of datasets showed the ``compat``
+      message too. Two import-time messages were also shown: the ``RuntimeWarning``
+      "numpy.ndarray size changed, may indicate binary incompatibility" (raised when
+      xarray imports ``netCDF4``, on some installations) and the ``UserWarning`` "Import(s)
+      unavailable to set up matplotlib support" (from ``cf_xarray``).
    -  Measured: the ``data_vars`` message with xarray 2026.2.0 and 2026.9.0, not with
       2024.11.0 (the lowest supported); the chunk message with xarray 2026.2.0 and
-      2026.9.0 on synthetic files. The message about ``compat`` was reported on real
-      data with xarray 2026.2.0 and was not reproduced on the synthetic files.
+      2026.9.0 on synthetic files.
    -  Now: icclim gives ``data_vars="all"`` and ``compat="no_conflicts"``, which are the
-      current defaults of xarray (also on 2024.11.0), to ``open_mfdataset``, and ignores
-      the chunk message only around its own re-open of the files. The values, the
-      variables and the attributes are not changed, and the other warnings are still
-      shown.
+      current defaults of xarray (also on 2024.11.0), to ``open_mfdataset``, and
+      ``compat="no_conflicts"`` and ``join="outer"`` to the ``xarray.merge`` of a list of
+      datasets, ignores the chunk message only around its own re-open of the files, and
+      keeps the two import-time messages out of the warnings shown (they stay in the
+      provenance file). The values, the variables and the attributes are not changed, and
+      the other warnings are still shown.
 -  [Behaviour change] The support of ``user_index`` ends in icclim 7.6.0 (issue #719).
 
    -  What changes now: ``icclim.index(user_index=...)``, the ``user_indice`` spelling

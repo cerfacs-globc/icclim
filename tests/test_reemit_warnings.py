@@ -88,6 +88,48 @@ def test_unshown_warning_is_recorded_but_not_shown(inner_warnings, tmp_path):
     assert any(NOISE in w["message"] for w in prov["warnings"])
 
 
+REAL_NOISE = [
+    (
+        RuntimeWarning,
+        (
+            "numpy.ndarray size changed, may indicate binary incompatibility. "
+            "Expected 16 from C header, got 96 from PyObject"
+        ),
+    ),
+    (
+        UserWarning,
+        (
+            "Import(s) unavailable to set up matplotlib support...skipping this "
+            "portion of the setup."
+        ),
+    ),
+]
+
+
+@pytest.mark.parametrize(("category", "message"), REAL_NOISE)
+def test_import_noise_is_recorded_but_not_shown(
+    inner_warnings, tmp_path, category, message
+):
+    inner_warnings.append((category, message))
+    out = tmp_path / "out.nc"
+    caught = _recorded(lambda: _su(out_file=str(out)))
+    assert not [w for w in caught if message in str(w.message)]
+    prov = json.loads((tmp_path / "out.prov.json").read_text())
+    assert any(message in w["message"] for w in prov["warnings"])
+
+
+@pytest.mark.parametrize(("category", "message"), REAL_NOISE)
+def test_unshown_warnings_are_matched_by_prefix_and_category(
+    inner_warnings, category, message
+):
+    # The same text inside a longer message, or with another category, is shown.
+    inner_warnings.append((category, f"The library says: {message}"))
+    other = UserWarning if category is RuntimeWarning else RuntimeWarning
+    inner_warnings.append((other, message))
+    caught = _recorded(_su)
+    assert len([w for w in caught if message in str(w.message)]) == 2
+
+
 def test_user_filter_silences_reemitted_warning(inner_warnings):
     inner_warnings.append((UserWarning, INNER))
     with warnings.catch_warnings(record=True) as caught:

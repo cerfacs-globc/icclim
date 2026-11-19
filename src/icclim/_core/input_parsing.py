@@ -232,11 +232,15 @@ def read_dataset(
     elif is_zarr_path(in_files):
         ds = xr.open_zarr(in_files)
     elif isinstance(in_files, (list, tuple)):
+        # compat and join are the current defaults of xarray, given explicitly so that
+        # xarray does not warn about the change of these defaults.
         return xr.merge(
             [
                 read_dataset(in_file, standard_var, var_name[i])
                 for i, in_file in enumerate(in_files)
             ],
+            compat="no_conflicts",
+            join="outer",
         )
     else:
         msg = f"`in_files` format {type(in_files)} was not recognized."

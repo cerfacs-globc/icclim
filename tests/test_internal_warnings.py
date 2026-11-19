@@ -149,3 +149,66 @@ def test_other_warnings_still_reach_the_user(path_list, monkeypatch):
     monkeypatch.setattr(icclim_main, "_run_index_workflow", patched)
     caught = _recorded(lambda: _su(path_list))
     assert len(_messages(caught, message)) == 1
+
+
+def _two_variable_datasets(nan_in_second: bool) -> list[xr.Dataset]:
+    """One dataset per variable, over the same time range, with auxiliary variables."""
+    rng = np.random.default_rng(2)
+    time = pd.date_range("2000-01-01", "2001-12-31")
+    lat = np.arange(4.0)
+    lon = np.arange(5.0)
+    half_day = pd.Timedelta("12h")
+    time_bnds = np.stack([(time - half_day).values, (time + half_day).values], axis=1)
+    datasets = []
+    for k, name in enumerate(("tasmax", "tasmin")):
+        values = 290 + rng.normal(0, 3, (len(time), 4, 5)).astype("float32")
+        lat_bnds = np.stack([lat - 0.5, lat + 0.5], axis=1)
+        if nan_in_second and k == 1:
+            lat_bnds[1, 0] = np.nan
+        datasets.append(
+            xr.Dataset(
+                {
+                    name: (("time", "lat", "lon"), values, {"units": "K"}),
+                    "lat_bnds": (("lat", "bnds"), lat_bnds),
+                    "lon_bnds": (("lon", "bnds"), np.stack([lon - 0.5, lon + 0.5], 1)),
+                    "time_bnds": (("time", "bnds"), time_bnds),
+                },
+                coords={"time": time, "lat": lat, "lon": lon},
+            )
+        )
+    return datasets
+
+
+def _dtr(files):
+    return icclim.index(
+        index_name="DTR",
+        in_files=files,
+        var_name=["tasmax", "tasmin"],
+        slice_mode="year",
+    )
+
+
+@pytest.mark.parametrize("nan_in_second", [False, True], ids=["same", "nan"])
+def test_files_with_different_variables_show_no_xarray_warning(tmp_path, nan_in_second):
+    paths = []
+    for dataset in _two_variable_datasets(nan_in_second):
+        name = next(v for v in dataset.data_vars if v.startswith("tas"))
+        path = tmp_path / f"{name}.nc"
+        dataset.to_netcdf(path)
+        paths.append(str(path))
+    caught = _recorded(lambda: _dtr(paths))
+    assert _messages(caught, COMBINE_DEFAULTS) == []
+
+
+@pytest.mark.parametrize("nan_in_second", [False, True], ids=["same", "nan"])
+def test_list_of_datasets_shows_no_xarray_warning_and_keeps_its_result(
+    nan_in_second,
+):
+    datasets = _two_variable_datasets(nan_in_second)
+    caught = _recorded(lambda: _dtr(datasets))
+    assert _messages(caught, COMBINE_DEFAULTS) == []
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        expected = _dtr(xr.merge(datasets))
+        actual = _dtr(datasets)
+    xr.testing.assert_equal(actual, expected)
