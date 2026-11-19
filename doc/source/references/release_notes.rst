@@ -114,7 +114,7 @@ Unreleased
       tuple in ``icclim.index``, ``icclim.indices`` and the ECA&D functions.
 -  [Fix] ``hash()`` of a threshold no longer raises ``TypeError: unhashable type:
    'Operator'``, so a threshold can be a dictionary key or a member of a set (issue #716,
-   PR #NNN).
+   PR #723).
 
    -  Before: ``hash(build_threshold("> 90 doy_per"))`` and the same call with a basic or
       a bounded threshold raised the error, because the operator, the logical link and
