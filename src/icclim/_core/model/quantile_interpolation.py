@@ -31,6 +31,10 @@ class QuantileInterpolation:
     alpha: float
     beta: float
 
+    def __hash__(self) -> int:
+        """Return the hash of the interpolation (a dataclass with eq is unhashable)."""
+        return hash((self.name, self.alpha, self.beta))
+
 
 class QuantileInterpolationRegistry(Registry[QuantileInterpolation]):
     """
