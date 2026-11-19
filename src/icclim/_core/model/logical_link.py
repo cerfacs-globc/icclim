@@ -33,6 +33,10 @@ class LogicalLink:
     short_name: str
     compute: Callable[[list[DataArray]], DataArray]
 
+    def __hash__(self) -> int:
+        """Return the hash of the logical link, from its text fields."""
+        return hash((self.name, self.standard_name, self.long_name, self.short_name))
+
     def __call__(self, *args, **kwargs) -> DataArray:
         """Compute the logical "and" or "or" of the input data."""
         return self.compute(*args, **kwargs)

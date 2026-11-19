@@ -112,6 +112,23 @@ Unreleased
       and a tuple give the same threshold and the same result. ``base_period_time_range``
       and ``time_range`` were not affected: they give the same result as a list or a
       tuple in ``icclim.index``, ``icclim.indices`` and the ECA&D functions.
+-  [Fix] ``hash()`` of a threshold no longer raises ``TypeError: unhashable type:
+   'Operator'``, so a threshold can be a dictionary key or a member of a set (issue #716,
+   PR #NNN).
+
+   -  Before: ``hash(build_threshold("> 90 doy_per"))`` and the same call with a basic or
+      a bounded threshold raised the error, because the operator, the logical link and
+      the quantile interpolation are dataclasses without a hash.
+   -  Measured with ``hash(build_threshold(...))``: 6.4.0, 7.0.0, 7.1.0 and 7.4.0 all fail,
+      with a different error for each of the first two (``unhashable type:
+      'BasicThreshold'``, ``'PercentileThreshold'``, ``'BoundedThreshold'``), and with
+      ``'Operator'`` in 7.1.0 and 7.4.0 (a bounded threshold gives an
+      ``AttributeError`` in 7.1.0). Earlier releases were not measured.
+   -  Now: the hash of each threshold class uses the fields that its equality compares,
+      so equal thresholds have the same hash (this includes a reference period given as a
+      list or as a tuple). The equality of the thresholds is not changed. The ECA&D and
+      DCSC indices that have a threshold can be hashed too; ``GSL``, ``SPI3`` and ``SPI6``
+      cannot yet, their indicator classes define no hash on purpose.
 
 *****
 7.4.0

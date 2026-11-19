@@ -17,6 +17,15 @@ if TYPE_CHECKING:
     from icclim._core.model.threshold import Threshold
 
 
+def _hashable(value: object) -> object:
+    """Turn the dictionaries and lists of a threshold definition into tuples."""
+    if isinstance(value, dict):
+        return tuple(sorted((key, _hashable(item)) for key, item in value.items()))
+    if isinstance(value, (list, tuple)):
+        return tuple(_hashable(item) for item in value)
+    return value
+
+
 @dataclass
 class StandardIndex:
     """
@@ -88,7 +97,7 @@ class StandardIndex:
         return hash(
             (
                 self.indicator,
-                self.threshold,
+                _hashable(self.threshold),
                 self.output_unit,
                 self.rolling_window_width,
                 self.doy_window_width,
