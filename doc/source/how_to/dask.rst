@@ -69,6 +69,86 @@ Benchmark representative inputs before selecting a production layout.
    data, you will likely need to customize these configurations to your
    needs.
 
+.. _dask_input_data:
+
+*********************************************
+ Practical advice on opening the input data
+*********************************************
+
+Open the data once
+==================
+
+Opening the files can cost more than the computation. When ``in_files`` is a list of
+paths, icclim opens the list with ``xarray.open_mfdataset`` at every call, and
+``icclim.indices`` makes one call per index, so it opens the list once per index. A
+``Dataset`` (or a ``DataArray``) that you open yourself and pass as ``in_files`` is not
+reopened by icclim: open the data once and reuse it.
+
+.. code:: python
+
+   import icclim
+   import xarray as xr
+
+   # Open the files once...
+   ds = xr.open_mfdataset(["tasmax_day.nc", "tasmin_day.nc"])
+
+   # ...then reuse the Dataset, for several indices at once
+   result = icclim.indices(["SU", "TR", "DTR"], in_files=ds, slice_mode="year")
+
+   # or for several calls
+   summer_days = icclim.index(index_name="SU", in_files=ds, slice_mode="year")
+   tropical_nights = icclim.index(index_name="TR", in_files=ds, slice_mode="year")
+
+Measured on one layout and one machine (icclim 7.4.0, xarray 2026.2.0, the daily
+``tasmax`` and ``tasmin`` of CNRM-CM6-1, two files covering 1850-2014, 128 x 256 grid):
+giving icclim the list of the two paths cost about 200 s in ``open_mfdataset`` at every
+call, for a computation of about 4 s. ``icclim.indices`` with 5 indices and the list of
+paths opened the list five times and took 1,034 s in total. The same five indices on a
+Dataset opened once by the user took 202 s for the opening plus about 4 s for all five.
+These numbers come from one layout on one machine. The cost is in opening many or
+merged files, not in the computation of icclim: other layouts, for example 19 annual
+files of one variable, opened in well under a second.
+
+Always give a base period to the percentile indices
+===================================================
+
+The percentile indices (for example ``TX90p``, ``WSDI`` or ``R95p``) need a base period.
+Since icclim 7.5.0 (issue #697) they raise an error without it. Give it with
+``base_period_time_range``, usually a 30-year period such as 1961-1990 (the ECA&D
+convention):
+
+.. code:: python
+
+   result = icclim.index(
+       index_name="TX90p",
+       in_files=ds,
+       var_name="tasmax",
+       slice_mode="year",
+       base_period_time_range=["1961-01-01", "1990-12-31"],
+   )
+
+The base period is explained in :ref:`thresholds_reference`. The generic functions (such
+as ``icclim.count_occurrences``) do not take ``base_period_time_range``: the reference
+period goes in the threshold, ``build_threshold("> 90 doy_per",
+reference_period=[...])``, as shown in :ref:`generic_indices_recipes`.
+
+Chunks when opening the files
+=============================
+
+Measured on the layout above (two files covering 1850-2014, 128 x 256 grid): opening
+the files with ``chunks={"time": 365}`` reduced the opening from about 200 s to about
+10 s, and gave the same results. On other layouts it made no difference. The peak memory
+was not reduced in the tests: it was 2 to 4 GiB for ``TX90p`` with the bootstrap on full
+grids, whatever the opening (see :ref:`dask_auto_versus_native` and
+:ref:`dask_bootstrap_memory` for other measurements).
+
+.. code:: python
+
+   ds = xr.open_mfdataset(["tasmax_day.nc", "tasmin_day.nc"], chunks={"time": 365})
+
+The choice of the chunks is a performance matter: test it on your own data (see also
+:ref:`dask_chunk_policy`).
+
 *********************
  The art of chunking
 *********************
@@ -253,6 +333,8 @@ most 8.5e-4 in absolute value). The remedy is to open the data with other chunks
 rechunk afterwards: chunks defined as one huge chunk cannot be split into a stream of small
 chunks once the data is opened.
 
+.. _dask_auto_versus_native:
+
 Auto versus native chunks
 =========================
 
@@ -321,6 +403,8 @@ RAM is the hard limit and time is the soft one: a computation that is too slow
 finishes, a computation that needs more memory than the machine has is killed. If you
 run out of memory, prefer the option that needs less memory, such as the native chunks in
 the measurement above, or a smaller ``array.chunk-size``, even if it is slower.
+
+.. _dask_bootstrap_memory:
 
 Memory budget of the bootstrap
 ==============================
