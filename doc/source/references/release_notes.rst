@@ -6,6 +6,26 @@
 Unreleased
 **********
 
+-  [Fix] The equality of ``PercentileThreshold`` compares the operator and the
+   percentile(s) (issue #726).
+
+   -  Before: two percentile thresholds built without a query (from precomputed
+      percentiles, or from the class) were equal whatever their operator, their
+      percentile level or their data, so a bounded threshold could not be built from
+      them: ``BoundedThreshold must be built on 2 **different** thresholds``. They also
+      counted as one member of a set or one dictionary key. A threshold built from a
+      query (``"> 90 doy_per"``) was not affected, as the query holds the operator and
+      the value. No computation gave a wrong number because of it.
+   -  Measured: ``build_threshold(operator=">", value=<90th percentiles>)`` and
+      ``build_threshold(operator="<", value=<99th percentiles>)`` compare equal and
+      cannot be combined on 6.4.0, 7.0.0, 7.1.0 and 7.4.0; the first affected version is
+      not measured.
+   -  Now: the equality compares the operator, the percentile level(s) and, for
+      precomputed percentiles, their data (arrays held in memory; lazy arrays are not
+      loaded, they are equal only if they are the same object). The hash uses the
+      operator and the levels, so equal thresholds still have the same hash. The
+      equality of thresholds built from a query is not changed.
+
 *****
 7.5.0
 *****

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, cast
 
+import numpy as np
 import xarray as xr
 from xarray import DataArray, Dataset
 
@@ -343,6 +344,9 @@ class PercentileThreshold(Threshold):
         """
         return (
             isinstance(other, PercentileThreshold)
+            and self.operator == other.operator
+            and self.percentile_levels() == other.percentile_levels()
+            and self._same_percentile_data(other)
             and self.initial_query == other.initial_query
             and self.doy_window_width == other.doy_window_width
             and self.only_leap_years == other.only_leap_years
@@ -352,15 +356,55 @@ class PercentileThreshold(Threshold):
             and self.threshold_min_value == other.threshold_min_value
         )
 
+    def percentile_levels(self) -> tuple[float, ...]:
+        """
+        Percentile(s) of the threshold, for example ``(90.0,)``.
+
+        They come from the requested value, or, for a threshold built from precomputed
+        percentiles, from the ``percentiles`` coordinate of these percentiles.
+        """
+        if self.initial_value is not None:
+            return tuple(float(x) for x in self.initial_value)
+        prepared = getattr(self, "_prepared_value", None)
+        if prepared is None:
+            return ()
+        return tuple(float(x) for x in np.ravel(prepared.coords["percentiles"].values))
+
+    def _same_percentile_data(self, other: PercentileThreshold) -> bool:
+        """
+        Compare the precomputed percentiles of two thresholds built without a request.
+
+        A threshold built from a percentile value has no data to compare. For
+        precomputed percentiles, the same object, or in-memory arrays with the same
+        values, are equal. Lazy (dask) arrays are not loaded to be compared: they are
+        equal only if they are the same object.
+        """
+        if self.initial_value is not None or other.initial_value is not None:
+            return True
+        mine = getattr(self, "_prepared_value", None)
+        theirs = getattr(other, "_prepared_value", None)
+        if mine is None or theirs is None:
+            return mine is theirs
+        if mine is theirs:
+            return True
+        if mine.dims != theirs.dims or mine.shape != theirs.shape:
+            return False
+        if hasattr(mine.data, "chunks") or hasattr(theirs.data, "chunks"):
+            return False
+        return bool(np.array_equal(mine.values, theirs.values, equal_nan=True))
+
     def __hash__(self) -> int:
         """
         Return the hash of the threshold.
 
-        It uses the fields compared by ``__eq__``, so equal thresholds have the same
-        hash. The reference period is a tuple (see ``reference_period``).
+        It uses the fields compared by ``__eq__`` (the percentile data are not a part
+        of the hash), so equal thresholds have the same hash. The reference period is
+        a tuple (see ``reference_period``).
         """
         return hash(
             (
+                self.operator,
+                self.percentile_levels(),
                 self.initial_query,
                 self.doy_window_width,
                 self.only_leap_years,
