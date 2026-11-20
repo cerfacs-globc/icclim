@@ -6,8 +6,15 @@
 Unreleased
 **********
 
+*****
+7.5.0
+*****
+
+date: 2026-11-20
+
+
 -  [Fix] A call with a list of paths or of datasets no longer shows warnings that the
-   user cannot act on (issue #735).
+   user cannot act on (issue #735, PR #736).
 
    -  Before: since the warnings raised inside ``icclim.index`` are shown (issue #717),
       a call with a list of paths showed the ``FutureWarning`` of xarray about the coming
@@ -17,10 +24,9 @@ Unreleased
       ``max_consecutive_occurrence`` with a percentile threshold) showed the
       ``UserWarning`` "The specified chunks separate the stored chunks along dimension
       ...", for chunks that icclim chooses. A list of datasets showed the ``compat``
-      message too. Two import-time messages were also shown: the ``RuntimeWarning``
+      message too. An import-time message was also shown: the ``RuntimeWarning``
       "numpy.ndarray size changed, may indicate binary incompatibility" (raised when
-      xarray imports ``netCDF4``, on some installations) and the ``UserWarning`` "Import(s)
-      unavailable to set up matplotlib support" (from ``cf_xarray``).
+      xarray imports ``netCDF4``, on some installations).
    -  Measured: the ``data_vars`` message with xarray 2026.2.0 and 2026.9.0, not with
       2024.11.0 (the lowest supported); the chunk message with xarray 2026.2.0 and
       2026.9.0 on synthetic files.
@@ -28,10 +34,10 @@ Unreleased
       current defaults of xarray (also on 2024.11.0), to ``open_mfdataset``, and
       ``compat="no_conflicts"`` and ``join="outer"`` to the ``xarray.merge`` of a list of
       datasets, ignores the chunk message only around its own re-open of the files, and
-      keeps the two import-time messages out of the warnings shown (they stay in the
-      provenance file). The values, the variables and the attributes are not changed, and
-      the other warnings are still shown.
--  [Behaviour change] The support of ``user_index`` ends in icclim 7.6.0 (issue #719).
+      keeps the import-time message out of the warnings shown (it stays in the provenance
+      file). The values, the variables and the attributes are not changed, and the other
+      warnings are still shown.
+-  [Behaviour change] The support of ``user_index`` ends in icclim 7.6.0 (issue #719, PR #731).
 
    -  What changes now: ``icclim.index(user_index=...)``, the ``user_indice`` spelling
       and the ``icclim.custom_index`` function emit one ``FutureWarning`` per call,
@@ -44,24 +50,24 @@ Unreleased
    -  Also changed: the warnings that icclim re-emits are reported at the line of your
       code, also when you call a generated function such as ``icclim.custom_index``
       (before, they were reported inside icclim for these functions).
-
 -  [Known issue] Combined percentile thresholds are not paired per bootstrap replicate
-   for the years inside the base period (issue #724). The affected calculations are a
+   for the years inside the base period (issue #724, PR #729 and PR #732; the issue stays
+   open). The affected calculations are a
    bounded threshold (for example ``"> 90 doy_per" & "< 99 doy_per"``), thresholds on
    several variables, and ``CD``, ``CW``, ``WD`` and ``WW``.
 
    -  What happens: each threshold is averaged over the bootstrap replicates and the
       resulting masks are then combined, instead of combining the masks of each
       replicate and averaging the counts afterwards. The counts of the years inside the
-      base period can differ from combining the thresholds per bootstrap replicate, and ``"> 90 doy_per" &
-      "< 90 doy_per"`` does not give zero in these years. The years outside the base
-      period are not affected.
+      base period can differ from combining the thresholds per bootstrap replicate, and
+      ``"> 90 doy_per" & "< 90 doy_per"`` does not give zero in these years. The years
+      outside the base period are not affected.
    -  Affected versions: measured on 6.4.0, 7.0.0, 7.1.0, 7.1.10 and 7.4.0, which all
       combine the thresholds this way; the other releases were not measured.
    -  Now: icclim emits one warning per call when the bootstrap runs on combined
       thresholds. The results are not changed.
 -  [Fix] The provenance file (``.prov.json``) now records a readable and stable
-   description of the threshold in ``user_parameters.threshold`` (issue #718).
+   description of the threshold in ``user_parameters.threshold`` (issue #718, PR #728).
 
    -  Before: the value was Python's default object text, such as
       ``<icclim._core.generic.threshold.percentile.PercentileThreshold object at 0x...>``,
@@ -73,7 +79,7 @@ Unreleased
       thresholds in lists and dictionaries are described the same way. The output
       metadata (``history`` and the attributes) is unchanged.
 -  [Behaviour change] The warnings raised inside an ``icclim.index`` call are now shown
-   to the user (issue #717).
+   to the user (issue #717, PR #727).
 
    -  Before: the call recorded them for the provenance and showed only a short list,
       so most of them (for example from xarray, dask or xclim) never reached the user.
@@ -145,9 +151,6 @@ Unreleased
       variable and the index.
    -  Keep the old behaviour: pass ``var_name`` (``icclim.indices(group, in_files=ds,
       var_name="tasmax")``), or call ``icclim.index`` for each index.
-   -  Also changed: a warning of ``icclim.index`` about the only data variable is shown
-      to the user (the warnings of this function are recorded and only a short list of
-      them was shown).
 -  [Fix] ``icclim.dcsc.ff98`` failed with "Could not build threshold from 1 kn" when pint
    does not define the unit symbol ``kn``, which is the case of pint 0.25 (installed with
    xclim 0.56.0, the lowest versions allowed by ``pyproject.toml``) and older (issue #700,
@@ -195,16 +198,24 @@ Unreleased
    -  Before: ``hash(build_threshold("> 90 doy_per"))`` and the same call with a basic or
       a bounded threshold raised the error, because the operator, the logical link and
       the quantile interpolation are dataclasses without a hash.
-   -  Measured with ``hash(build_threshold(...))``: 6.4.0, 7.0.0, 7.1.0 and 7.4.0 all fail,
-      with a different error for each of the first two (``unhashable type:
-      'BasicThreshold'``, ``'PercentileThreshold'``, ``'BoundedThreshold'``), and with
-      ``'Operator'`` in 7.1.0 and 7.4.0 (a bounded threshold gives an
-      ``AttributeError`` in 7.1.0). Earlier releases were not measured.
+   -  Measured with ``hash(build_threshold(...))`` on a basic threshold (``"> 25 degC"``),
+      a percentile threshold (``"> 90 doy_per"``) and a bounded threshold (``">= 18 degC
+      AND <= 30 degC"``): 6.4.0 and 7.0.0 raise ``TypeError: unhashable type`` with the
+      class of the threshold (``'BasicThreshold'``, ``'PercentileThreshold'`` and
+      ``'BoundedThreshold'``); 7.1.0 raises ``TypeError: unhashable type: 'Operator'``
+      for the basic and the percentile threshold, and an ``AttributeError`` for the
+      bounded threshold; 7.4.0 raises ``TypeError: unhashable type:
+      'Operator'`` for the three. Earlier releases were not measured.
    -  Now: the hash of each threshold class uses the fields that its equality compares,
       so equal thresholds have the same hash (this includes a reference period given as a
       list or as a tuple). The equality of the thresholds is not changed. The ECA&D and
       DCSC indices that have a threshold can be hashed too; ``GSL``, ``SPI3`` and ``SPI6``
       cannot yet, their indicator classes define no hash on purpose.
+-  [Documentation] Documentation examples that did not run, or that had a wrong
+   attribute, syntax or import, are corrected (generic recipes, ECA&D recipes, index API
+   and DCSC pages), and the recipes of the page "Migrate Deprecated user_index Recipes"
+   are rewritten with the current API (issues #698, #708, #710 and #711, PR #706, #709,
+   #712 and #713). No change of the results.
 
 *****
 7.4.0
@@ -397,7 +408,6 @@ date: 2026-11-17
       thresholds are not modified) and only values within 5e-11 of a threshold are
       affected, the values exactly at a threshold in degrees Fahrenheit; data in K or in
       degC are not affected.
-   -  All the indices with a temperature threshold are concerned, ``SU`` included.
    -  Affects the 7.x releases, not changed in 7.3.x.
 -  [fix] The DCSC indices ``PQ90`` and ``PQ99``, and the generic ``percentile``, no longer
    have the placeholder ``"todo"`` as ``standard_name``, ``long_name`` and
@@ -506,8 +516,10 @@ date: 2026-11-17
       60,265 steps, 31.5 GiB, against about 1.5 to 2 GiB with the data given as a list or
       as a dataset with dask chunks.
    -  Measured on 7.3.7 and on master before this PR; earlier versions were not tested.
-   -  The workaround is to pass a list of one path or a dataset opened with
-      ``chunks="auto"``.
+   -  Workaround before 7.4.0 (the problem was measured on 7.3.7; earlier versions were
+      not tested): pass the data as a list of one path, or as a dataset with dask
+      chunks (for example ``chunks="auto"``); both used about 1.5 to 2 GiB in the
+      measurement above.
    -  The results are identical up to floating-point rounding (counts and dates are
       exact).
 
