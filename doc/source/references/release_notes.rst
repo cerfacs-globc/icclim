@@ -26,6 +26,21 @@ Unreleased
       loaded, they are equal only if they are the same object). The hash uses the
       operator and the levels, so equal thresholds still have the same hash. The
       equality of thresholds built from a query is not changed.
+-  [Fix] The keyword arguments of ``build_threshold`` are no longer dropped when the
+   threshold is a bounded query string (issue #725).
+
+   -  Before: ``build_threshold("> 90 doy_per AND < 99 doy_per", reference_period=[...])``
+      gave two percentile thresholds with no reference period, and so did the other
+      keyword arguments (``doy_window_width``, ``interpolation``, ``only_leap_years`` and
+      ``threshold_min_value``). A computation with such a threshold failed with "needs a
+      base period". The list form (``thresholds=[...]``) kept them.
+   -  Measured on 6.4.0, 7.0.0, 7.1.0, 7.4.0 and 7.5.0 (the 7.5.0 result was taken on
+      master 11d0546c, which differs from the 7.5.0 release only by three logo SVG
+      files): all of them are affected; earlier releases were not measured.
+   -  Now: the percentile parts of a bounded query get the keyword arguments, as in the
+      list form. The basic parts (for example ``"> 20 degC"``) are not changed, and
+      nothing changes for a query without keyword arguments. The provenance file records
+      the keyword arguments of each part.
 
 *****
 7.5.0

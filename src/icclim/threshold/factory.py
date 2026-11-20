@@ -246,7 +246,14 @@ def _build_threshold_builder_input(
         query, operator, value, unit
     ):
         if _is_bounded_threshold_query(query):
-            return _build_bounded_threshold_input_from_query(query)
+            return _build_bounded_threshold_input_from_query(
+                query,
+                _shared_bounded_threshold_builder_kwargs(
+                    threshold_min_value=threshold_min_value,
+                    offset=offset,
+                    **kwargs,
+                ),
+            )
         return _build_threshold_input_from_query(query, threshold_min_value, kwargs)
     if (
         _is_threshold_list_request(operator, value, unit, thresholds, logical_link)
@@ -432,7 +439,10 @@ def _is_bounded_threshold_query(query: str) -> bool:
     )
 
 
-def _build_bounded_threshold_input_from_query(query: str) -> ThresholdBuilderInput:
+def _build_bounded_threshold_input_from_query(
+    query: str,
+    shared_child_kwargs: ThresholdBuilderInput,
+) -> ThresholdBuilderInput:
     link = None
     split_word = None
     uppered = query.upper()
@@ -455,8 +465,14 @@ def _build_bounded_threshold_input_from_query(query: str) -> ThresholdBuilderInp
     return {
         "initial_query": query,
         "thresholds": (
-            _build_threshold_builder_input(threshs[0]),
-            _build_threshold_builder_input(threshs[1]),
+            _build_threshold_builder_input(
+                threshs[0],
+                **_bounded_child_builder_kwargs(threshs[0], shared_child_kwargs),
+            ),
+            _build_threshold_builder_input(
+                threshs[1],
+                **_bounded_child_builder_kwargs(threshs[1], shared_child_kwargs),
+            ),
         ),
         "logical_link": link,
     }
