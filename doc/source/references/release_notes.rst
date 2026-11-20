@@ -24,10 +24,9 @@ date: 2026-11-20
       ``max_consecutive_occurrence`` with a percentile threshold) showed the
       ``UserWarning`` "The specified chunks separate the stored chunks along dimension
       ...", for chunks that icclim chooses. A list of datasets showed the ``compat``
-      message too. Two import-time messages were also shown: the ``RuntimeWarning``
+      message too. An import-time message was also shown: the ``RuntimeWarning``
       "numpy.ndarray size changed, may indicate binary incompatibility" (raised when
-      xarray imports ``netCDF4``, on some installations) and the ``UserWarning`` "Import(s)
-      unavailable to set up matplotlib support" (from ``cf_xarray``).
+      xarray imports ``netCDF4``, on some installations).
    -  Measured: the ``data_vars`` message with xarray 2026.2.0 and 2026.9.0, not with
       2024.11.0 (the lowest supported); the chunk message with xarray 2026.2.0 and
       2026.9.0 on synthetic files.
@@ -35,9 +34,9 @@ date: 2026-11-20
       current defaults of xarray (also on 2024.11.0), to ``open_mfdataset``, and
       ``compat="no_conflicts"`` and ``join="outer"`` to the ``xarray.merge`` of a list of
       datasets, ignores the chunk message only around its own re-open of the files, and
-      keeps the two import-time messages out of the warnings shown (they stay in the
-      provenance file). The values, the variables and the attributes are not changed, and
-      the other warnings are still shown.
+      keeps the import-time message out of the warnings shown (it stays in the provenance
+      file). The values, the variables and the attributes are not changed, and the other
+      warnings are still shown.
 -  [Behaviour change] The support of ``user_index`` ends in icclim 7.6.0 (issue #719, PR #731).
 
    -  What changes now: ``icclim.index(user_index=...)``, the ``user_indice`` spelling
