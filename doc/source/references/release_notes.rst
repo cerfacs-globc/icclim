@@ -16,10 +16,11 @@ Unreleased
       counted as one member of a set or one dictionary key. A threshold built from a
       query (``"> 90 doy_per"``) was not affected, as the query holds the operator and
       the value. No computation gave a wrong number because of it.
-   -  Measured: ``build_threshold(operator=">", value=<90th percentiles>)`` and
-      ``build_threshold(operator="<", value=<99th percentiles>)`` compare equal and
-      cannot be combined on 6.4.0, 7.0.0, 7.1.0 and 7.4.0; the first affected version is
-      not measured.
+   -  Measured with ``build_threshold(operator=">", value=<90th percentiles>)`` and
+      ``build_threshold(operator="<", value=<99th percentiles>)``, which compare equal
+      and cannot be combined, on 6.4.0, 7.0.0, 7.1.0, 7.4.0 and 7.5.0 (the 7.5.0 result
+      was taken on master 11d0546c, which differs from the 7.5.0 release only by three
+      logo SVG files): all of them are affected; earlier releases were not measured.
    -  Now: the equality compares the operator, the percentile level(s) and, for
       precomputed percentiles, their data (arrays held in memory; lazy arrays are not
       loaded, they are equal only if they are the same object). The hash uses the
