@@ -82,7 +82,10 @@ Opening the files can cost more than the computation. When ``in_files`` is a lis
 paths, icclim opens the list with ``xarray.open_mfdataset`` at every call, and
 ``icclim.indices`` makes one call per index, so it opens the list once per index. A
 ``Dataset`` (or a ``DataArray``) that you open yourself and pass as ``in_files`` is not
-reopened by icclim: open the data once and reuse it.
+reopened by icclim for most indices, so you pay the opening once: open the data once and
+reuse it. The bootstrap of some percentile indices (for example ``WSDI``, or a count
+with a bounded percentile threshold) may read the files again behind a file-backed
+Dataset.
 
 .. code:: python
 
@@ -141,9 +144,9 @@ Chunks when opening the files
 Measured on the first layout above (one file per variable, 1850-2014, 128 x 256 grid):
 opening the files with ``chunks={"time": 365}`` reduced the opening from about 200 s to
 about 10 s, and gave the same results. This option alone was not tested on the other
-layouts. The chunks did not reduce the peak memory in the tests; for memory measurements
-and their configurations see :ref:`dask_auto_versus_native` and
-:ref:`dask_bootstrap_memory`.
+layouts. In these tests, opening with ``chunks={"time": 365}`` did not reduce the peak
+memory; the native chunks and ``"auto"`` do differ in memory, see
+:ref:`dask_auto_versus_native` and :ref:`dask_bootstrap_memory`.
 
 .. code:: python
 
