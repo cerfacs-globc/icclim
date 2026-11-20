@@ -99,15 +99,18 @@ reopened by icclim: open the data once and reuse it.
    summer_days = icclim.index(index_name="SU", in_files=ds, slice_mode="year")
    tropical_nights = icclim.index(index_name="TR", in_files=ds, slice_mode="year")
 
-Measured on one layout and one machine (icclim 7.4.0, xarray 2026.2.0, the daily
-``tasmax`` and ``tasmin`` of CNRM-CM6-1, two files covering 1850-2014, 128 x 256 grid):
+Measured on one machine (icclim 7.4.0, xarray 2026.2.0, the daily ``tasmax`` and
+``tasmin`` of CNRM-CM6-1, one file per variable, both covering 1850-2014, 128 x 256 grid):
 giving icclim the list of the two paths cost about 200 s in ``open_mfdataset`` at every
-call, for a computation of about 4 s. ``icclim.indices`` with 5 indices and the list of
-paths opened the list five times and took 1,034 s in total. The same five indices on a
-Dataset opened once by the user took 202 s for the opening plus about 4 s for all five.
-These numbers come from one layout on one machine. The cost is in opening many or
-merged files, not in the computation of icclim: other layouts, for example 19 annual
-files of one variable, opened in well under a second.
+call, while building the index took about 4 s once the data was open, and the
+computation about 15 s (``SU``, 30 years). ``icclim.indices`` with 5 indices and the
+list of paths opened the list five times and took 1,065 s in total, 1,034 s of them
+before the computation started. The same five indices on a Dataset opened once by the
+user took 236 s in total, 202 s of them for the opening. In these tests the cost came
+from merging files that hold different variables: 19 annual files of one variable
+opened in under a second, two time-split files of one variable in about 0.4 s, while
+two variables over two periods each (four files) took 85 s. Your layout may differ: time
+the opening of your own files first.
 
 Always give a base period to the percentile indices
 ===================================================
@@ -135,12 +138,12 @@ reference_period=[...])``, as shown in :ref:`generic_indices_recipes`.
 Chunks when opening the files
 =============================
 
-Measured on the layout above (two files covering 1850-2014, 128 x 256 grid): opening
-the files with ``chunks={"time": 365}`` reduced the opening from about 200 s to about
-10 s, and gave the same results. On other layouts it made no difference. The peak memory
-was not reduced in the tests: it was 2 to 4 GiB for ``TX90p`` with the bootstrap on full
-grids, whatever the opening (see :ref:`dask_auto_versus_native` and
-:ref:`dask_bootstrap_memory` for other measurements).
+Measured on the first layout above (one file per variable, 1850-2014, 128 x 256 grid):
+opening the files with ``chunks={"time": 365}`` reduced the opening from about 200 s to
+about 10 s, and gave the same results. This option alone was not tested on the other
+layouts. The chunks did not reduce the peak memory in the tests; for memory measurements
+and their configurations see :ref:`dask_auto_versus_native` and
+:ref:`dask_bootstrap_memory`.
 
 .. code:: python
 
