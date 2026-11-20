@@ -46,7 +46,7 @@ def _oracle(tn, tx, time) -> np.ndarray:
 def _data(nan: bool = False):
     rng = np.random.default_rng(11)
     # Means below 10 (no contribution) and above 19 (capped at 9) both happen.
-    seasonal = 12 + 14 * np.sin(2 * np.pi * (TIME.dayofyear.values - 100) / 365)
+    seasonal = 12 + 14 * np.sin(2 * np.pi * (TIME.day_of_year.values - 100) / 365)
     tn = seasonal[:, None] - 4 + rng.uniform(-3, 3, (len(TIME), N_CELLS))
     tx = tn + rng.uniform(4, 12, tn.shape)
     if nan:

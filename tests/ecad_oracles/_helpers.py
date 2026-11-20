@@ -88,7 +88,7 @@ def make_spi_cube(units: str = "mm/day") -> xr.DataArray:
     rng = np.random.default_rng(20261102)
     values = rng.gamma(shape=2.5, scale=1.7, size=(len(time), 2, 2))
     seasonal = 1.0 + 0.35 * np.sin(
-        2 * np.pi * (time.dayofyear.to_numpy() - 20) / 365.25
+        2 * np.pi * (time.day_of_year.to_numpy() - 20) / 365.25
     )
     values *= seasonal[:, None, None]
     values *= np.array([[0.7, 1.0], [1.3, 1.8]])[None, :, :]
@@ -369,7 +369,7 @@ def make_threshold_cubes(
 ) -> xr.Dataset:
     """Create complete hand-checkable threshold/count inputs for 2001--2003."""
     time = pd.date_range("2001-01-01", "2003-12-31", freq="D")
-    doy = time.dayofyear.to_numpy()
+    doy = time.day_of_year.to_numpy()
     tg = 11 + 15 * np.sin(2 * np.pi * (doy - 80) / 365)
     tg = tg[:, None, None] + np.array([[-3.0, 0.0], [2.0, 5.0]])[None, :, :]
     tx = tg + 6
