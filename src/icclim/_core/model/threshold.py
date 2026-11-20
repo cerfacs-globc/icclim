@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import abc
+import os
 from collections.abc import Callable, Sequence
 from typing import TYPE_CHECKING, Any, TypedDict, Union
 
@@ -82,6 +83,9 @@ class Threshold(abc.ABC):
     threshold_var_name: str | None
     prepare: Callable | None = None
     is_ready: bool | None = None
+    # File the threshold was read from, if any. It is only used to describe the
+    # threshold in the provenance: it takes no part in the equality or in the hash.
+    source_file: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
         """
@@ -108,6 +112,7 @@ class Threshold(abc.ABC):
             else str(threshold_min_value),
             "initial_query": self.initial_query,
             "threshold_var_name": self.threshold_var_name,
+            "source_file": self.source_file,
         }
 
     @abc.abstractmethod
@@ -200,3 +205,19 @@ def _value_description(
     if value.ndim == 1 and value.dims == ("threshold",):
         return [float(v) for v in value.values]
     return {"kind": "DataArray", "dims": list(value.dims), "shape": list(value.shape)}
+
+
+def threshold_source_file(value: object) -> str | None:
+    """
+    File a threshold is read from, for the provenance description.
+
+    ``value`` is the value given to a threshold: a path (a string or a path-like), or
+    a Dataset or a DataArray, whose ``encoding["source"]`` is the file it was opened
+    from. It is None for any other value, or when the file is not known.
+    """
+    if isinstance(value, (str, os.PathLike)):
+        return os.fspath(value)
+    if isinstance(value, (Dataset, DataArray)):
+        source = value.encoding.get("source")
+        return None if source is None else str(source)
+    return None

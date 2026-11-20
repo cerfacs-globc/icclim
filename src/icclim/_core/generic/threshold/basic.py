@@ -23,6 +23,7 @@ from icclim._core.input_parsing import (
 from icclim._core.model.threshold import (
     Threshold,
     ThresholdValueType,
+    threshold_source_file,
 )
 from icclim._core.utils import is_number_sequence, snap_converted_temperature
 from icclim.exception import InvalidIcclimArgumentError
@@ -156,6 +157,11 @@ class BasicThreshold(Threshold):
         ) and threshold_min_value is not None:
             msg = "Cannot use threshold_min_value with scalar thresholds."
             raise InvalidIcclimArgumentError(msg)
+        self.source_file = (
+            threshold_source_file(value)
+            if isinstance(value, (str, Dataset, DataArray))
+            else None
+        )
         if (isinstance(value, (str, Dataset)) and is_dataset_path(value)) or isinstance(
             value, Dataset
         ):

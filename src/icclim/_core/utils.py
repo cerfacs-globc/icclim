@@ -10,6 +10,8 @@ import dateparser  # type: ignore[import-untyped]
 from icclim.exception import InvalidIcclimArgumentError
 
 if TYPE_CHECKING:
+    from collections.abc import Sequence
+
     from xarray import DataArray
 
 # Number of decimals kept for a converted temperature (see `snap_converted_temperature`).
@@ -41,6 +43,18 @@ def read_date(in_date: str | datetime) -> datetime:
         )
         raise InvalidIcclimArgumentError(msg)
     return date
+
+
+def to_iso_dates(dates: Sequence[str | datetime] | None) -> list[str] | None:
+    """
+    Write dates as ISO strings ("YYYY-MM-DD"), whatever the format they were given in.
+
+    It is used to record a period (for example a reference period) in the provenance
+    file in one format, for a period given as strings of any format or as datetimes.
+    """
+    if dates is None:
+        return None
+    return [read_date(date).date().isoformat() for date in dates]
 
 
 def is_number_sequence(values: object) -> bool:

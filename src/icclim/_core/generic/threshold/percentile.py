@@ -33,8 +33,12 @@ from icclim._core.model.quantile_interpolation import (
     QuantileInterpolation,
     QuantileInterpolationRegistry,
 )
-from icclim._core.model.threshold import Threshold, ThresholdValueType
-from icclim._core.utils import read_date
+from icclim._core.model.threshold import (
+    Threshold,
+    ThresholdValueType,
+    threshold_source_file,
+)
+from icclim._core.utils import to_iso_dates
 
 if TYPE_CHECKING:
     # Standard library
@@ -164,6 +168,11 @@ class PercentileThreshold(Threshold):
         threshold_var_name: str | None = None,
         **kwargs,  # noqa: ARG002
     ) -> None:
+        self.source_file = (
+            threshold_source_file(value)
+            if isinstance(value, (str, Dataset, DataArray))
+            else None
+        )
         if is_dataset_path(cast("Any", value)) or isinstance(value, Dataset):
             value, is_doy_per_threshold = _build_per_thresh_from_dataset(
                 value=value,
@@ -215,11 +224,7 @@ class PercentileThreshold(Threshold):
             None if self.initial_value is None else list(self.initial_value)
         )
         description["is_day_of_year_percentile"] = self.is_doy_per_threshold
-        description["reference_period"] = (
-            None
-            if self.reference_period is None
-            else [read_date(date).date().isoformat() for date in self.reference_period]
-        )
+        description["reference_period"] = to_iso_dates(self.reference_period)
         description["doy_window_width"] = self.doy_window_width
         description["interpolation"] = self.interpolation.name
         description["only_leap_years"] = self.only_leap_years

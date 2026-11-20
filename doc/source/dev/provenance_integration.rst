@@ -459,8 +459,10 @@ validation and reproducibility views.
 
 ``user_parameters.threshold`` is a structured object (operator, value or
 percentiles, unit, kind, reference period, window width, minimum value,
-interpolation, ``only_leap_years``; a bounded threshold gives its logical link and
-the description of each part), the same in every run.
+interpolation, ``only_leap_years`` and the file the threshold was read from, if any; a
+bounded threshold gives its logical link and the description of each part), the same
+in every run. The reference period is written as ISO dates (``YYYY-MM-DD``), here and
+in ``inputs[].threshold``, whatever the way it was given.
 
 Why the sidecar should remain file-oriented
 -------------------------------------------
