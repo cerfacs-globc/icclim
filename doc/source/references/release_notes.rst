@@ -6,6 +6,21 @@
 Unreleased
 **********
 
+-  [Fix] The keyword arguments of ``build_threshold`` are no longer dropped when the
+   threshold is a bounded query string (issue #725).
+
+   -  Before: ``build_threshold("> 90 doy_per AND < 99 doy_per", reference_period=[...])``
+      gave two percentile thresholds with no reference period, and so did the other
+      keyword arguments (``doy_window_width``, ``interpolation``, ``only_leap_years`` and
+      ``threshold_min_value``). A computation with such a threshold failed with "needs a
+      base period". The list form (``thresholds=[...]``) kept them.
+   -  Measured: the reference period is dropped on 6.4.0, 7.0.0, 7.1.0 and 7.4.0; the
+      first affected version is not measured.
+   -  Now: the percentile parts of a bounded query get the keyword arguments, as in the
+      list form. The basic parts (for example ``"> 20 degC"``) are not changed, and
+      nothing changes for a query without keyword arguments. The provenance file records
+      the keyword arguments of each part.
+
 *****
 7.5.0
 *****
