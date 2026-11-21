@@ -24,6 +24,7 @@ from icclim._core.generic.bootstrap_capability import (
 )
 from icclim._core.generic.threshold.bounded import BoundedThreshold
 from icclim._core.generic.threshold.percentile import PercentileThreshold
+from icclim._core.utils import to_iso_dates
 
 if TYPE_CHECKING:
     from xarray import Dataset
@@ -210,9 +211,8 @@ def describe_threshold(threshold: Threshold | Any) -> dict[str, Any] | None:
         ),
         "value": _serialize_threshold_value(_threshold_value_for_provenance(threshold)),
         "doy_window_width": getattr(threshold, "doy_window_width", None),
-        "reference_period": list(reference_period)
-        if reference_period is not None
-        else None,
+        "source_file": getattr(threshold, "source_file", None),
+        "reference_period": to_iso_dates(reference_period),
         "interpolation": interpolation.__class__.__name__
         if interpolation is not None
         else None,

@@ -6,6 +6,24 @@
 Unreleased
 **********
 
+-  [Fix] The provenance file records the reference period of a threshold in one format
+   and the file a threshold was read from (issue #744, follow-ups of #728).
+
+   -  Before: ``inputs[].threshold.reference_period`` had three formats for the same
+      period: ``"01-01-2000"`` (a threshold made by ``icclim.index`` from
+      ``base_period_time_range``, or a period given in that form),
+      ``"2000-01-01 00:00:00"`` (a period given as datetimes) and ``"2000-01-01"``
+      (a built threshold), while ``user_parameters.threshold`` was always ISO. The file
+      of a threshold read from a file was not recorded, only its dimensions and shape.
+   -  Now: the reference period of every threshold class (and of each part of a bounded
+      threshold) is written as ISO dates, ``"YYYY-MM-DD"``, in ``inputs[].threshold``
+      and in ``user_parameters.threshold``. A threshold read from a file records it in
+      ``source_file``: the path that was given, or, for a Dataset or a DataArray that
+      was opened from a file, the file it was opened from; it is ``null`` otherwise. The
+      file takes no part in the equality or in the hash of a threshold. The output
+      metadata (``history`` and the attributes) is unchanged.
+   -  Measured on 7.5.0 (master at the time): the three formats. The first affected
+      version is not measured.
 -  [Fix] icclim no longer reads ``DatetimeIndex.dayofyear``, which pandas 3.1 deprecates
    (issue #743).
 
@@ -20,7 +38,6 @@ Unreleased
       supported pandas, and still reads ``dayofyear`` of a ``CFTimeIndex``, which has no
       ``day_of_year`` before xarray 2026.9. The results are identical (bit for bit on ``TX90p``, with and without
       ``doy_window_width``, ``TG10p``, ``WSDI``, ``CSDI``, ``CD`` and ``R95p``).
-
 -  [Fix] The equality of ``PercentileThreshold`` compares the operator and the
    percentile(s) (issue #726).
 
