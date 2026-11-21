@@ -13,16 +13,79 @@ Unreleased
 date: 2026-11-21
 
 
--  [Fix] Bounded threshold query strings now pass keyword arguments to both parts
-   (issue #725, PR #739).
--  [Fix] Equality of percentile thresholds now compares the operator and percentile
-   level(s) (issue #726, PR #740).
--  [Fix] The percentile bootstrap no longer emits the pandas ``dayofyear`` deprecation
-   warning (issue #743, PR #745).
--  [Fix] Threshold provenance now records reference periods as ISO dates and records
-   the source file when present (issue #744, PR #746).
--  [Fix] The documentation now advises opening input data once and always providing a
-   base period (PR #741).
+-  [Fix] The provenance file records the reference period of a threshold in one format
+   and the file a threshold was read from (issue #744, follow-ups of #728).
+
+   -  Before: ``inputs[].threshold.reference_period`` had three formats for the same
+      period: ``"01-01-2000"`` (a threshold made by ``icclim.index`` from
+      ``base_period_time_range``, or a period given in that form),
+      ``"2000-01-01 00:00:00"`` (a period given as datetimes) and ``"2000-01-01"``
+      (a built threshold), while ``user_parameters.threshold`` was always ISO. The file
+      of a threshold read from a file was not recorded, only its dimensions and shape.
+   -  Now: the reference period of every threshold class (and of each part of a bounded
+      threshold) is written as ISO dates, ``"YYYY-MM-DD"``, in ``inputs[].threshold``
+      and in ``user_parameters.threshold``. A threshold read from a file records it in
+      ``source_file``: the path that was given, or, for a Dataset or a DataArray that
+      was opened from a file, the file it was opened from; it is ``null`` otherwise. The
+      file takes no part in the equality or in the hash of a threshold. The output
+      metadata (``history`` and the attributes) is unchanged.
+   -  Measured on 7.5.0 (master at the time): the three formats. The first affected
+      version is not measured.
+-  [Fix] icclim no longer reads ``DatetimeIndex.dayofyear``, which pandas 3.1 deprecates
+   (issue #743).
+
+   -  Before: with pandas 3.1.1, the percentile bootstrap (for example ``TX90p``,
+      ``WSDI`` or ``CD``) read ``DatetimeIndex.dayofyear`` in three places and raised
+      the ``Pandas4Warning`` "will be removed in a future version" (removed in pandas 4).
+      The warning was recorded in the provenance file and not shown to the user.
+   -  Measured: the warning appears with pandas 3.1.1, and not with pandas 3.0.1 or
+      2.2.0 (the lowest supported). The first affected version of icclim is not
+      measured.
+   -  Now: icclim reads ``day_of_year`` of a pandas index, which exists on every
+      supported pandas, and still reads ``dayofyear`` of a ``CFTimeIndex``, which has no
+      ``day_of_year`` before xarray 2026.9. The results are identical (bit for bit on ``TX90p``, with and without
+      ``doy_window_width``, ``TG10p``, ``WSDI``, ``CSDI``, ``CD`` and ``R95p``).
+-  [Fix] The equality of ``PercentileThreshold`` compares the operator and the
+   percentile(s) (issue #726).
+
+   -  Before: two percentile thresholds built without a query (from precomputed
+      percentiles, or from the class) were equal whatever their operator, their
+      percentile level or their data, so a bounded threshold could not be built from
+      them: ``BoundedThreshold must be built on 2 **different** thresholds``. They also
+      counted as one member of a set or one dictionary key. A threshold built from a
+      query (``"> 90 doy_per"``) was not affected, as the query holds the operator and
+      the value. No computation gave a wrong number because of it.
+   -  Measured with ``build_threshold(operator=">", value=<90th percentiles>)`` and
+      ``build_threshold(operator="<", value=<99th percentiles>)``, which compare equal
+      and cannot be combined, on 6.4.0, 7.0.0, 7.1.0, 7.4.0 and 7.5.0 (the 7.5.0 result
+      was taken on master 11d0546c, which differs from the 7.5.0 release only by three
+      logo SVG files): all of them are affected; earlier releases were not measured.
+   -  Now: the equality compares the operator, the percentile level(s) and, for
+      precomputed percentiles, their data (arrays held in memory; lazy arrays are not
+      loaded, they are equal only if they are the same object). The hash uses the
+      operator and the levels, so equal thresholds still have the same hash. The
+      equality of thresholds built from a query is not changed.
+-  [Fix] The keyword arguments of ``build_threshold`` are no longer dropped when the
+   threshold is a bounded query string (issue #725).
+
+   -  Before: ``build_threshold("> 90 doy_per AND < 99 doy_per", reference_period=[...])``
+      gave two percentile thresholds with no reference period, and so did the other
+      keyword arguments (``doy_window_width``, ``interpolation``, ``only_leap_years`` and
+      ``threshold_min_value``). A computation with such a threshold failed with "needs a
+      base period". The list form (``thresholds=[...]``) kept them.
+   -  Measured on 6.4.0, 7.0.0, 7.1.0, 7.4.0 and 7.5.0 (the 7.5.0 result was taken on
+      master 11d0546c, which differs from the 7.5.0 release only by three logo SVG
+      files): all of them are affected; earlier releases were not measured.
+   -  Now: the percentile parts of a bounded query get the keyword arguments, as in the
+      list form. The basic parts (for example ``"> 20 degC"``) are not changed, and
+      nothing changes for a query without keyword arguments. The provenance file records
+      the keyword arguments of each part.
+-  [Fix] The documentation explains how to reuse opened input data and provide a base
+   period (PR #741).
+
+   -  Before: the documentation did not include this advice.
+   -  Now: the documentation advises opening the input data once and always providing a
+      base period.
 
 *****
 7.5.0
