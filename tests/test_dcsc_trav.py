@@ -28,7 +28,7 @@ def _cube() -> xr.Dataset:
     """Three years of daily tasmin and tasmax on 2x2 grid points, with gaps."""
     time = pd.date_range("2000-01-01", "2002-12-31", freq="D")
     rng = np.random.default_rng(20261112)
-    phase = 2 * np.pi * (time.dayofyear.to_numpy() - 80) / 365.25
+    phase = 2 * np.pi * (time.day_of_year.to_numpy() - 80) / 365.25
     tas = 12 + 11 * np.sin(phase)[:, None, None]
     tas = (
         tas
