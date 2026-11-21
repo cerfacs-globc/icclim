@@ -80,7 +80,7 @@ date: 2026-11-21
       list form. The basic parts (for example ``"> 20 degC"``) are not changed, and
       nothing changes for a query without keyword arguments. The provenance file records
       the keyword arguments of each part.
--  [Fix] The documentation explains how to reuse opened input data and provide a base
+-  [Doc] The documentation explains how to reuse opened input data and provide a base
    period (PR #741).
 
    -  Before: the documentation did not include this advice.
