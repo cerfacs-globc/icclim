@@ -53,7 +53,7 @@ def _reference_data(variable: str, time: pd.DatetimeIndex) -> np.ndarray:
         abs(hash(variable)) % 2**32 if False else _SEED[variable]
     )
     n = len(time)
-    seasonal = 10 + 10 * np.sin(2 * np.pi * (time.dayofyear.values - 110) / 365)
+    seasonal = 10 + 10 * np.sin(2 * np.pi * (time.day_of_year.values - 110) / 365)
     mean = seasonal[:, None] + rng.normal(0, 3, (n, N_CELLS))
     if variable == "tas":
         return mean

@@ -69,7 +69,7 @@ def _data(nan: bool = False, latitudes=None):
     latitudes = LATITUDES if latitudes is None else latitudes
     rng = np.random.default_rng(7)
     # Cold spring days make some daily terms negative: the ATBD sum has no clipping.
-    seasonal = 10 + 12 * np.sin(2 * np.pi * (TIME.dayofyear.values - 100) / 365)
+    seasonal = 10 + 12 * np.sin(2 * np.pi * (TIME.day_of_year.values - 100) / 365)
     tg = seasonal[:, None] + rng.uniform(-3, 3, (len(TIME), len(latitudes)))
     tx = tg + rng.uniform(2, 8, tg.shape)
     if nan:

@@ -14,6 +14,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, Protocol
 
 import numpy as np
+import pandas as pd
 
 if TYPE_CHECKING:
     from xarray import DataArray
@@ -202,6 +203,19 @@ def _block_slices(
         slice(start, min(size, start + block_size))
         for start in range(0, size, block_size)
     ]
+
+
+def _day_of_year(time: pd.Index) -> np.ndarray | pd.Index:
+    """
+    Day of the year of a time index.
+
+    ``DatetimeIndex.dayofyear`` is deprecated since pandas 3.1, ``day_of_year`` exists
+    on every supported pandas. A ``CFTimeIndex`` only has ``dayofyear`` before xarray
+    2026.9 (and it is not deprecated there).
+    """
+    if isinstance(time, pd.DatetimeIndex):
+        return time.day_of_year
+    return time.dayofyear
 
 
 def _preferred_spatial_block_sizes(study: DataArray) -> dict[str, int]:
@@ -435,7 +449,7 @@ def build_bootstrap_temporal_indexing(
         [len(indices) for indices in output_group_indices],
         dtype=np.int64,
     )
-    source_max_day_of_year = int(reference_time.dayofyear.max())
+    source_max_day_of_year = int(_day_of_year(reference_time).max())
     study_year_max_day_of_year = [
         source_max_day_of_year
         if source_max_day_of_year == LEAP_YEAR_DAY_COUNT
@@ -489,7 +503,7 @@ def build_bootstrap_temporal_indexing(
         year_group_stops=year_group_stops,
         year_max_day_of_years=year_max_day_of_years,
         year_to_reference_index=year_to_reference_index,
-        study_day_of_years=np.asarray(study_time.dayofyear, dtype=np.int64),
+        study_day_of_years=np.asarray(_day_of_year(study_time), dtype=np.int64),
         sample_indices_by_day_of_year=sample_indices_by_day_of_year,
         reference_index_year=reference_index_year,
         reference_index_position=reference_index_position,
@@ -603,7 +617,7 @@ def rolling_sample_index_matrix(
     # interpolates that series onto 366 days. Keep the same source-day basis.
     day_count = 360 if calendar == "360_day" else 365
     sample_indices: dict[int, list[int]] = {doy: [] for doy in range(1, day_count + 1)}
-    day_of_years = np.asarray(time.dayofyear, dtype=np.int64)
+    day_of_years = np.asarray(_day_of_year(time), dtype=np.int64)
     for center, day_of_year in enumerate(day_of_years):
         if day_of_year > day_count:
             continue

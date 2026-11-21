@@ -6,6 +6,21 @@
 Unreleased
 **********
 
+-  [Fix] icclim no longer reads ``DatetimeIndex.dayofyear``, which pandas 3.1 deprecates
+   (issue #743).
+
+   -  Before: with pandas 3.1.1, the percentile bootstrap (for example ``TX90p``,
+      ``WSDI`` or ``CD``) read ``DatetimeIndex.dayofyear`` in three places and raised
+      the ``Pandas4Warning`` "will be removed in a future version" (removed in pandas 4).
+      The warning was recorded in the provenance file and not shown to the user.
+   -  Measured: the warning appears with pandas 3.1.1, and not with pandas 3.0.1 or
+      2.2.0 (the lowest supported). The first affected version of icclim is not
+      measured.
+   -  Now: icclim reads ``day_of_year`` of a pandas index, which exists on every
+      supported pandas, and still reads ``dayofyear`` of a ``CFTimeIndex``, which has no
+      ``day_of_year`` before xarray 2026.9. The results are identical (bit for bit on ``TX90p``, with and without
+      ``doy_window_width``, ``TG10p``, ``WSDI``, ``CSDI``, ``CD`` and ``R95p``).
+
 -  [Fix] The equality of ``PercentileThreshold`` compares the operator and the
    percentile(s) (issue #726).
 
