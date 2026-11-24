@@ -6,6 +6,13 @@
 Unreleased
 **********
 
+*****
+7.5.1
+*****
+
+date: 2026-11-24
+
+
 -  [Fix] The provenance file records the reference period of a threshold in one format
    and the file a threshold was read from (issue #744, follow-ups of #728).
 
@@ -73,6 +80,12 @@ Unreleased
       list form. The basic parts (for example ``"> 20 degC"``) are not changed, and
       nothing changes for a query without keyword arguments. The provenance file records
       the keyword arguments of each part.
+-  [Doc] The documentation explains how to reuse opened input data and provide a base
+   period (PR #741).
+
+   -  Before: the documentation did not include this advice.
+   -  Now: the documentation advises opening the input data once and always providing a
+      base period.
 
 *****
 7.5.0
