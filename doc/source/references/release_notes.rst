@@ -9,28 +9,30 @@ Unreleased
 -  [Fix] In-base years of the percentile count indices are averaged over the bootstrap
    replicates instead of being cast to boolean (issue #753).
 
-   -  Before: for a single percentile threshold, the exceedance of an in-base year is
-      the average over the replicates (a fraction of a day for each day). On the
-      reference path (input not backed by dask) and on the exact path
-      (``ICCLIM_BOOTSTRAP_MODE=safe``) it was cast to boolean, which counted a day as
-      soon as one replicate exceeded the percentile. The count of the in-base years
-      (``count_occurrences``, ``TX90p``, ``TN90p``, ``TG10p``, ``TX10p``, ...) was too
-      high.
+   -  Before: the in-base years of the single-threshold percentile count indices
+      (``count_occurrences``, ``TX90p``, ``TN90p``, ``TG10p``, ``TX10p``, ...) were too
+      high. The exceedance of an in-base year is the average over the bootstrap
+      replicates (a fraction of a day for each day), but it was cast to boolean, so a
+      day counted as soon as it exceeded the percentile in any replicate. This happened
+      with ``slice_mode="month"`` on the default (compiled) path, and with every slice
+      mode when ``ICCLIM_BOOTSTRAP_MODE`` was set to ``default`` or ``safe``.
+      ``slice_mode="year"`` on the default path was correct.
    -  Measured on 7.5.1, on synthetic data (random daily series with a seasonal cycle,
-      base period 1993-1995, one grid cell, ``TX90p`` in days): 56 / 69 / 57 for 1993 /
-      1994 / 1995 on the reference and exact paths, and 43 / 49.5 / 45 on the compiled
-      path (default for dask input), which is the expected average. The first affected
-      version is not measured.
-   -  Now: the fractional exceedance of a single threshold is summed as it is, so the
-      three paths give the same count (up to a fraction of a day around the year
-      boundaries with a 5 day window). The compiled path used the union for every
-      slice mode but ``year`` and now averages the ``month`` mode too (the seasonal slice
-      modes keep the union there). Years
-      outside the base period, non-bootstrap computations, the dtype and the units of
-      the results are unchanged. The spell indices (``max_consecutive_occurrence``,
-      ``sum_of_spell_lengths``, ``WSDI``, ``CSDI``, ...) and the dates of
-      ``date_event`` keep the union of the replicates, and the combination of several
-      thresholds is unchanged (issue #724).
+      base period 1993-1995, one grid cell, ``TX90p`` in days, 1993 / 1994 / 1995):
+      43 / 49.5 / 45 with ``slice_mode="year"`` on the default path (the expected
+      average); 56 / 69 / 57 with ``slice_mode="year"`` and ``ICCLIM_BOOTSTRAP_MODE``
+      set to ``default`` or to ``safe``; and 56 / 69 / 57 for the sum of the 12 months
+      with ``slice_mode="month"`` on the default path. The first affected version is
+      not measured.
+   -  Now: the fractional exceedance of a single threshold is summed as it is, as in the
+      compiled yearly path, for the ``year`` and ``month`` slice modes, whatever the
+      value of ``ICCLIM_BOOTSTRAP_MODE`` (up to a fraction of a day around the year
+      boundaries with a 5 day window). The seasonal slice modes still use the union
+      (issue #756). Years outside the base period, non-bootstrap computations, the dtype
+      and the units of the results are unchanged. The spell indices
+      (``max_consecutive_occurrence``, ``sum_of_spell_lengths``, ``WSDI``, ``CSDI``,
+      ...) and the dates of ``date_event`` keep the union of the replicates by design,
+      and the combination of several thresholds is unchanged (issue #724).
 
 *****
 7.5.1
