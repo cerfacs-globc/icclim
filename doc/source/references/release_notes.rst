@@ -6,6 +6,32 @@
 Unreleased
 **********
 
+-  [Fix] In-base years of the percentile count indices are averaged over the bootstrap
+   replicates instead of being cast to boolean (issue #753).
+
+   -  Before: for a single percentile threshold, the exceedance of an in-base year is
+      the average over the replicates (a fraction of a day for each day). On the
+      reference path (input not backed by dask) and on the exact path
+      (``ICCLIM_BOOTSTRAP_MODE=safe``) it was cast to boolean, which counted a day as
+      soon as one replicate exceeded the percentile. The count of the in-base years
+      (``count_occurrences``, ``TX90p``, ``TN90p``, ``TG10p``, ``TX10p``, ...) was too
+      high.
+   -  Measured on 7.5.1, on synthetic data (random daily series with a seasonal cycle,
+      base period 1993-1995, one grid cell, ``TX90p`` in days): 56 / 69 / 57 for 1993 /
+      1994 / 1995 on the reference and exact paths, and 43 / 49.5 / 45 on the compiled
+      path (default for dask input), which is the expected average. The first affected
+      version is not measured.
+   -  Now: the fractional exceedance of a single threshold is summed as it is, so the
+      three paths give the same count (up to a fraction of a day around the year
+      boundaries with a 5 day window). The compiled path used the union for every
+      slice mode but ``year`` and now averages the ``month`` mode too (the seasonal slice
+      modes keep the union there). Years
+      outside the base period, non-bootstrap computations, the dtype and the units of
+      the results are unchanged. The spell indices (``max_consecutive_occurrence``,
+      ``sum_of_spell_lengths``, ``WSDI``, ``CSDI``, ...) and the dates of
+      ``date_event`` keep the union of the replicates, and the combination of several
+      thresholds is unchanged (issue #724).
+
 *****
 7.5.1
 *****
