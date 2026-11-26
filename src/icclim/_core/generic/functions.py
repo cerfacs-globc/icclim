@@ -274,6 +274,7 @@ def count_occurrences(
         climate_vars,
         resample_freq,
         logical_link,
+        average_single_threshold=not date_event,
     )
     result = reducer_op(
         combined_exceedance_mask.resample(time=resample_freq.pandas_freq)
@@ -2242,10 +2243,9 @@ def _compute_safe_tiled_count_occurrences_with_max_cells(
             freq=resample_freq.pandas_freq,
             bootstrap=True,
         )
-        tile_exceedance_mask = tile_exceedance_mask.fillna(False).astype(
-            bool,
-            copy=False,
-        )
+        # The bootstrapped mask is the average of the replicate exceedances: it
+        # may be fractional and must be summed as such, not cast to boolean.
+        tile_exceedance_mask = tile_exceedance_mask.fillna(0)
         tile_result = tile_exceedance_mask.resample(time=resample_freq.pandas_freq).sum(
             dim="time"
         )
@@ -2289,9 +2289,11 @@ def _compute_fast_tiled_count_occurrences(
     for tile_indexers in _iter_spatial_tiles(climate_var.studied_data, max_cells):
         tile_study = climate_var.studied_data.isel(tile_indexers)
         tile_threshold = _slice_threshold_for_tile(threshold, tile_indexers)
+        # The seasonal slice modes are not supported by the averaged count (the
+        # exact path does not support them either): they keep the union.
         reducer = (
             compute_doy_percentile_bootstrap_count
-            if resample_freq == FrequencyRegistry.YEAR
+            if resample_freq in (FrequencyRegistry.YEAR, FrequencyRegistry.MONTH)
             else compute_doy_percentile_bootstrap_union_exceedance_count
         )
         tile_result = reducer(
@@ -3622,7 +3624,15 @@ def _compute_combined_exceedance_mask(
     logical_link: LogicalLink,
     *,
     force_reference_bootstrap: bool = False,
+    average_single_threshold: bool = False,
 ) -> DataArray:
+    """
+    Combine the exceedance masks of the climate variables with the logical link.
+
+    With ``average_single_threshold`` a lone mask is returned without the
+    boolean cast of the logical link, so that the average of the bootstrap
+    replicates is kept. Run-length reductions leave it off and use the union.
+    """
     exceedance_masks = []
     for climate_var in climate_vars:
         if climate_var.threshold is None:
@@ -3637,6 +3647,8 @@ def _compute_combined_exceedance_mask(
                 force_reference_bootstrap=force_reference_bootstrap,
             ).squeeze()
         )
+    if average_single_threshold and len(exceedance_masks) == 1:
+        return exceedance_masks[0].fillna(0)
     return logical_link(exceedance_masks)
 
 
