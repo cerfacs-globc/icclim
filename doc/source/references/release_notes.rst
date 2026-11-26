@@ -6,16 +6,29 @@
 Unreleased
 **********
 
--  [perf] The compiled percentile bootstrap derives the percentile of each replicate
-   from a sorted copy of the sample, and its loop is spread over the threads by cell.
+-  [perf] The compiled percentile bootstrap (``TX90p`` and the other percentile count
+   indices) is 5 to 7 times faster on a full CMIP6 grid, with identical values.
 
-   -  Before: for each in-base year, each of the n-1 replicates selected the percentile
-      of every day of the year from scratch (n x w values, two selections), and the
-      loop over (year, cell) gave the threads contiguous blocks of years, so with a
-      study longer than the base period the threads that received only the cheap
-      out-of-base years stayed idle. The time grew as n\ :sup:`2.6`, nearly all of it
-      in the percentiles (0.15 to 0.4 % in the counting of exceedances).
-   -  Measured on synthetic data (random daily float32 series with a seasonal cycle, an
+   -  Before: for each in-base year, each of the n-1 replicates recomputed a full
+      percentile series (the percentile of every day of the year, selected from n x w
+      values), and the loop over (year, cell) gave the threads contiguous blocks of
+      years, so with a study longer than the base period the threads that received only
+      the cheap out-of-base years stayed idle. The time grew as n\ :sup:`2.6` on
+      synthetic data, nearly all of it in the percentiles (0.15 to 0.4 % in the
+      counting of exceedances). ``TX90p`` yearly on CNRM-CM6-1 ``tasmax`` (base period
+      1961-1990, study period 1961-2014, ``doy_window_width=5``, full grid, 8 threads)
+      took 10,085 s.
+   -  Measured on real data (CNRM-CM6-1 ``tasmax``, ``TX90p``, base period 1961-1990,
+      study period 1961-2014, full grid, 8 threads, Kraken, exclusive node; master at
+      ``baddbefa`` against this change):
+
+      -  yearly, ``doy_window_width=5``: 10,085 s to 1,589 s (6.35x);
+      -  monthly, ``doy_window_width=5``: 11,154 s to 1,617 s (6.90x);
+      -  yearly, ``doy_window_width=1``: 2,986 s to 560 s (5.33x);
+      -  the values are bit for bit identical (0 differing values in the three cases);
+      -  the peak memory is similar (1.84 to 1.93 GiB).
+
+      Measured on synthetic data (random daily float32 series with a seasonal cycle, an
       8 x 8 grid, study period 10 years longer than the base period, 4 core machine,
       ``TX90p``-style yearly count, time of the compiled kernel, old / new):
 
@@ -91,17 +104,21 @@ Unreleased
       The 4 thread figures include the new loop order. Below 8 base years the old
       percentile is kept (no gain), so the first rows differ only by the loop order and
       the noise of the measurement.
-   -  Now: the sample of a day is sorted once per cell and target year; each replicate
-      removes the values of the replaced year, inserts those of the substitute year and
-      looks up the two ranks of the percentile by binary search, with the same
-      interpolation as before. The iterations of the loop are ordered by cell, so that
-      each thread gets in-base and out-of-base years alike. The values are
-      bit for bit identical to the previous kernel (checked on float32 and float64,
-      windows 1 to 15, bases of 2 to 30 years, missing values, and the 360 day, noleap,
-      all leap, standard and proleptic gregorian calendars). Only the yearly count
-      kernel (``TX90p`` and the other percentile count indices) uses the new
-      percentile; the other bootstrap kernels only get the new loop order.
-      ``ICCLIM_BOOTSTRAP_PERCENTILE=reference`` selects the previous count kernel.
+   -  Now: the sample of each day is sorted once per target year and cell. Each
+      replicate removes the values of the replaced year, inserts those of the
+      substitute year and finds the two ranks of the percentile by binary search, with
+      the same interpolation, handling of missing values and rounding as before. The
+      (year, cell) loops run cell by cell, so that each thread gets in-base and
+      out-of-base years alike. The values are bit for bit identical to the previous
+      kernel (checked on float32 and float64, windows 1 to 15, bases of 2 to 30 years,
+      missing values, and the standard, proleptic gregorian, noleap, 360 day and all
+      leap calendars). Below 8 base years the previous per-series percentile is kept
+      (no gain). Only the yearly count kernel (``TX90p`` and the other percentile count
+      indices) uses the new percentile; the other bootstrap kernels only get the new
+      loop order. ``ICCLIM_BOOTSTRAP_PERCENTILE=reference`` selects the previous count
+      kernel.
+   -  Known: with ``only_leap_years`` the compiled path is not used, the computation
+      falls back to another path and is not faster (issue #755).
 
 -  [Fix] In-base years of the percentile count indices are averaged over the bootstrap
    replicates instead of being cast to boolean (issue #753).
