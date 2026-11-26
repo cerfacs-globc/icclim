@@ -10,6 +10,10 @@ on:
   workflow_dispatch:
 
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 permissions:
   contents: write
   pull-requests: write
@@ -84,10 +88,10 @@ jobs:
           title: Report
           badge-title: Coverage
           hide-badge: false
-          hide-report: false
+          hide-report: true
           create-new-comment: false
           hide-comment: false
-          report-only-changed-files: false
+          report-only-changed-files: true
           junitxml-path: ./pytest.xml
           junitxml-title: Test results
       - name: create local ref
