@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import os
 from copy import copy
 from typing import TYPE_CHECKING
 
@@ -123,7 +124,7 @@ def compute_doy_percentile_bootstrap_count(
         study=reference_sample.study,
         threshold=threshold,
     )
-    result = _bootstrap_count_kernel(
+    result = _select_count_kernel()(
         array_inputs.flat_reference_raw,
         array_inputs.flat_reference_filtered,
         array_inputs.flat_study,
@@ -160,6 +161,13 @@ def compute_doy_percentile_bootstrap_count(
     out.attrs[REFERENCE_PERIOD_ID] = reference_sample.climatology_bounds
     del out.attrs["climatology_bounds"]
     return out.assign_coords(percentiles=threshold.percentile_coord().item())
+
+
+def _select_count_kernel():
+    """Return the count kernel (``ICCLIM_BOOTSTRAP_PERCENTILE=reference`` for the old one)."""
+    if os.environ.get("ICCLIM_BOOTSTRAP_PERCENTILE") == "reference":
+        return _bootstrap_count_kernel_reference
+    return _bootstrap_count_kernel
 
 
 def _build_nominal_full_thresholds(
@@ -1318,6 +1326,9 @@ except Exception:  # noqa: BLE001
     prange = range
 
 
+# Below this number of base years the incremental percentile is not faster.
+_MIN_BASE_YEARS_FOR_INCREMENTAL = 8
+
 if njit is not None:
 
     @njit(cache=True)
@@ -1597,7 +1608,154 @@ if njit is not None:
         use_order_stat_thresholds,
         min_threshold,
     ):
-        """Compute yearly bootstrap counts with the compiled order-stat route."""
+        """Compute yearly bootstrap counts.
+
+        The thresholds of the replicates of an in-base year are derived from a
+        sorted copy of the base sample (see ``_build_replicate_threshold_bank``).
+        """
+        n_years = len(year_to_ref)
+        n_groups = len(study_starts)
+        n_cells = flat_study.shape[1]
+        n_ref_years = substitute_aligned.shape[1]
+        max_samples = sample_indices.shape[1]
+        out = np.empty((n_groups, n_cells), dtype=np.float64)
+        overlap_reference = flat_ref_raw
+        # Cell-major order: every block of iterations given to a thread holds
+        # whole cells, hence in-base (costly) and out-of-base (cheap) years alike.
+        for flat_i in prange(n_years * n_cells):
+            cell = flat_i // n_years
+            year_i = flat_i % n_years
+            target_ref_i = year_to_ref[year_i]
+            group_start = year_group_starts[year_i]
+            group_stop = year_group_stops[year_i]
+            if target_ref_i < 0:
+                if (
+                    year_max_doys[year_i] == 366
+                    and flat_nominal_thresholds.shape[0] == 366
+                ):
+                    # Reuse the prepared 366-day threshold field directly for
+                    # non-reference leap years so count comparisons match the
+                    # public threshold workflow exactly.
+                    _write_count_groups_for_cell_with_full_thresholds(
+                        out,
+                        flat_study,
+                        flat_nominal_thresholds,
+                        study_doys,
+                        study_starts,
+                        study_lengths,
+                        group_start,
+                        group_stop,
+                        cell,
+                        op_code,
+                    )
+                    continue
+                thresholds = _build_exact_bootstrap_threshold_series_for_cell(
+                    flat_ref_masked,
+                    sample_indices,
+                    index_year,
+                    index_pos,
+                    substitute_aligned,
+                    -1,
+                    -1,
+                    cell,
+                    max_samples,
+                    quantile,
+                    alpha,
+                    beta,
+                    use_order_stat_thresholds,
+                    min_threshold,
+                )
+                _write_count_groups_for_cell(
+                    out,
+                    flat_study,
+                    thresholds,
+                    study_doys,
+                    study_starts,
+                    study_lengths,
+                    group_start,
+                    group_stop,
+                    cell,
+                    year_max_doys[year_i],
+                    op_code,
+                )
+                continue
+            for group_i in range(group_start, group_stop):
+                out[group_i, cell] = 0.0
+            replicate_thresholds = np.empty(
+                (n_ref_years, sample_indices.shape[0]),
+                dtype=np.float64,
+            )
+            _build_replicate_threshold_bank(
+                overlap_reference,
+                sample_indices,
+                index_year,
+                index_pos,
+                substitute_aligned,
+                target_ref_i,
+                cell,
+                max_samples,
+                quantile,
+                alpha,
+                beta,
+                min_threshold,
+                replicate_thresholds,
+            )
+            substitute_count = 0
+            for substitute_i in range(n_ref_years):
+                if substitute_i == target_ref_i:
+                    continue
+                _accumulate_count_groups_for_cell(
+                    out,
+                    flat_study,
+                    replicate_thresholds[substitute_i],
+                    study_doys,
+                    study_starts,
+                    study_lengths,
+                    group_start,
+                    group_stop,
+                    cell,
+                    year_max_doys[year_i],
+                    op_code,
+                )
+                substitute_count += 1
+            _average_count_groups_for_cell(
+                out,
+                group_start,
+                group_stop,
+                cell,
+                substitute_count,
+            )
+        return out
+
+    @njit(parallel=True, cache=True)
+    def _bootstrap_count_kernel_reference(
+        flat_ref_raw,
+        flat_ref_masked,
+        flat_study,
+        flat_nominal_thresholds,
+        sample_indices,
+        index_year,
+        index_pos,
+        substitute_aligned,
+        study_starts,
+        study_lengths,
+        year_group_starts,
+        year_group_stops,
+        year_max_doys,
+        year_to_ref,
+        study_doys,
+        quantile,
+        alpha,
+        beta,
+        op_code,
+        use_order_stat_thresholds,
+        min_threshold,
+    ):
+        """Reference kernel: one full quantile selection per replicate and day.
+
+        Kept as the escape hatch of ``_bootstrap_count_kernel`` (see
+        ``ICCLIM_BOOTSTRAP_PERCENTILE=reference``): both give identical values.
+        """
         n_years = len(year_to_ref)
         n_groups = len(study_starts)
         n_cells = flat_study.shape[1]
@@ -1857,9 +2015,11 @@ if njit is not None:
         n_cells = flat_study.shape[1]
         out = np.empty((n_groups, n_cells), dtype=np.float64)
         max_samples = sample_indices.shape[1]
+        # Cell-major order: every block of iterations given to a thread holds
+        # whole cells, hence in-base (costly) and out-of-base (cheap) years alike.
         for flat_i in prange(n_years * n_cells):
-            year_i = flat_i // n_cells
-            cell = flat_i % n_cells
+            cell = flat_i // n_years
+            year_i = flat_i % n_years
             target_ref_i = year_to_ref[year_i]
             group_start = year_group_starts[year_i]
             group_stop = year_group_stops[year_i]
@@ -1945,9 +2105,11 @@ if njit is not None:
         n_cells = flat_study.shape[1]
         out = np.empty((n_groups, n_cells), dtype=np.float64)
         max_samples = sample_indices.shape[1]
+        # Cell-major order: every block of iterations given to a thread holds
+        # whole cells, hence in-base (costly) and out-of-base (cheap) years alike.
         for flat_i in prange(n_years * n_cells):
-            year_i = flat_i // n_cells
-            cell = flat_i % n_cells
+            cell = flat_i // n_years
+            year_i = flat_i % n_years
             target_ref_i = year_to_ref[year_i]
             group_start = year_group_starts[year_i]
             group_stop = year_group_stops[year_i]
@@ -2031,9 +2193,11 @@ if njit is not None:
         n_cells = flat_study.shape[1]
         out = np.empty((n_times, n_cells), dtype=np.float32)
         max_samples = sample_indices.shape[1]
+        # Cell-major order: every block of iterations given to a thread holds
+        # whole cells, hence in-base (costly) and out-of-base (cheap) years alike.
         for flat_i in prange(n_years * n_cells):
-            year_i = flat_i // n_cells
-            cell = flat_i % n_cells
+            cell = flat_i // n_years
+            year_i = flat_i % n_years
             target_ref_i = year_to_ref[year_i]
             year_start = study_year_starts[year_i]
             year_length = study_year_lengths[year_i]
@@ -2112,9 +2276,11 @@ if njit is not None:
         n_cells = flat_ref_raw.shape[1]
         out = np.empty((n_times, n_cells), dtype=np.float64)
         max_samples = sample_indices.shape[1]
+        # Cell-major order: every block of iterations given to a thread holds
+        # whole cells, hence in-base (costly) and out-of-base (cheap) years alike.
         for flat_i in prange(n_years * n_cells):
-            year_i = flat_i // n_cells
-            cell = flat_i % n_cells
+            cell = flat_i // n_years
+            year_i = flat_i % n_years
             target_ref_i = year_to_ref[year_i]
             if target_ref_i < 0:
                 thresholds = _build_nominal_daily_thresholds_for_cell(
@@ -2190,9 +2356,11 @@ if njit is not None:
         n_cells = flat_study.shape[1]
         out = np.empty((n_groups, n_cells), dtype=np.float64)
         max_samples = sample_indices.shape[1]
+        # Cell-major order: every block of iterations given to a thread holds
+        # whole cells, hence in-base (costly) and out-of-base (cheap) years alike.
         for flat_i in prange(n_years * n_cells):
-            year_i = flat_i // n_cells
-            cell = flat_i % n_cells
+            cell = flat_i // n_years
+            year_i = flat_i % n_years
             target_ref_i = year_to_ref[year_i]
             group_start = year_group_starts[year_i]
             group_stop = year_group_stops[year_i]
@@ -2278,9 +2446,11 @@ if njit is not None:
         n_cells = flat_study.shape[1]
         out = np.empty((n_groups, n_cells), dtype=np.float64)
         max_samples = sample_indices.shape[1]
+        # Cell-major order: every block of iterations given to a thread holds
+        # whole cells, hence in-base (costly) and out-of-base (cheap) years alike.
         for flat_i in prange(n_years * n_cells):
-            year_i = flat_i // n_cells
-            cell = flat_i % n_cells
+            cell = flat_i // n_years
+            year_i = flat_i % n_years
             target_ref_i = year_to_ref[year_i]
             group_start = year_group_starts[year_i]
             group_stop = year_group_stops[year_i]
@@ -2368,9 +2538,11 @@ if njit is not None:
         out = np.empty((n_groups, n_cells), dtype=np.float64)
         n_ref_years = substitute_aligned.shape[1]
         max_samples = sample_indices.shape[1]
+        # Cell-major order: every block of iterations given to a thread holds
+        # whole cells, hence in-base (costly) and out-of-base (cheap) years alike.
         for flat_i in prange(n_years * n_cells):
-            year_i = flat_i // n_cells
-            cell = flat_i % n_cells
+            cell = flat_i // n_years
+            year_i = flat_i % n_years
             target_ref_i = year_to_ref[year_i]
             group_start = year_group_starts[year_i]
             group_stop = year_group_stops[year_i]
@@ -2488,9 +2660,11 @@ if njit is not None:
         out = np.empty((n_groups, n_cells), dtype=np.float64)
         n_ref_years = substitute_aligned.shape[1]
         max_samples = sample_indices.shape[1]
+        # Cell-major order: every block of iterations given to a thread holds
+        # whole cells, hence in-base (costly) and out-of-base (cheap) years alike.
         for flat_i in prange(n_years * n_cells):
-            year_i = flat_i // n_cells
-            cell = flat_i % n_cells
+            cell = flat_i // n_years
+            year_i = flat_i % n_years
             target_ref_i = year_to_ref[year_i]
             group_start = year_group_starts[year_i]
             group_stop = year_group_stops[year_i]
@@ -2608,9 +2782,11 @@ if njit is not None:
         out = np.empty((n_groups, n_cells), dtype=np.float64)
         n_ref_years = substitute_aligned.shape[1]
         max_samples = sample_indices.shape[1]
+        # Cell-major order: every block of iterations given to a thread holds
+        # whole cells, hence in-base (costly) and out-of-base (cheap) years alike.
         for flat_i in prange(n_years * n_cells):
-            year_i = flat_i // n_cells
-            cell = flat_i % n_cells
+            cell = flat_i // n_years
+            year_i = flat_i % n_years
             target_ref_i = year_to_ref[year_i]
             group_start = year_group_starts[year_i]
             group_stop = year_group_stops[year_i]
@@ -2728,9 +2904,11 @@ if njit is not None:
         out = np.empty((n_groups, n_cells), dtype=np.float64)
         n_ref_years = substitute_aligned.shape[1]
         max_samples = sample_indices.shape[1]
+        # Cell-major order: every block of iterations given to a thread holds
+        # whole cells, hence in-base (costly) and out-of-base (cheap) years alike.
         for flat_i in prange(n_years * n_cells):
-            year_i = flat_i // n_cells
-            cell = flat_i % n_cells
+            cell = flat_i // n_years
+            year_i = flat_i % n_years
             target_ref_i = year_to_ref[year_i]
             group_start = year_group_starts[year_i]
             group_stop = year_group_stops[year_i]
@@ -3364,6 +3542,255 @@ if njit is not None:
             else:
                 converted[day_i] = np.float32(thresholds[day_i])
         return converted
+
+    @njit(cache=True)
+    def _count_less_equal(sorted_values, n, x):
+        """Return how many of the first ``n`` sorted values are ``<= x``."""
+        lo = 0
+        hi = n
+        while lo < hi:
+            mid = (lo + hi) >> 1
+            if sorted_values[mid] <= x:
+                lo = mid + 1
+            else:
+                hi = mid
+        return lo
+
+    @njit(cache=True)
+    def _kth_of_adjusted_sample(
+        base, base_n, removed, removed_pos, removed_n, inserted, inserted_n, k
+    ):
+        """Return the ``k``-th smallest (0 based) value of ``base - removed + inserted``.
+
+        ``base``, ``removed`` and ``inserted`` are sorted and ``removed`` is a
+        sub-multiset of ``base``; ``removed_pos`` holds ascending positions in
+        ``base`` of the removed values (the last positions of each run of equal
+        values). The returned value is an element of the sample, exactly the one a
+        selection on the explicit sample returns.
+        """
+        # Smallest base position whose rank in the adjusted sample is above k. The
+        # rank of ``base[p]`` is the number of kept base positions <= p plus the
+        # number of inserted values <= base[p]; it never decreases with p.
+        lo = 0
+        hi = base_n
+        while lo < hi:
+            mid = (lo + hi) >> 1
+            rank = mid + 1
+            for t in range(removed_n):
+                if removed_pos[t] <= mid:
+                    rank -= 1
+                else:
+                    break
+            rank += _count_less_equal(inserted, inserted_n, base[mid])
+            if rank > k:
+                hi = mid
+            else:
+                lo = mid + 1
+        from_base = base[lo] if lo < base_n else np.inf
+        # Inserted values are candidates too, when smaller.
+        lo = 0
+        hi = inserted_n
+        while lo < hi:
+            mid = (lo + hi) >> 1
+            value = inserted[mid]
+            rank = (
+                _count_less_equal(base, base_n, value)
+                - _count_less_equal(removed, removed_n, value)
+                + _count_less_equal(inserted, inserted_n, value)
+            )
+            if rank > k:
+                hi = mid
+            else:
+                lo = mid + 1
+        from_inserted = inserted[lo] if lo < inserted_n else np.inf
+        return min(from_base, from_inserted)
+
+    @njit(cache=True)
+    def _method8_adjusted_sample_quantile(
+        base,
+        base_n,
+        removed,
+        removed_pos,
+        removed_n,
+        inserted,
+        inserted_n,
+        quantile,
+        alpha,
+        beta,
+    ):
+        """Same interpolation as ``_method8_quantile_select`` on the adjusted sample."""
+        n = base_n - removed_n + inserted_n
+        if n == 0:
+            return np.nan
+        if n == 1:
+            return _kth_of_adjusted_sample(
+                base, base_n, removed, removed_pos, removed_n, inserted, inserted_n, 0
+            )
+        virtual = n * quantile + (alpha + quantile * (1.0 - alpha - beta)) - 1.0
+        if virtual >= n - 1:
+            return _kth_of_adjusted_sample(
+                base,
+                base_n,
+                removed,
+                removed_pos,
+                removed_n,
+                inserted,
+                inserted_n,
+                n - 1,
+            )
+        if virtual < 0:
+            return _kth_of_adjusted_sample(
+                base, base_n, removed, removed_pos, removed_n, inserted, inserted_n, 0
+            )
+        previous = int(np.floor(virtual))
+        gamma = virtual - previous
+        left = _kth_of_adjusted_sample(
+            base,
+            base_n,
+            removed,
+            removed_pos,
+            removed_n,
+            inserted,
+            inserted_n,
+            previous,
+        )
+        right = _kth_of_adjusted_sample(
+            base,
+            base_n,
+            removed,
+            removed_pos,
+            removed_n,
+            inserted,
+            inserted_n,
+            previous + 1,
+        )
+        diff = right - left
+        if gamma >= 0.5:
+            return right - diff * (1.0 - gamma)
+        return left + diff * gamma
+
+    @njit(cache=True)
+    def _insert_sorted(sorted_values, n, value):
+        position = n
+        while position > 0 and sorted_values[position - 1] > value:
+            sorted_values[position] = sorted_values[position - 1]
+            position -= 1
+        sorted_values[position] = value
+
+    @njit(cache=True)
+    def _build_replicate_threshold_bank(  # noqa: C901, PLR0912
+        flat_ref,
+        sample_indices,
+        index_year,
+        index_pos,
+        substitute_aligned,
+        target_ref_i,
+        cell,
+        max_samples,
+        quantile,
+        alpha,
+        beta,
+        min_threshold,
+        bank,
+    ):
+        """Fill ``bank[substitute_i, doy_i]`` for every replicate of a target year.
+
+        Same values as ``_build_bootstrap_threshold_series_for_cell`` called for each
+        substitute year, but the sample of a day is sorted once and each replicate
+        only removes the values of the target year and inserts those of the
+        substitute year before looking up the two ranks of the percentile.
+        """
+        if substitute_aligned.shape[1] < _MIN_BASE_YEARS_FOR_INCREMENTAL:
+            # Too few replicates to pay for the sort of the sample of each day.
+            for substitute_i in range(substitute_aligned.shape[1]):
+                if substitute_i == target_ref_i:
+                    continue
+                bank[substitute_i, :] = _build_bootstrap_threshold_series_for_cell(
+                    flat_ref,
+                    sample_indices,
+                    index_year,
+                    index_pos,
+                    substitute_aligned,
+                    target_ref_i,
+                    substitute_i,
+                    cell,
+                    max_samples,
+                    quantile,
+                    alpha,
+                    beta,
+                    min_threshold,
+                )
+            return
+        base = np.empty(max_samples, dtype=np.float64)
+        removed = np.empty(max_samples, dtype=np.float64)
+        inserted = np.empty(max_samples, dtype=np.float64)
+        removed_refs = np.empty(max_samples, dtype=np.int64)
+        removed_pos = np.empty(max_samples, dtype=np.int64)
+        for doy_i in range(sample_indices.shape[0]):
+            base_n = 0
+            removed_ref_n = 0
+            for sample_i in range(sample_indices.shape[1]):
+                ref_i = sample_indices[doy_i, sample_i]
+                if ref_i < 0:
+                    continue
+                value = flat_ref[ref_i, cell]
+                if not np.isnan(value):
+                    base[base_n] = value
+                    base_n += 1
+                if index_year[ref_i] == target_ref_i:
+                    removed_refs[removed_ref_n] = ref_i
+                    removed_ref_n += 1
+            if base_n > 1:
+                base[:base_n].sort()
+            removed_n = 0
+            for t in range(removed_ref_n):
+                value = flat_ref[removed_refs[t], cell]
+                if not np.isnan(value):
+                    _insert_sorted(removed, removed_n, value)
+                    removed_n += 1
+            # Positions in the sorted base of the removed values: the last
+            # positions of each run of equal values.
+            run_start = 0
+            while run_start < removed_n:
+                run_end = run_start
+                while run_end < removed_n and removed[run_end] == removed[run_start]:
+                    run_end += 1
+                upper = _count_less_equal(base, base_n, removed[run_start])
+                run_length = run_end - run_start
+                for offset in range(run_length):
+                    removed_pos[run_start + offset] = upper - run_length + offset
+                run_start = run_end
+            for substitute_i in range(substitute_aligned.shape[1]):
+                if substitute_i == target_ref_i:
+                    continue
+                inserted_n = 0
+                for t in range(removed_ref_n):
+                    mapped_i = substitute_aligned[
+                        target_ref_i, substitute_i, index_pos[removed_refs[t]]
+                    ]
+                    if mapped_i < 0:
+                        continue
+                    value = flat_ref[mapped_i, cell]
+                    if not np.isnan(value):
+                        _insert_sorted(inserted, inserted_n, value)
+                        inserted_n += 1
+                threshold_value = _method8_adjusted_sample_quantile(
+                    base,
+                    base_n,
+                    removed,
+                    removed_pos,
+                    removed_n,
+                    inserted,
+                    inserted_n,
+                    quantile,
+                    alpha,
+                    beta,
+                )
+                if not np.isnan(min_threshold) and (
+                    np.isnan(threshold_value) or threshold_value <= min_threshold
+                ):
+                    threshold_value = min_threshold
+                bank[substitute_i, doy_i] = threshold_value
 
     @njit(cache=True)
     def _build_exact_bootstrap_threshold_series_for_cell(
@@ -4121,6 +4548,8 @@ else:
 
     def _bootstrap_count_kernel(*args, **kwargs):  # noqa: ARG001
         return None
+
+    _bootstrap_count_kernel_reference = _bootstrap_count_kernel
 
     _bootstrap_count_threshold_bank_kernel = None
 
