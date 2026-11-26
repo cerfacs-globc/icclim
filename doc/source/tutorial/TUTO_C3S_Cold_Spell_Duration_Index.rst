@@ -248,7 +248,7 @@ With our index now calculated, let’s bring the CSDI to life by mapping its mea
                     'label' : 'Mean Cold-Spell Occurrences'
                 })
     # Plot information
-    plt.title('Occurences of cold-spells over Europe (2011-2021)', fontsize = 20)
+    plt.title('Occurences of cold-spells over Europe (1991-2020)', fontsize = 20)
 
     # Add the coastlines to axis and set extent
     ax.coastlines()
@@ -256,23 +256,22 @@ With our index now calculated, let’s bring the CSDI to life by mapping its mea
     ax.set_extent(extent)
 
     # Save plot as png
-    plt.savefig(f'{data_dir}E-OBS_csdi_mean_over_Europe_2011to2021.png')
+    plt.savefig(f'{data_dir}E-OBS_csdi_mean_over_Europe_1991to2020.png')
 
 .. image:: 1991to2020_E-OBS_csdi.png
     :align: center
     :alt: European map of the Cold-Spell Duration Index
 
-As we can notice on our output map, over the period 2011-2021, occurrences of cold-spells is rather steady over Western Europe. Cold-spells mostly happened more often in Denmark, near Black Sea southern coast.
+As we can notice on our output map, over the period 1991-2020, occurrences of cold-spells is rather steady over Western Europe, between 2 to 6 times a year by mean. Cold-spells mostly happened more often in Denmark, near Black Sea southern coast. Regions were cold-spells happen more often can be noticed in the Alps, Turkey and in the Baltic See.
 
 Conclusion
 ==========
-This is how we reach cold-spells lasting xx days on average in Europe for the period xxxx-20xx. To find out this results we first downloaded tasmin data from the CDS of Copernicus Climate Change Services and then we used icclim to easily calculate the CSDI. Finally, we used common python libraries (eg. matplotlib) to achieve further work on the calculated data.
-
+This is how we reach circa 6 cold-spells occurrences  in Europe for the period 1991-2020. To find out this results we first downloaded tasmin data from the CDS of Copernicus Climate Change Services, extract our period of interest and then we used icclim to easily calculate the CSDI. Finally, we used common python libraries (eg. matplotlib) to achieve further work on the calculated data.
 .. note::
     You can find here the libraries versions which were used to run this tutorial.
-    **cdsapi**: 0.7.7
-    **urllib3**: 2.6.3
-    **Zipfile**: tied to python (v 3.14.4)
-    **icclim**: 7.3.5
-    **matplotlib**: 3.10.9
-    **cartopy**: 0.25.0
+    **cdsapi**: 0.7.7 
+    **urllib3**: 2.6.3 
+    **Zipfile**: tied to python (v 3.14.4) 
+    **icclim**: 7.3.5 
+    **matplotlib**: 3.10.9 
+    **cartopy**: 0.25.0 
