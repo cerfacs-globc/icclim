@@ -6,6 +6,49 @@
 Unreleased
 **********
 
+-  [Behaviour change] The reference and the exact percentile bootstrap paths compute the
+   percentiles of the replicates with the circular window of icclim, as the compiled
+   path does (issue #756, first part). The compiled path is unchanged.
+
+   -  Before: icclim computes the nominal percentile of the days of the year, and the
+      percentiles of the compiled and of the eager bootstrap, with a window that wraps
+      around the year boundaries (the window of the first days of the first year
+      includes the last days of the last year of the base period). The reference path
+      (``ICCLIM_BOOTSTRAP_MODE=default``) and the exact path (``safe``) used xclim's
+      bootstrap, which computes the percentiles of the replicates with a window that is
+      truncated at the ends of the base period. The thresholds of the first and of the
+      last ``doy_window_width // 2`` days of the year of the replicates (the first and
+      the last 2 days with the default window of 5 days) therefore differed between the
+      paths, and so did the counts of the in-base years of the compiled path and of the
+      other two (the years outside of the base period were not affected, and a window of
+      1 day neither).
+   -  Measured on synthetic data (random daily float32 series with a seasonal cycle, a
+      3 x 3 grid of points, base period starting in 1961, study period 10 years longer
+      than the base period, 90th percentile, yearly count, master before this change
+      against this change): the thresholds of the replicates change on the first and on
+      the last ``doy_window_width // 2`` days of the year only (the other days change by
+      less than 1e-3 K, the rounding of float32 data). With a window of 5 days they
+      change by up to 0.30 K (5 base years), 0.18 K (10 base years) and 0.13 K (30 base
+      years), by 0.08 K, 0.04 K and 0.01 K on average over those days; with a window of
+      15 days and 10 base years by up to 0.30 K (0.07 K on average over those days). The
+      counts of the in-base years of the reference path change for 4.4 % (5 base years),
+      6.7 % (10 base years) and 1.5 % (30 base years) of the values with a window of 5
+      days, and for 12.2 % (10 base years) with a window of 15 days, by 0.56 day at most;
+      the counts of the years outside of the base period are identical. Before, the
+      counts of the reference path and of the compiled path differed by up to 0.56 day on
+      the in-base years; now they agree to 1e-14. The counts of the compiled path do not
+      change.
+   -  Now: the reference and the exact paths use a copy of xclim's ``percentile_bootstrap``
+      and ``bootstrap_func`` in which the percentiles of the replicates are computed
+      with the circular window of icclim (a copy rather than a change of xclim, which
+      does not allow to choose the percentile function and is shared with the other
+      users of xclim in the process). The compiled, reference, exact and eager paths
+      therefore use the same window for the nominal percentile and for the replicates;
+      the counts of the compiled path and of the reference path agree to 1e-12
+      (relative) and those of the reference path and of the exact path are identical.
+      The in-base values of the reference and of the exact paths change as described
+      above. The seasonal slice modes are not changed by this entry.
+
 -  [perf] The compiled percentile bootstrap (``TX90p`` and the other percentile count
    indices) is 5 to 7 times faster on a full CMIP6 grid, with identical values.
 

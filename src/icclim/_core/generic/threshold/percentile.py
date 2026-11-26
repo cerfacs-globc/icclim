@@ -557,7 +557,9 @@ class PercentileThreshold(Threshold):
         freq: str,
         bootstrap: bool,
     ) -> DataArray:
-        from xclim.core.bootstrapping import percentile_bootstrap  # noqa: PLC0415
+        from icclim._core.generic.threshold.circular_bootstrap import (  # noqa: PLC0415
+            percentile_bootstrap,
+        )
 
         @percentile_bootstrap
         def __per_compute(
