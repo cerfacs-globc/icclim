@@ -2,13 +2,16 @@
 Cold-Spell Duration Index
 *************************
 
+By mean, cold-spells of at least 6 consecutive days happened around 6 times in Europe, between 1990-2021.
+
 About
 =====
+
 In this tutorial, we will show you haw to calculate the :ref:`Cold-Spell Duration Index<csdi>` (CSDI), using data provided by Copernicus Climate Change Service (`C3S`_).
 
 After preparing our environment, we will download the daily minimum temperature data from C3S `Climate Data Store`_, inspect them and use the :mod:`icclim` library to calculate the CSDI. Finally, we will display the CSDI using :mod:`matplotlib` to end up with the following map.
 
-.. image:: E_OBS_csdi_index.png
+.. image:: 1991to2020_E-OBS_csdi.png
     :align: center
     :alt: European map of the Cold-Spell Duration Index
 
@@ -30,6 +33,9 @@ Additionally to :mod:`icclim`, to work the following example, we will need:
     
     # to extract data from archive file
     from zipfile import ZipFile
+
+    # to open NetCDF datasets
+    import xarray as xr
     
     # of course:
     import icclim
@@ -58,7 +64,7 @@ Data download and data call
 ===========================
 Climate Data Store API key set-up
 ---------------------------------
-Since we will work with the minimum temperature data from C3S `Climate Data Store`_ (CDS), we will need first to `log in, or register`_, to the CDS. Once logged in, we retrieve can retrieve the API URL, as well as our CDS API key:
+Since we will work with the minimum temperature data from C3S `Climate Data Store`_ (CDS), we will need first to `log in, or register`_, to the CDS. Once logged in, we can retrieve the API URL, as well as our CDS API key:
 
 .. _log in, or register: https://accounts.ecmwf.int/auth/realms/ecmwf/protocol/openid-connect/auth?client_id=cds&scope=openid%20email&response_type=code&redirect_uri=https%3A%2F%2Fcds.climate.copernicus.eu%2Fapi%2Fauth%2Fcallback%2Fkeycloak&state=nyS6TnhZ00Dp6WUovTTWs3rDWLoAbV0-TsmZjH678L8&code_challenge=y49Rc-vRJVxgVgQ56tWI2dQGIuRBSkQw8EzlE2Zugso&code_challenge_method=S256
 
@@ -86,11 +92,11 @@ Having selected the data set from the search results page, we now need to specif
 
 We select the following parameters to refine our data selection :
 
+* Licence type: **Restricted research licence** (E-OBS licence)
 * Product type: **Ensemble mean**
 * Variable: **Minimum temperature**
-* Grid resolution: **0.1deg** 
-* Period: **2011-2021**
-* Version: **25.0e** (in "All other available versions")
+* Grid resolution: **0.25deg** 
+* Version: **34.0e** 
 
 Then at the bottom of the form appears a code block which we can copy and paste in our script.
 
@@ -103,11 +109,11 @@ Then at the bottom of the form appears a code block which we can copy and paste 
     # API CODE BLOCK
     dataset = "insitu-gridded-observations-europe"
     request = {
+        "licence_type": "restricted_research_licence",
         "product_type": "ensemble_mean",
         "variable": ["minimum_temperature"],
-        "grid_resolution": "0_1deg",
-        "period": "2011_2021",
-        "version": ["25_0e"]
+        "grid_resolution": "0_25deg",
+        "version": ["34_0e"]
         }
 
     client = cdsapi.Client()
@@ -141,15 +147,44 @@ As we just saw, the retrieved data are in a zip format. Before going any further
 
 Parameters definition
 =====================
-Now that we managed to load the data we need, we can prepare our icclim input parameters:
+Now that we managed to load the data we need, we can refine our data set and prepare our icclim input parameter. We will calculate the CSDI for the reference period 1991-2020, as defined by WMO, over Europe.
+
+.. note::
+    More information about the chosen reference can be found on the World Meteorological Organisation website (https://community.wmo.int/site/knowledge-hub/programmes-and-initiatives/climate-services/wmo-climatological-normals), C3S website (https://climate.copernicus.eu/climate-bulletin-about-data-and-analysis)  or on NCEI website (https://www.ncei.noaa.gov/products/wmo-climate-normals).
+
+.. code-block:: python
+
+    # Extract the reference period from the whole dataset
+    # Open the dataset from the filename list 
+    # (we can do it as there is only one NetCDF file)
+    for filename in list_of_file_names:
+        ds = xr.open_dataset(filename)
+
+    ds
+
+We can see that :mod:`ds` time range goes from year 1950 to year 2026. That is why we will rather reduce it to the reference period, which is usually used to compare today’s weather.
+
+.. image:: 2026_11_20_tas_min_screenshot.png
+    :align: center
+    :alt: Jupyter notebook screenshot, tasmin dataset sumup
+
+
+.. code-block::
+
+    year_start_ref = 1991
+    year_end_red = 2020
+    ds_ref = ds.sel(time=slice(f'{year_start_ref}-01-01', f'{year_end_ref}-12-31'))
+
+
+Now, let's prepare our input parameters:
 
 .. code-block:: python
 
     index = 'CSDI'
-    input_f = list_of_file_names
+    input_f = ds_ref
     slice_mode = 'year'
 
-    output_f = f“{data_dir}out_icclim_CSDI_2011_to_2021.nc”
+    output_f = f“{data_dir}out_icclim_CSDI_1991_to_2020.nc”
 
 Calculate the Cold-Spell Duration Index
 =======================================
@@ -167,7 +202,12 @@ Before jumping to the plot section, let’s have a look at the data we just crea
 
     csdi
 
-The created dataset is of :mod:`xarray.Dataset` type. Along with the coordinates (lon, lat, time, bounds), the data variable (CSDI), and indexes (for lon, lat, time, bounds) we can find additional information in Attributes. We will find the long title of the index (LATER CHECK), as well as the reference on the index calculation (European Climate Assessment & Dataset (ECA&D)).
+.. image:: 2026_11_20_CSDI_screenshot.png
+    :align: center
+    :alt: View of the calculated CSDI dataset
+
+
+The created dataset is of :mod:`xarray.Dataset` type. Along with the coordinates (lon, lat, time, bounds), the data variable (CSDI), and indexes (for lon, lat, time, bounds) we can find additional information in Attributes. We will find the long name of the index (LATER CHECK), as well as the reference on the index calculation (European Climate Assessment & Dataset (ECA&D)). Also in the Attributes, we can find information on the conventions used in the index calculation, the path to the provenance file and the command used for the :mod:`icclim` index run.
 
 CSDI Data analysis
 ==================
@@ -218,8 +258,21 @@ With our index now calculated, let’s bring the CSDI to life by mapping its mea
     # Save plot as png
     plt.savefig(f'{data_dir}E-OBS_csdi_mean_over_Europe_2011to2021.png')
 
-.. image:: 2011to2021_E-OBS_csdi.png
+.. image:: 1991to2020_E-OBS_csdi.png
     :align: center
     :alt: European map of the Cold-Spell Duration Index
 
 As we can notice on our output map, over the period 2011-2021, occurrences of cold-spells is rather steady over Western Europe. Cold-spells mostly happened more often in Denmark, near Black Sea southern coast.
+
+Conclusion
+==========
+This is how we reach cold-spells lasting xx days on average in Europe for the period xxxx-20xx. To find out this results we first downloaded tasmin data from the CDS of Copernicus Climate Change Services and then we used icclim to easily calculate the CSDI. Finally, we used common python libraries (eg. matplotlib) to achieve further work on the calculated data.
+
+.. note::
+    You can find here the libraries versions which were used to run this tutorial.
+    **cdsapi**: 0.7.7
+    **urllib3**: 2.6.3
+    **Zipfile**: tied to python (v 3.14.4)
+    **icclim**: 7.3.5
+    **matplotlib**: 3.10.9
+    **cartopy**: 0.25.0
