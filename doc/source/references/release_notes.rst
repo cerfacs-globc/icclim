@@ -17,13 +17,34 @@ Unreleased
       with ``slice_mode="month"`` on the default (compiled) path, and with every slice
       mode when ``ICCLIM_BOOTSTRAP_MODE`` was set to ``default`` or ``safe``.
       ``slice_mode="year"`` on the default path was correct.
-   -  Measured on 7.5.1, on synthetic data (random daily series with a seasonal cycle,
-      base period 1993-1995, one grid cell, ``TX90p`` in days, 1993 / 1994 / 1995):
+   -  Measured on synthetic data (7.5.1; random daily series with a seasonal cycle, base
+      period 1993-1995, one grid cell, ``TX90p`` in days, 1993 / 1994 / 1995):
       43 / 49.5 / 45 with ``slice_mode="year"`` on the default path (the expected
       average); 56 / 69 / 57 with ``slice_mode="year"`` and ``ICCLIM_BOOTSTRAP_MODE``
       set to ``default`` or to ``safe``; and 56 / 69 / 57 for the sum of the 12 months
-      with ``slice_mode="month"`` on the default path. The first affected version is
-      not measured.
+      with ``slice_mode="month"`` on the default path.
+   -  Measured on real data (CNRM-CM6-1 ``tasmax``, ``TX90p``, base period 1961-1990,
+      study period 1961-2014, ``chunks="auto"``; absolute difference in days between
+      the default compiled path and ``ICCLIM_BOOTSTRAP_MODE=safe``):
+
+      -  7.5.1, yearly, full grid, in-base years 1961-1990: maximum 6.45, mean 1.15,
+         99th percentile 3.21. Years outside the base period: identical, except one
+         grid point out of 70,000.
+      -  With the fix, yearly, full grid, in-base years: maximum 1.66, mean 0.0056, 99th
+         percentile 0.14. With ``doy_window_width=1`` on a box of latitude 30-50 N and
+         longitude 0-20 E, the two paths agree to rounding (4e-14 days), for yearly and
+         monthly output. With the default 5 day window a small residual remains (same
+         box, yearly: maximum 0.76 days, mean 0.0023 days, 1.3 % of the values); its
+         cause is not explained.
+      -  Default monthly path, 7.5.1 against the fix, in-base years, full grid: the
+         values change by 0.096 days on average (99th percentile 0.69, maximum 2.34);
+         42 % of the values change. Years outside the base period do not change.
+      -  Run time and memory are not changed by the fix within the measurement noise
+         (compiled, monthly: 2398 s with the fix against 2251 s on 7.5.1; safe,
+         monthly: 16067 s against 14974 s; ``sacct`` MaxRSS 2.7 GiB and 5.6 GiB in both
+         cases).
+
+      The first affected version is not measured.
    -  Now: the fractional exceedance of a single threshold is summed as it is, as in the
       compiled yearly path, for the ``year`` and ``month`` slice modes, whatever the
       value of ``ICCLIM_BOOTSTRAP_MODE`` (up to a fraction of a day around the year
