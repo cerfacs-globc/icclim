@@ -6,6 +6,103 @@
 Unreleased
 **********
 
+-  [perf] The compiled percentile bootstrap derives the percentile of each replicate
+   from a sorted copy of the sample, and its loop is spread over the threads by cell.
+
+   -  Before: for each in-base year, each of the n-1 replicates selected the percentile
+      of every day of the year from scratch (n x w values, two selections), and the
+      loop over (year, cell) gave the threads contiguous blocks of years, so with a
+      study longer than the base period the threads that received only the cheap
+      out-of-base years stayed idle. The time grew as n\ :sup:`2.6`, nearly all of it
+      in the percentiles (0.15 to 0.4 % in the counting of exceedances).
+   -  Measured on synthetic data (random daily float32 series with a seasonal cycle, an
+      8 x 8 grid, study period 10 years longer than the base period, 4 core machine,
+      ``TX90p``-style yearly count, time of the compiled kernel, old / new):
+
+      .. list-table::
+         :header-rows: 1
+
+         * - base years
+           - window
+           - 1 thread (old / new)
+           - 4 threads (old / new)
+           - speed-up (1 / 4 threads)
+         * - 5
+           - 1
+           - 0.09 / 0.08 s
+           - 0.07 / 0.05 s
+           - 1.1x / 1.3x
+         * - 5
+           - 5
+           - 0.39 / 0.48 s
+           - 0.22 / 0.15 s
+           - 0.8x / 1.5x
+         * - 5
+           - 15
+           - 1.09 / 1.17 s
+           - 0.60 / 0.31 s
+           - 0.9x / 1.9x
+         * - 10
+           - 1
+           - 0.64 / 0.38 s
+           - 0.25 / 0.19 s
+           - 1.7x / 1.3x
+         * - 10
+           - 5
+           - 2.50 / 1.79 s
+           - 1.37 / 0.48 s
+           - 1.4x / 2.8x
+         * - 10
+           - 15
+           - 6.85 / 4.47 s
+           - 3.19 / 1.33 s
+           - 1.5x / 2.4x
+         * - 20
+           - 1
+           - 4.42 / 2.01 s
+           - 2.18 / 0.57 s
+           - 2.2x / 3.8x
+         * - 20
+           - 5
+           - 18.55 / 6.91 s
+           - 6.89 / 2.00 s
+           - 2.7x / 3.4x
+         * - 20
+           - 15
+           - 50.00 / 18.87 s
+           - 18.72 / 4.94 s
+           - 2.6x / 3.8x
+         * - 30
+           - 1
+           - 16.42 / 4.07 s
+           - 5.57 / 1.19 s
+           - 4.0x / 4.7x
+         * - 30
+           - 5
+           - 63.32 / 16.03 s
+           - 21.19 / 4.35 s
+           - 4.0x / 4.9x
+         * - 30
+           - 15
+           - 171.43 / 42.48 s
+           - 56.86 / 11.17 s
+           - 4.0x / 5.1x
+
+      The 4 thread figures include the new loop order. Below 8 base years the old
+      percentile is kept (no gain), so the first rows differ only by the loop order and
+      the noise of the measurement.
+   -  Now: the sample of a day is sorted once per cell and target year; each replicate
+      removes the values of the replaced year, inserts those of the substitute year and
+      looks up the two ranks of the percentile by binary search, with the same
+      interpolation as before. The iterations of the loop are ordered by cell, so that
+      each thread gets in-base and out-of-base years alike. The values are
+      bit for bit identical to the previous kernel (checked on float32 and float64,
+      windows 1 to 15, bases of 2 to 30 years, missing values, and the 360 day, noleap,
+      all leap, standard and proleptic gregorian calendars). Only the yearly count
+      kernel (``TX90p`` and the other percentile count indices) uses the new
+      percentile; the other bootstrap kernels only get the new loop order.
+      ``ICCLIM_BOOTSTRAP_PERCENTILE=reference`` selects the previous count kernel.
+
 -  [Fix] In-base years of the percentile count indices are averaged over the bootstrap
    replicates instead of being cast to boolean (issue #753).
 
